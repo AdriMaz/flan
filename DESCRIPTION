@@ -1,0 +1,22 @@
+Package: flanRcpp
+Version: 0.1
+Date: 2016-04-01
+Type: Package
+Title: Fluctuation analysis of mutant cells
+Authors@R: c(person("Adrien","Mazoyer", role =c("aut","cre"),email="adrien.mazoyer@imag.fr"),
+             person("Remy", "Drouillhet", role = "aut", email = "remy.drouillhet@imag.fr"),
+             person("Stephane", "Despreaux", role = "aut", email = "stephane.despreaux@imag.fr"),
+             person("Bernard", "Ycart", role = c("aut", "cre"), email = "bernard.ycart@imag.fr"))
+Author: Adrien Mazoyer, Remy Drouillhet, Stephane Despreaux, and Bernard Ycart
+Maintainer: Adrien Mazoyer  <adrien.mazoyer@imag.fr>
+Description: An example of fluctuation analysis for mutant cells counts.
+License: GPL
+URL: http://www.r-project.org,
+     http://www.ljk-imag.fr/membres/Bernard.Ycart/LD
+BugReports: adrien.mazoyer@imag.fr
+Imports: Rcpp (>= 0.9.10), lbfgsb3
+Depends: R (>= 3.0.0), Rcpp (>= 0.9.10), lbfgsb3
+LinkingTo: Rcpp
+Suggests: testthat
+RcppModules: flan_module
+LazyData: true
