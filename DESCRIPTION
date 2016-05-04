@@ -4,7 +4,7 @@ Date: 2016-04-01
 Type: Package
 Title: Fluctuation analysis of mutant cells
 Authors@R: c(person("Adrien","Mazoyer", role =c("aut","cre"),email="adrien.mazoyer@imag.fr"),
-             person("Remy", "Drouilhet", role = "aut", email = "remy.drouillhet@imag.fr"),
+             person("Remy", "Drouilhet", role = "aut", email = "remy.drouilhet@imag.fr"),
              person("Stephane", "Despreaux", role = "aut", email = "stephane.despreaux@imag.fr"),
              person("Bernard", "Ycart", role = c("aut", "cre"), email = "bernard.ycart@imag.fr"))
 Author: Adrien Mazoyer, Remy Drouilhet, Stephane Despreaux, and Bernard Ycart
