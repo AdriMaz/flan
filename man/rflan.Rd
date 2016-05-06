@@ -61,6 +61,11 @@
      \code{$mc} (mutant counts), and a vector of numeric \code{$fn} (final numbers of cells). 
 }
 
+
+\seealso{
+  \code{link{draw.clone}}
+}
+
 \examples{
 #----------------------- distributions ----------------------------------
 

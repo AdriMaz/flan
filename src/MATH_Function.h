@@ -9,6 +9,8 @@ class MATH_Integration {
 private:
 
   double mReltol;
+  
+  double mSubd;
 
   Function* mIntegrate;
 
@@ -23,8 +25,9 @@ protected:
 public:
 
     MATH_Integration() {};
-    MATH_Integration(List fns, double reltol_){
-      mReltol=reltol_;
+    MATH_Integration(List fns, double reltol, double subd){
+      mReltol=reltol;
+      mSubd=subd;
       mIntegrate=new Function("integrate");
 //       List fns=Environment::global_env().get(".integrands");
       fcts=fns;

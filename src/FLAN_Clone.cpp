@@ -261,6 +261,180 @@ int FLAN_SimClone::splitTimes(double t) {
 }
 
 
+// List FLAN_SimClone::splitTimes_draw(double t){
+//   
+//     std::string name=mDist->getDistName();
+//     std::vector<double> params=mDist->getDistParams();
+//     std::vector<double> paramsN=mDistN->getDistParams();
+// 
+//     // return the clone size
+//     int cloneSize;
+// 
+//     //current generation
+//     int g=0;
+// 
+//     // make a sample of size 1
+//     //division times of current generation
+//     std::vector<double> st (1);
+//     
+//     if(name.compare("exp") == 0) st=as< std::vector<double> >(rexp(1,paramsN[0]));
+//     if(name.compare("dirac") == 0) st=params[0];
+//     if(name.compare("lnorm") == 0) st=as< std::vector<double> >(rlnorm(1,paramsN[0],paramsN[1]));
+//     if(name.compare("gamma") == 0) st=as< std::vector<double> >(rgamma(1,paramsN[0],paramsN[1]));
+// 
+//     // take only the times if before t
+//     // ng is the number of simulated value less than t
+//     // number of alive cells
+//     std::vector<int> ce (1);         // cells of current generation
+//     ce[0]=1;
+//     std::vector<int> mut (1);
+//     mut[0]=0;         //mutants in current generation
+//     int nd=0;         // number of dividing cells
+//     std::vector<double> bd (1);      // birth date of current generation
+//     bd[0]=1;
+//     std::vector<double> de (1); // death date of current generation
+//     de[0]=bd[0]+st[0];
+//     std::vector<int> ord (1);        // location of cells in current generation
+//     ord[0]=1;
+//     std::vector<bool> div (1);
+//     
+//     std::vector<int> CE (1);         // All cells
+//     std::vector<double> MUT (1);           // All mutants
+//     std::vector<double> BD (1);            // All birth dates 
+//     std::vector<double> DE (1);            // All death dates
+//     std::vector<double> ORD (1);            // All locations
+//     
+// 
+//     // If no cells death
+//     if(mDeath<DEATH_EPS_SIM){
+//           div[0]=(de[0]<t)?;
+//     
+// 	  de[0]=(de[0]<t)?de[0]:t; 
+// //       std::cout<<"Initialization..."<<std::endl;
+//       if(st[0]<t) nd=1;
+//       else nd=0;  	// no division before t
+//       
+//       cloneSize=nd;
+//       
+//       CE[0]=ce[0] ; MUT[0]=mut[0] ; BD[0]=bd[0];
+//       DE[0]=de[0] ; ORD[0]=ord[0];
+//       
+//       
+//       
+//       int nActiveAlives=ng;
+//       int i=0,nce;
+//       std::vector<double> stn;
+//       std::vector<double> stm;
+// //       std::cout<<"Main loop"<<std::endl;
+//       while ((nd>0) && (nx<1.e+4)) {
+// 	g++;
+// 	i++;
+// 	
+// 	ce.insert(ce.end(), ce.begin(), ce.end());
+// 	
+// 	for(int i=0;i<ce.size();i++){
+// 	  if(div[i]) ce[i]*=2;
+// 	  if(i>=ce.size()/2) ce[i]++;
+// 	}
+// 	
+// 	
+// 	
+// 	stn.resize(2*ng);
+// 	stm.resize(2*ng);
+// 	if(name.compare("lnorm") == 0) stn=as< std::vector<double> >(rlnorm(2*ng,params[0],params[1]));
+// 	if(name.compare("gamma") == 0) stm=as< std::vector<double> >(rgamma(2*ng,params[0],params[1]));
+// 	
+// 	//  split times of daughters with duplicating split times
+//         for (int i=0;i<ng;i++) {
+//             gtf[2*i]+=st[i];
+//             gtf[2*i+1]+=st[i];
+//         }
+// 
+//         ng*=2;
+//         // keep only values less than t
+//         // daughters that still divide
+//         // keep their split times
+// 	
+// 	nActiveAlives=0;
+// 	st.resize(ng);
+//         for (int i=0;i<ng;i++) {
+//             if (gtf[i]<t) {
+//                 // division at  t of an alive cell
+//                 st[nActiveAlives]=gtf[i];
+//                 nActiveAlives++;
+//             } else {
+//                 // no division before t
+//                 cloneSize++;
+//             }
+//         }
+// //         splitTimesList.insert(splitTimesList.end(), st.begin(), st.end());
+//         // ng is the size of st
+//         //dividing cells in next generation
+//         ng=nActiveAlives;
+//       }
+//     // If cells death with prob mDeath
+//     } else {
+//     
+//       NumericVector u=runif(1,0.,1.);
+//       if((st[0]<t) && (u[0]>mDeath)){
+// // 	splitTimes.add(st[0]);
+//         ng=1;
+//       } else if (st[0]>=t){
+// 	// no division before t
+// 	ng=0;
+// 	cloneSize++;
+//       } else if(u[0] <= mDeath) {
+// 	// the cell dies out
+// 	ng=0;
+//       }
+//       nActiveAlives=ng;
+//       
+//       while ((ng>0) && (ng<1.e+6)) {
+// 	g++;
+// // 	NumericVector gtf;
+// 	gtf.resize(2*ng);
+// 	if(name.compare("lnorm") == 0) gtf=as< std::vector<double> >(rlnorm(2*ng,params[0],params[1]));
+// 	if(name.compare("gamma") == 0) gtf=as< std::vector<double> >(rgamma(2*ng,params[0],params[1]));
+// 	
+// 	//  split times of daughters with duplicating split times
+//         for (int i=0;i<ng;i++) {
+//             gtf[2*i]+=st[i];
+//             gtf[2*i+1]+=st[i];
+//         }
+// 
+//         ng*=2;
+// 	
+// 	u=runif(ng,0.,1.);
+// 	
+// 	nActiveAlives=0;
+// 	st.resize(ng);
+// 	for (int i=0;i<ng;i++) {
+// 
+//             if ((gtf[i]<t) && (u[i]>mDeath)) {
+//                 // division at  t of an alive cell
+//                 st[nActiveAlives]=gtf[i];
+//                 nActiveAlives++;
+//             } else if (gtf[i]>=t) {
+//                 // no division before t
+//                 cloneSize++;
+//             }
+//         }
+//         // append st to spliTimes list
+//         //stack split times
+// //         splitTimesList.append(st);
+// // 	splitTimesList.insert(splitTimesList.end(), st.begin(), st.end());
+// 
+//         // ng is the size of st
+//         //dividing cells in next generation
+//         ng=nActiveAlives;
+//       }
+//   }
+// 
+//     return cloneSize; 
+//   
+// }
+
+
 
   /*//////////////////////////////////////////////////////////////////////////////////////////////
   * FLAN_Clone class for the distribution of a clone size
@@ -320,13 +494,10 @@ NumericVector FLAN_ExponentialClone::computeProbability(int m){
       mIntegrator->setFunctionName("CLONE_PK_WD");
       std::vector<double>::iterator it=P.begin()+1;
       for (int k=1;k<=m1;k++,++it) {
-      
-  //           std::cout<<"k ="<<k<<std::endl;  
-	    I=mIntegrator->integralFunction(0.,k,mFitness,d1,k);
-  // 	  std::cout<<"I ="<<I<<std::endl;  
-	    *it=I*d2*mFitness*pow(k,-mFitness-1.);
-  // 	  std::cout<<"P[k] ="<<*it<<std::endl;  
-  // 	  P[k]=I*d2*mFitness*pow(k,-mFitness-1.);
+// 	    I=mIntegrator->integralFunction(0.,k,mFitness,d1,k);
+// 	    *it=I*d2*mFitness*pow(k,-mFitness-1.);
+	    I=mIntegrator->integralFunction(0.,1,mFitness,d1,k);
+	    *it=I*d2*mFitness;
       }
 
       // equivalent computation
@@ -398,13 +569,16 @@ List FLAN_ExponentialClone::computeProbability1DerivativeRho(int m){
     std::vector<double>::iterator itdP=dP_dr.begin()+1 ;
     for (int k=1;k<=m1;k++,++itP,++itdP) {
 	mIntegrator->setFunctionName("CLONE_PK_WD");
-	I=mIntegrator->integralFunction(0.,k,mFitness,d1,k);
-	*itP=I*d2*mFitness*pow(k,-mFitness-1.);
+// 	I=mIntegrator->integralFunction(0.,k,mFitness,d1,k);
+// 	*itP=I*d2*mFitness*pow(k,-mFitness-1.);
+	I=mIntegrator->integralFunction(0.,1,mFitness,d1,k);
+	*itP=I*d2*mFitness;
 	
 	mIntegrator->setFunctionName("CLONE_dPK_dr_WD");
-        I=mIntegrator->integralFunction(0.,k,mFitness,d1,k);
-        *itdP=(*itP)/mFitness+I*d2*mFitness*pow(k,-mFitness-1.);
-// 	*it=pk/mFitness+I*d2*mFitness*pow(k,-mFitness-1.);
+//         I=mIntegrator->integralFunction(0.,k,mFitness,d1,k);
+//         *itdP=(*itP)/mFitness+I*d2*mFitness*pow(k,-mFitness-1.);
+	I=mIntegrator->integralFunction(0.,1,mFitness,d1,k);
+        *itdP=(*itP)/mFitness+I*d2*mFitness;
     }
 
     // equivalent computation
@@ -432,26 +606,33 @@ List FLAN_ExponentialClone::computeProbability1DerivativeRho(int m){
 }
 
 
-double FLAN_ExponentialClone::computeGeneratingFunction2(double rho,double z){
+std::vector<double> FLAN_ExponentialClone::computeGeneratingFunction2(double rho,std::vector<double> Z){
   
   double eps =1e-8;
   
-  if(fabs(z) <= eps) return 0.;
-  else if(fabs(1-z) <= eps) return 1.;
-  else {
-    double dstar,zstar,I,h;
-    
-    dstar=mDeath/(1-mDeath);
-    zstar=(z-dstar)/(1-z);
-    
-    mIntegrator->setFunctionName("CLONE_PGF");
-    I=mIntegrator->integralFunction(0.,1.,rho,zstar,0);
-    
-    h=dstar+I*zstar*(1-dstar)*rho;
-    
-    return h;
+  std::vector<double> H(Z.size());
+  std::vector<double> itH=H.begin();
+  
+  for (std::vector<double>::iterator itZ = Z.begin() ; itZ != Z.end() ; ++itZ, ++itH){
+    if(fabs(*itZ) <= eps) return 0.;
+    else if(fabs(1-(*itZ)) <= eps) return 1.;
+    else {
+      double dstar,zstar,I,h;
+      
+      dstar=mDeath/(1-mDeath);
+      zstar=((*itZ)-dstar)/(1-(*itZ));
+      
+      mIntegrator->setFunctionName("CLONE_PGF");
+      I=mIntegrator->integralFunction(0.,1.,rho,zstar,0);
+      
+      *itH=dstar+I*zstar*(1-dstar)*rho;
+      
+
+    }
   }
   
+  return H;
+    
 }
 
 
@@ -704,45 +885,51 @@ List FLAN_DiracClone::computeProbability1DerivativeRho(int m){
 }
 
 
-double FLAN_DiracClone::computeGeneratingFunction2(double rho,double z){
+std::vector<double> FLAN_DiracClone::computeGeneratingFunction2(double rho,std::vector<double> Z){
 
+  
+    std::vector<double> H (Z.size());
+    std::vector<double>::iterator itH=H.begin();
     double eps=1.e-8;
 
-    // z=0 return 0
-    if (fabs(z)<eps) return 0;
+    for(std::vector<double>::iterator itZ=Z.begin() ; itZ != Z.end() ; ++itZ, ++itH){
+      // z=0 return 0
+      if (fabs((*itZ))<eps) return 0;
 
-    // z=1 return 1
-    if (fabs(1-z)<eps) return 1;
+      // z=1 return 1
+      if (fabs(1-(*itZ))<eps) return 1;
 
-    // otherwize
-    double s=0;
-    if (mDeath<DEATH_EPS_DIST) {
-	double a=pow(2,-rho);
-        int n=floor(4-log(fabs(log(z)))/log(2))+1;
-// 	n++;
+      // otherwize
+      double s=0;
+      if (mDeath<DEATH_EPS_DIST) {
+	  double a=pow(2,-rho);
+	  int n=floor(4-log(fabs(log((*itZ))))/log(2))+1;
+  // 	n++;
 
-        for (int k=0;k<=n;k++) {
-            s+=pow(z,pow(2,k))*pow(a,k);
-        }
-        s*=(1-a);
-    } else {
-        double a=log(2*(1-mDeath));
-        double dstar=mDeath/(1-mDeath);
-        int n=floor(-log(eps)/(rho*a))+1;
-        double tp=exp(-rho*a);
-        double tpi=1;
-        double bi=z;
-        s=z;
-        for (int i=1;i<=n;i++) {
-            bi=mDeath+(1-mDeath)*bi*bi;
-            tpi*=tp;
-            s+=tpi*bi;
-        }
-        s*=(1-tp);
-        s+=dstar*tpi*tp;
+	  for (int k=0;k<=n;k++) {
+	      s+=pow((*itZ),pow(2,k))*pow(a,k);
+	  }
+	  s*=(1-a);
+      } else {
+	  double a=log(2*(1-mDeath));
+	  double dstar=mDeath/(1-mDeath);
+	  int n=floor(-log(eps)/(rho*a))+1;
+	  double tp=exp(-rho*a);
+	  double tpi=1;
+	  double bi=(*itZ);
+	  s=(*itZ);
+	  for (int i=1;i<=n;i++) {
+	      bi=mDeath+(1-mDeath)*bi*bi;
+	      tpi*=tp;
+	      s+=tpi*bi;
+	  }
+	  s*=(1-tp);
+	  s+=dstar*tpi*tp;
+      }
+      *itH=s;
     }
-
-    return s;
+    
+  return H;
 
 }
 //

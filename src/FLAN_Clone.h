@@ -115,6 +115,7 @@ private:
     double mFitness;
     double mDeath;
     FLAN_Dist *mDist;   // Lifetime distribution
+    FLAN_Dist *mDistN;  // Lifetime distribution for normal cells (drawing function)
 
 protected:
   static const double DEATH_EPS_SIM;     // Threshold for death
@@ -130,6 +131,17 @@ public:
       mDeath=death;
       
       mDist= new FLAN_Dist(dist);
+//       mDist->adjustGrowthRate(mDeath);
+
+    };
+    
+    FLAN_SimClone(double rho,double death, List distn, List distm){
+
+      mFitness=rho;
+      mDeath=death;
+      
+      mDist= new FLAN_Dist(distm);
+      mDistN= new FLAN_Dist(distn);
 //       mDist->adjustGrowthRate(mDeath);
 
     };
@@ -149,6 +161,8 @@ public:
     NumericVector computeSample(int n);
     
     int splitTimes(double t);
+    
+//     List splitTimes_draw(double t);
 
 };
 
@@ -247,10 +261,12 @@ public:
 //     double solveGeneratingFunction(double y, double z1,double z2);
     
     virtual double computeGeneratingFunction(double z) {
-      return computeGeneratingFunction2(mFitness,z);
+      std::vector<double> Z (1);
+      Z[0]=z;
+      return computeGeneratingFunction2(mFitness,Z)[0];
     };
     
-    virtual double computeGeneratingFunction2(double rho,double z) = 0;
+    virtual std::vector<double> computeGeneratingFunction2(double rho,std::vector<double> Z) = 0;
     
     virtual double computeGeneratingFunction1DerivativeRho(double z) = 0;
 
@@ -278,10 +294,11 @@ class FLAN_ExponentialClone : public FLAN_Clone {
 
     void init() {
       double flantol=Environment::global_env()[".flantol"];
+      double flansubd=Environment::global_env()[".flansubd"];
       List fns=Environment::global_env().get(".integrands");
 
 //       std::cout<<"Size ="<<integrands.size()<<std::endl;
-      mIntegrator=new MATH_Integration(fns,flantol);
+      mIntegrator=new MATH_Integration(fns,flantol,flansubd);
     }
 
   public:
@@ -312,7 +329,7 @@ class FLAN_ExponentialClone : public FLAN_Clone {
 
 //     double computeGeneratingFunction(double z)  ;
     
-    double computeGeneratingFunction2(double rho,double z);
+    std::vector<double> computeGeneratingFunction2(double rho,std::vector<double> Z);
 
     double computeGeneratingFunction1DerivativeRho(double z)  ;
 
@@ -358,7 +375,7 @@ public:
 
 //     double computeGeneratingFunction(double z)  ;
     
-    double computeGeneratingFunction2(double rho,double z);
+    std::vector<double> computeGeneratingFunction2(double rho,std::vector<double> Z);
 
     double computeGeneratingFunction1DerivativeRho(double z)  ;
 

@@ -9,13 +9,13 @@ using namespace Rcpp;
 double MATH_Integration::testintegralFunction(double a, double b,double rho,double delta) {
   std::string name="CLONE_P0_WD";
   setFunctionName(name);
-  List res=(*mIntegrate)(*mIntegrand, a, b, _["rel.tol"] = mReltol,_["rho"] =rho,_["delta"] =delta);
+  List res=(*mIntegrate)(*mIntegrand, a, b, _["rel.tol"] = mReltol,_["subdivisions"] = mSubd,_["rho"] =rho,_["delta"] =delta);
   double integ=as<double>(res["value"]);
   std::cout<<integ<<std::endl;
 
   name="CLONE_dP0_dr_WD";
   setFunctionName(name);
-  res=(*mIntegrate)(*mIntegrand, a, b, _["rel.tol"] = mReltol,_["rho"] =rho,_["delta"] =delta);
+  res=(*mIntegrate)(*mIntegrand, a, b, _["rel.tol"] = mReltol,_["subdivisions"] = mSubd,_["rho"] =rho,_["delta"] =delta);
   integ=as<double>(res["value"]);
 
   return integ;
@@ -25,8 +25,8 @@ double MATH_Integration::testintegralFunction(double a, double b,double rho,doub
 double MATH_Integration::integralFunction(double a, double b,double rho,double delta,double k) {
 
   List res;
-  if(k > 0) res=(*mIntegrate)(*mIntegrand, a, b, _["rel.tol"] = mReltol,_["rho"] =rho,_["delta"] =delta,_["k"]=k);   
-  else res=(*mIntegrate)(*mIntegrand, a, b, _["rel.tol"] = mReltol,_["rho"] =rho,_["delta"] =delta);
+  if(k > 0) res=(*mIntegrate)(*mIntegrand, a, b, _["rel.tol"] = mReltol,_["subdivisions"] = mSubd,_["rho"] =rho,_["delta"] =delta,_["k"]=k);   
+  else res=(*mIntegrate)(*mIntegrand, a, b, _["rel.tol"] = mReltol,_["subdivisions"] = mSubd,_["rho"] =rho,_["delta"] =delta);
   double integ=as<double>(res["value"]);
 //   double integ=res["value"];
   return integ;

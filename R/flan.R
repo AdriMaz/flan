@@ -518,7 +518,7 @@ rflan <- function(n,mutations=1,mutprob=NULL,fitness=1,death=0,
 			#   )
 		  # )
 
-    if(dist$name == "lnorm" | dist$name == "gamma")  dist <- adjust.rate(dist,death)
+    if(dist$name == "lnorm" | dist$name == "gamma")  dist <- adjust.rate(dist,1,death)
     flan.sim <- new(FlanSim,list(
       mutations=mutations,
       fitness=fitness,
@@ -571,23 +571,23 @@ qflan <- function(p,mutations=1,fitness=1,death=0,model=c("LD","H"),lower.tail=T
   m <- 100
   P <- pflan(0:m,mutations,fitness,death,model,lower.tail)
   sapply(p,function(pp){
-    if(pp == 1) return(Inf)
-    if (lower.tail & pp <= P[1]) return(0)
-    if (!lower.tail & pp >= P[1]) return(0)
+    if(pp == 1) Inf
+    if (lower.tail & pp <= P[1]) 0
+    if (!lower.tail & pp >= P[1]) 0
     else {
       k <- if(lower.tail) max(which(P<pp)) else max(which(P>pp))          # quantile if in the actual table
       while (k>=m){                   # if p not yet in the table
 	m2 <- 2*m                       # double the table
 	P2 <- pflan(m:m2,mutations,fitness,death,model,lower.tail)      # truncated distribution function
-	if (lower.tail & pp <= P2[1]) return(k)
-	if (!lower.tail & pp >= P2[1]) return(k)
+	if (lower.tail & pp <= P2[1]) k
+	if (!lower.tail & pp >= P2[1]) k
 	else {
 	  k <- k-1+if(lower.tail) max(which(P2<pp)) else max(which(P2>pp))           # quantile if in the table
 	  m <- m2
 	}
       }                              # end while
     }                                  # end if
-    return(k)
+    k
   })
 
 }
@@ -683,20 +683,28 @@ dflan <- function(m,mutations=1,fitness=1,death=0,model=c("LD","H")){
 
 
 ## Sampling
-adjust.rate <- function(dist,delta=0){
+adjust.rate <- function(dist,fitness=1,death=0){
 #   rescales the parameter(s) of distribution dist to unit growh rate.
 #   The distribution is given and returned as a list of a character chain 
 #   followed by the list of parameters. 
 
   adist <- dist				# adjusted distribution
-  m <- 2*(1-delta)			# mean offspring number
+  m <- 2*(1-death)			# mean offspring number
   switch(dist[[1]],
+    dirac={                              # Dirac distribution
+	adist$location <- log(m)/fitness      # new location parameter
+	return(adist)
+	  },                              # end Dirac distribution
+    exp={                                # Exponential distribution
+	adist$rate <- fitness/(m-1)
+	return(adist)
+	  },   
     gamma={				# Gamma distribution
       a <- dist$shape			# according to the shape parameter
-      adist$scale <- (m^(1/a)-1)	# adjust scale parameter 
+      adist$scale <- (m^(1/a)-1)/fitness	# adjust scale parameter 
     },
     lnorm={					# Log-normal distribution
-#       s <- growth.rate(dist,delta)		# according to the rate
+#       s <- growth.rate(dist,death)		# according to the rate
       a <- dist$sdlog
       l <- dist$meanlog
       lap <- function(s){               # Laplace transform
@@ -707,14 +715,14 @@ adjust.rate <- function(dist,delta=0){
 	
 	I <- I$value                      # get the value
   	I <- I/sqrt(pi)			# rescale
-        return(I-1/m)                     # return shifted Laplace transform
+        I-1/m                     # return shifted Laplace transform
       }
       lwb <- 1                          # lower bound of search interval
       while(lap(lwb)<0){lwb<-lwb/2}     # adjust lower bound
       upb <- 1                          # upperbound of search interval
       while(lap(upb)>0){upb<-upb+1}     # adjust upperbound
       s <- uniroot(lap,c(lwb,upb))$root       # find root of lap 
-      adist$meanlog <- log(s)+adist$meanlog	# adjust scale parameter 
+      adist$meanlog <- log(s/fitness)+adist$meanlog	# adjust scale parameter 
      
     }
   )
@@ -748,8 +756,8 @@ MutationMLOptimization <- function(mc,mfn=NULL,cvfn=NULL,model=c("LD","H"),fitne
 #   a.est <- 1
   a.est <- MutationGFEstimation(mc,fitness=fitness,death=death,model=model)$mutations
   
-  lower = 0.05*a.est
-  upper = 20*a.est
+  lower = 0.1*a.est
+  upper = 10*a.est
   
   a.est <- lbfgsb3(prm=a.est,fn=ll,gr=dll,lower = lower,upper=upper,control=list(trace=0,iprint=-1))$prm
 #   a.est <- optimx(par=a.est,fn=ll,gr=dll,lower = lower,upper=upper)$par_1
@@ -803,8 +811,7 @@ MutationProbabilityMLOptimization <- function(mc,fn,model=c("LD","H"),fitness=1,
   dll <- function(pm){
     res <- mapply(function(x,y){
       y <- y/mfn
-      p<-deduce.dflanda(mc,pm*y,fitness,death,model,clone=dC)
-      
+      p<-deduce.dflanda(x,pm*y,fitness,death,model,clone=dC)
       p$dQ_da*y/p$Q
     },mc,fn)
     -sum(res)
@@ -813,8 +820,8 @@ MutationProbabilityMLOptimization <- function(mc,fn,model=c("LD","H"),fitness=1,
   pm.est <- MutationGFEstimation(mc,mfn=mfn,cvfn=cvfn,fitness=fitness,death=death,model=model)$mutprob*mfn
   
   
-  lower = 0.05*pm.est
-  upper = 20*pm.est
+  lower = 0.1*pm.est
+  upper = 10*pm.est
   
   pm.est <- lbfgsb3(prm=pm.est,fn=ll,gr=dll,lower = lower,upper=upper,control=list(trace=0,iprint=-1))$prm/mfn
 #   pm.est <- optimx(par=pm.est,fn=ll,gr=dll,lower = lower,upper=upper)$ar_1/mfn
@@ -850,9 +857,8 @@ MutationFitnessMLOptimization <- function(mc,mfn=NULL,cvfn=NULL,model=c("LD","H"
     a = param[1]
     r = param[2]
     p <- dflan.grad(mc,a,r,death,model,dalpha=TRUE,drho=TRUE)
-    
-    res <- cbind(p$dQ_da,p$dQ_dr)/p$Q
-    -apply(res,2,sum)
+    res <- rbind(p$dQ_da,p$dQ_dr)/p$Q
+    -apply(res,1,sum)
   }
   
   
@@ -860,8 +866,8 @@ MutationFitnessMLOptimization <- function(mc,mfn=NULL,cvfn=NULL,model=c("LD","H"
   if(!est$succeeds) warning("Initialization of 'fitness' with 'GF'-method has failed.")
   a.est <- est$mutations ; r.est <- est$fitness
   
-  lower = 0.05*c(a.est,r.est)
-  upper = 20*c(a.est,r.est)
+  lower = 0.1*c(a.est,r.est)
+  upper = 10*c(a.est,r.est)
   
   est <- lbfgsb3(prm=c(a.est,r.est),fn=ll,gr=dll,lower = lower,upper=upper,control=list(trace=0,iprint=-1))$prm
 #   est <- optimx(par=c(a.est,r.est),fn=ll,gr=dll,lower = lower,upper=upper,method="L-BFGS-B")  
@@ -887,12 +893,12 @@ MutationFitnessMLOptimization <- function(mc,mfn=NULL,cvfn=NULL,model=c("LD","H"
       z4=.tunings$z4
       Mutmodel <- new(FlanMutMod,list(
 		mutations=a.est,
-		fitness=fitness,
+		fitness=r.est,
 		death=death,
 		model=model,
 		lt=TRUE
 	      ))
-      pm.est <- unbias.mutprob(sda,z4,mfn,cvfn)
+      pm.est <- Mutmodel$unbias.mutprob(sda,z4,mfn,cvfn)
     } else pm.est <- list(mutprob=a.est/mfn,sd.mutprob=sda/mfn)
     
     c(pm.est,fitness=r.est,sd.fitness=sdr)
@@ -915,8 +921,7 @@ MutationProbabilityFitnessMLOptimization <- function(mc,fn,model=c("LD","H"),dea
     r <- param[2]
     p <- mapply(function(x,y){
       y <- y/mfn
-#       log(dflan(x,pm*y,r,death,model))
-      dflan(x,pm*y,r,death,model)
+      log(dflan(x,pm*y,r,death,model))
     },mc,fn)
     -sum(p)
   }
@@ -927,19 +932,22 @@ MutationProbabilityFitnessMLOptimization <- function(mc,fn,model=c("LD","H"),dea
     r = param[2]
     res <- mapply(function(x,y){
       y <- y/mfn
-      p<-dflan.grad(mc,pm*y,r,death,model,dalpha=TRUE,drho=FALSE)
-      p$dQ_da*y/p$Q
+      p<-dflan.grad(x,pm*y,r,death,model,dalpha=TRUE,drho=TRUE)
+      rbind(p$dQ_da*y,p$dQ_dr)/p$Q
     },mc,fn)
     -apply(res,1,sum)
   }
   
   est <- MutationFitnessGFEstimation(mc,mfn=mfn,cvfn=cvfn,death=death,model=model)
-  if(!est$succeeds) warning("Initialization of 'fitness' with 'GF'-method has failed.")
+  if(!est$succeeds){
+    warning("Initialization of 'fitness' with 'GF'-method has failed.")
+    
+  }
   pm.est <- est$mutprob*mfn ; r.est <- est$fitness
   
   
-  lower = 0.05*c(pm.est,r.est)
-  upper = 20*c(pm.est,r.est)
+  lower = 0.1*c(pm.est,r.est)
+  upper = 10*c(pm.est,r.est)
   
   est <- lbfgsb3(prm=c(pm.est,r.est),fn=ll,gr=dll,lower = lower,upper=upper,control=list(trace=0,iprint=-1))$prm
   
@@ -1102,8 +1110,8 @@ FitnessP0Optimization <- function(mc,fn=NULL,model=c("LD","H"),mut,death=0,winso
   if(!r.est$succeeds) warning("Initialization of 'fitness' with 'GF'-method has failed.")
   r.est <- r.est$fitness
   
-  lower = 0.05*r.est
-  upper = 20*r.est
+  lower = 0.1*r.est
+  upper = 10*r.est
   
   r.est <- lbfgsb3(prm=r.est,fn=ll,gr=dll,lower = lower,upper=upper,control=list(trace=0,iprint=-1))$prm
   
@@ -1159,7 +1167,10 @@ FitnessGFEstimation <- function(mc,death=0,model=c("LD","H")){
   if(model == "LD") clone=new(FlanExpClone,death)
   if(model == "H") clone=new(FlanDirClone,death)
   
-  f <- function(r){((1-clone$pgf(r,z1))/(1-clone$pgf(r,z2)))-y}
+  f <- function(r){
+    PGF <- clone$pgf2(r,c(z1,z2))
+    ((1-PGF[1])/(1-PGF[2]))-y
+  }
 		  
   binf <- 0.01
   bsup <- 100
@@ -1375,7 +1386,7 @@ flantest <- function(Tstat,parameter,estimate,p.value,conf.int,estimates,null.va
   obj <- list(Tstat=Tstat,estimate=estimate,parameter=parameter,conf.int=conf.int,p.value=p.value,
   null.value=null.value,alternative=alternative,data.name=data.name,model=model,method=method,nsamples=nsamples)
   class(obj) <- "flantest"
-  return(obj)
+  obj
 }
 
 # Print function for flantest objects, inspired from print function for htest objects
@@ -1569,3 +1580,207 @@ print.flantest <- function(object){
     cat("\n")
   }    
 }
+
+
+draw.clone <- function(t,mutprob=1e-2,fitness=1,dist=list("lnorm",meanlog=-0.3795851,sdlog=0.3016223),death=0){
+  #   Simulates a clone up to time t, represents the clone, and
+  #   returns the vector of split times.
+  #   At each division, the probability of having a mutant is mutprob.
+  #   Variable death is the probability of death of a cell. 
+  #   The division times of have distribution dist, normalized
+  #   to unit growth rate for mutant, to fitness for normal cells.
+  #   The distribution dist is given as a list of a character chain 
+  #   followed by the list of parameters. 
+  #
+  #   usage: draw.clone(5)
+  #          draw.clone(t=9,fitness=0.5,death=0.1)
+  #          draw.clone(t=3,mutprob=0.1,fitness=2,dist=dexp,death=0.2)
+  #
+  
+  
+    names(dist)[1] <- "name"
+    if(dist$name == "exp"){
+      names(dist)[2] <- "rate"
+    } else if(dist$name == "dirac"){
+      names(dist)[2] <- "location"
+    } else if(dist$name == "lnorm"){
+      names(dist)[2] <- "meanlog"
+      names(dist)[3] <- "sdlog"
+    } else if(dist$name == "gamma"){
+      names(dist)[2] <- "shape"
+      names(dist)[3] <- "scale"
+    } else stop("'dist[[1]]' must be a character chain among 'exp', 'dirac', 'lnorm', 'gamma'")
+
+    
+		    # initialization
+  p <- mutprob                            # mutation probability
+  distn <- adjust.rate(dist,fitness=fitness,death=death)      # division times of normal cells
+  distm <- adjust.rate(dist,fitness=1,death=death)            # division times of mutants
+  g <- 0                                  # current generation
+  ce <- 1                                 # cells of current generation
+  mu <- FALSE                                 # mutants in current generation
+  bd <- 0                                 # birth dates of current generation
+  dt <- rdt(1,distn)                      # life times of current generation
+  de <- bd+dt                             # death dates of current generation
+  or <- 1                                 # location of cells in current generation
+  div <- {which((de<t)&                   # indices of cells dead before t
+	      (runif(length(de))>death))} # that will divide
+  de <- min(de,t)                         # truncate death dates
+  nd <- length(div)                       # number of dividing cells
+  nc <- nd                                # total number of cells
+  CE <- ce                                # all cells
+  MU <- mu                                # all mutants
+  BD <- bd                                # all birth dates
+  DE <- de                                # all death dates
+  OR <- or                                # all locations
+		    # main loop
+  while((nd>0)&&(nc<1e+4)){               # while divisions still happen  
+      g <- g+1                            # next generation
+      ce <- 2*ce[div]; ce <- c(ce,ce+1)   # cells in next generation
+	  mu <- mu[div]                   # mutants that divide
+	  mu1 <- {sample(c(TRUE,FALSE),length(div),                      
+	      replace=TRUE,prob=c(p,1-p))}# new mutants in next generation
+  # 	if (){mu1}
+	  mu1 <- mu|mu1                   # mutants in next generation
+	  mu <- c(mu1,mu)                 # all mutants in next generation
+      nd <- nd*2                          # double the number of cells
+      bd <- c(de[div],de[div])            # birth dates of daughters
+	  imu <- which(mu)                # indices of mutants
+	  nmu <- length(imu)              # number of mutants
+	  ino <- which(!mu)               # indices of normal cells
+	  nno <- length(ino)              # number of normal cells
+      dtmu <- rdt(nmu,distm)              # division times of mutants
+      dtno <- rdt(nno,distn)              # division times of normal cells
+	  dt <- rep(0,nd)                 # division times of daughters
+      dt[imu] <- dtmu                     # insert division times of mutants
+	  dt[ino] <- dtno                 # insert division times of normal cells
+      de <- bd+dt                         # death dates of daughters
+      or<-c(or[div]-2^(-g),or[div]+2^(-g))# location of daughters 
+      div <- {which((de<t)&               # indices of cells dead before t
+	      (runif(length(de))>death))} # that will divide
+      de <- mapply(min,de,rep(t,nd))      # truncate death dates
+      nd <- length(div)                   # number of dividing daughters
+      nc <- nc+nd                         # total number of cells
+      CE <- c(CE,ce)                      # stack new cells
+      MU <- c(MU,mu)                      # stack mutants
+      BD <- c(BD,bd)                      # stack birth dates
+      DE <- c(DE,de)                      # stack death dates
+      OR <- c(OR,or)                      # stack locations
+  }                                       # end while
+  if (nc > 1e+4){
+    warning("too many cells to plot")
+    }else{
+		    # treatment for graphics
+  if(mutprob == 0){colnor <- "green4"}
+  else{
+  colnor <- "green4"                      # color for normal cells
+  colmut <- "orangered"                   # color for mutants
+  }
+  nc <- length(CE)                        # number of cells
+  if (nc>1){                              # something to plot
+  OR <- sort(OR,index.return=TRUE)$ix     # order for plotting
+  CE <- CE[OR]                            # reorder cells
+  MU <- MU[OR]                            # reorder mutants
+  BD <- BD[OR]                            # reorder births
+  DE <- DE[OR]                            # reorder deaths
+  nmu <- length(which(MU))                # number of mutants
+  nno <- nc - nmu                         # number of normal
+  BDN <- BD[!MU]                          # births of normal
+  DEN <- DE[!MU]                          # deaths of normal
+  XN <- rbind(which(!MU),which(!MU))      # abscissas for vertical lines normal
+  YN <- rbind(BDN,DEN)                    # ordinates for vertical lines normal
+  nlc <- nc - length(which(DE<t))         # living cells at time t
+  nlm <- nmu - length(which((DE<t)&MU))   # living mutants at time t
+  para <- {substitute(list(               # list of parameters
+	  "mutation probability" == t1, fitness == t2, death==t3,
+	  cells == t4, mutants ==t5),    # names
+	  list(t1=p,t2=fitness,t3=death,
+	  t4=nlc,t5=nlm))}               # values
+#   if(!Lab){para = NULL}
+  name <- switch(dist[[1]],               # distribution of division times
+	  dirac="constant lifetimes",
+	  exp="exponential lifetimes",
+	  gamma="gamma lifetimes",
+	  lnorm="log-normal lifetimes")
+  {matplot(XN,YN,                         # plot vertical lines
+	  main=para,                     # add title
+	  xlim=c(1,nc),             
+	  ylim = c(t,0),                 # reverse y axis
+	  type="l",col=colnor,           # color for normal
+	  lty=rep(1,nno),                # solid lines
+	  axes=FALSE,                    # remove axes
+	  xlab=name,ylab="time")}        # axes labels
+  axis(side=2)                            # draw time axis
+  if(nmu>0){                              # if any mutant
+    BDM <- BD[MU]                        # births of mutant
+    DEM <- DE[MU]                        # deaths of mutant
+    XM <- rbind(which(MU),which(MU))     # abscissas for vertical lines mutant
+    YM <- rbind(BDM,DEM)                 # ordinates for vertical lines mutant
+    {matlines(XM,YM,                     # plot horizontal lines
+	  type="l",col=colmut,           # color for mutant
+	  lty=rep(1,nmu))}               # solid lines
+  }                                       # end if any mutants
+  div <- which((DE<t)&(!MU))              # indices dividing cells normal
+  DIN <- CE[div]                          # identities dividing cells normal
+  DLN <- 2*DIN                            # identities of left daughters
+  IO <- sort(CE,index.return=TRUE)        # numeral order of cells
+  IOx <- IO$x; IOix <- IO$ix              # get cells and order
+  indn <- which(IOx %in% DLN)             # identify left daughters normal 
+  XLN <- IOix[indn]                       # indices of left daughters normal
+  XRN <- IOix[indn+1]                     # indices of right daughters normal
+  XN <- rbind(XLN,XRN)                    # abscissas for horizontal lines
+  YN <- rbind(BD[XLN],BD[XRN])            # ordinates for horizontal lines
+  {matlines(XN,YN,                        # plot horizontal lines
+	  type="l",col=colnor,           # color normal
+	  lty=rep(1,nno))}               # solid lines
+  div <- which((DE<t)&MU)                 # indices dividing cells mutant
+  if (length(div>0)){                     # if any dividing mutant
+    DIM <- CE[div]                       # identities dividing cells mutant
+    DLM <- 2*DIM                         # identities of left daughters
+    indm <- which(IOx %in% DLM)          # identify left daughters mutant
+    XLM <- IOix[indm]                    # indices of left daughters mutant
+    XRM <- IOix[indm+1]                  # indices of right daughters mutant
+    XM <- rbind(XLM,XRM)                 # abscissas for horizontal lines
+    YM <- rbind(BD[XLM],BD[XRM])         # ordinates for horizontal lines
+    {matlines(XM,YM,                     # plot horizontal lines
+	  type="l",col=colmut,           # color mutant
+	  lty=rep(1,nmu))}               # solid lines
+  }                                       # end if any dividing mutant
+  }                                       # end if something to plot
+  }                                       # end if graphics
+#   ST <- sort(BD)                          # split times
+#   ST <- append(ST,t)                      # final instant
+#   list(ST=ST,nc=nc)                              # return birth dates
+}
+
+
+rdt <- function(n,dist){
+#   Returns a sample of size n of distribution dist.
+#   The distribution dist is given as a list of a character chain 
+#   followed by the list of parameters. 
+#
+#   usage: dist <- list("lnorm",meanlog=0,sdlog=1)
+#          rdt(100,dist)
+#          rdt(1000,goflnormBA)
+#
+switch(dist[[1]],
+    dirac={                             # constant division times
+        l <- dist$location              # location parameter
+        rep(l,n)
+          },                            # end Dirac distribution
+    exp={                               # exponential distribution
+        r <- dist$rate                  # rate parameter
+        rexp(n,rate=r)
+          },                            # end exponential distribution
+    gamma={                             # gamma distribution
+        a <- dist$shape                 # shape parameter
+        l <- dist$scale                 # scale parameter
+        rgamma(n,shape=a,scale=l)
+          },                            # end gamma distribution
+    lnorm={                             # Log Normal distribution
+        a <- dist$sdlog                 # sdlog parameter
+        l <- dist$meanlog               # meanlog parameter
+        rlnorm(n,meanlog=l,sdlog=a)
+          }                             # end log normal distribution
+)                                       # end switch
+}                                       # end function rdt

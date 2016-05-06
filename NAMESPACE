@@ -1,10 +1,11 @@
-useDynLib(flanRcpp)
+useDynLib(flan)
 
-# exportPattern(".")
-export(
- print.flantest,flan.test,
- mutestim,
- rflan,pflan,qflan,dflan
-)
+exportPattern(".")
+#export(
+# print.flantest,flan.test,
+# mutestim,
+# rflan,pflan,qflan,dflan,
+# draw.clone
+#)
 
 import(Rcpp)
