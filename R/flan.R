@@ -684,7 +684,7 @@ dflan <- function(m,mutations=1,fitness=1,death=0,model=c("LD","H")){
 
 ## Sampling
 adjust.rate <- function(dist,fitness=1,death=0){
-#   rescales the parameter(s) of distribution dist to unit growh rate.
+#   rescales the parameter(s) of distribution dist to obtain growh rate equal to fitness.
 #   The distribution is given and returned as a list of a character chain 
 #   followed by the list of parameters. 
 
@@ -737,24 +737,27 @@ MutationMLOptimization <- function(mc,mfn=NULL,cvfn=NULL,model=c("LD","H"),fitne
   if(missing(model)) model <- "LD"
   model <- match.arg(model)
 
+  
+  # Initialization
+  a.est <- MutationGFEstimation(mc,fitness=fitness,death=death,model=model)$mutations
+  
+  # Winsorization
   if(max(mc) > winsor) mc[mc > winsor] = winsor
   
   
-  dC <- dclone(0:max(mc),fitness,death,model)
+  dC <- dclone(m=0:max(mc),fitness=fitness,death=death,model=model)
   
   ll <- function(a){
-    p <- log(deduce.dflan(mc,a,fitness,death,model,dC))
+    p <- log(deduce.dflan(m=mc,mutations=a,fitness=fitness,death=death,model=model,clone=dC))
     -sum(p)
   }
   # gradient of log-likelihood of the sample
   dll <- function(a){
-    p <- deduce.dflanda(mc,a,fitness,death,model,dC)
+    p <- deduce.dflanda(m=mc,mutations=a,fitness=fitness,death=death,model=model,clone=dC)
     res <- p$dQ_da/p$Q
     -sum(res)
   }
   
-#   a.est <- 1
-  a.est <- MutationGFEstimation(mc,fitness=fitness,death=death,model=model)$mutations
   
   lower = 0.1*a.est
   upper = 10*a.est
@@ -762,7 +765,7 @@ MutationMLOptimization <- function(mc,mfn=NULL,cvfn=NULL,model=c("LD","H"),fitne
   a.est <- lbfgsb3(prm=a.est,fn=ll,gr=dll,lower = lower,upper=upper,control=list(trace=0,iprint=-1))$prm
 #   a.est <- optimx(par=a.est,fn=ll,gr=dll,lower = lower,upper=upper)$par_1
   
-  dldd <- deduce.dflanda(mc,a.est,fitness,death,model,clone=dC)
+  dldd <- deduce.dflanda(m=mc,mutations=a.est,fitness=fitness,death=death,model=model,clone=dC)
   
   I <- sum((dldd$dQ_da)^2/(dldd$Q)^2)
   
@@ -790,19 +793,23 @@ MutationMLOptimization <- function(mc,mfn=NULL,cvfn=NULL,model=c("LD","H"),fitne
 MutationProbabilityMLOptimization <- function(mc,fn,model=c("LD","H"),fitness=1,death=0,winsor=512){
 
   if(missing(model)) model <- "LD"
-  
   model <- match.arg(model)
-
-  if(max(mc) > winsor) mc[mc > winsor] = winsor
+  
   mfn <- mean(fn)
   cvfn <- sd(fn)/mfn
   
-  dC <- dclone(0:max(mc),fitness,death,model)
+  # Initialization
+  pm.est <- MutationGFEstimation(mc=mc,mfn=mfn,cvfn=cvfn,fitness=fitness,death=death,model=model)$mutprob*mfn
+
+  # Winsorization
+  if(max(mc) > winsor) mc[mc > winsor] = winsor
+  
+  dC <- dclone(m=0:max(mc),fitness=fitness,death=death,model=model)
   
   ll <- function(pm){
     p <- mapply(function(x,y){
       y <- y/mfn
-      log(deduce.dflan(x,pm*y,fitness,death,model,clone=dC))
+      log(deduce.dflan(m=x,mutations=pm*y,fitness=fitness,death=death,model=model,clone=dC))
     },mc,fn)
     -sum(p)
   }
@@ -811,14 +818,11 @@ MutationProbabilityMLOptimization <- function(mc,fn,model=c("LD","H"),fitness=1,
   dll <- function(pm){
     res <- mapply(function(x,y){
       y <- y/mfn
-      p<-deduce.dflanda(x,pm*y,fitness,death,model,clone=dC)
+      p<-deduce.dflanda(m=x,mutations=pm*y,fitness=fitness,death=death,model=model,clone=dC)
       p$dQ_da*y/p$Q
     },mc,fn)
     -sum(res)
   }
-  
-  pm.est <- MutationGFEstimation(mc,mfn=mfn,cvfn=cvfn,fitness=fitness,death=death,model=model)$mutprob*mfn
-  
   
   lower = 0.1*pm.est
   upper = 10*pm.est
@@ -827,7 +831,7 @@ MutationProbabilityMLOptimization <- function(mc,fn,model=c("LD","H"),fitness=1,
 #   pm.est <- optimx(par=pm.est,fn=ll,gr=dll,lower = lower,upper=upper)$ar_1/mfn
   
   dldd <- mapply(function(x,y){
-	    deduce.dflanda(x,pm.est*y,fitness,death,model,clone=dC)
+	    deduce.dflanda(m=x,mutations=pm.est*y,fitness=fitness,death=death,model=model,clone=dC)
 	  },mc,fn)
   
   I <- sum((unlist(dldd[2,])*fn)^2/unlist(dldd[1,])^2)            # Fisher information
@@ -842,13 +846,19 @@ MutationFitnessMLOptimization <- function(mc,mfn=NULL,cvfn=NULL,model=c("LD","H"
 
   if(missing(model)) model <- "LD"
   model <- match.arg(model)
+  
+  # Initialization
+  est <- MutationFitnessGFEstimation(mc=mc,death=death,model=model)
+  if(!est$succeeds) warning("Initialization of 'fitness' with 'GF'-method has failed.")
+  a.est <- est$mutations ; r.est <- est$fitness
 
+  # Winsorization
   if(max(mc) > winsor) mc[mc > winsor] = winsor
   
   ll <- function(param){
     a <- param[1]
     r <- param[2]
-    p <- log(dflan(mc,a,r,death,model))
+    p <- log(dflan(m=mc,mutations=a,fitness=r,death=death,model=model))
     -sum(p)
   }
   
@@ -856,25 +866,26 @@ MutationFitnessMLOptimization <- function(mc,mfn=NULL,cvfn=NULL,model=c("LD","H"
   dll <- function(param){
     a = param[1]
     r = param[2]
-    p <- dflan.grad(mc,a,r,death,model,dalpha=TRUE,drho=TRUE)
+#     cat("alpha =",a,"| rho =",r,"\n")
+    p <- dflan.grad(m=mc,mutations=a,fitness=r,death=death,model=model,dalpha=TRUE,drho=TRUE)
     res <- rbind(p$dQ_da,p$dQ_dr)/p$Q
     -apply(res,1,sum)
   }
   
-  
-  est <- MutationFitnessGFEstimation(mc,death=death,model=model)
-  if(!est$succeeds) warning("Initialization of 'fitness' with 'GF'-method has failed.")
-  a.est <- est$mutations ; r.est <- est$fitness
-  
   lower = 0.1*c(a.est,r.est)
   upper = 10*c(a.est,r.est)
+  
+  if(!est$succeeds) {
+    lower[2] <- 10*r.est ; 
+    upper[2] <- 500*r.est
+  }
   
   est <- lbfgsb3(prm=c(a.est,r.est),fn=ll,gr=dll,lower = lower,upper=upper,control=list(trace=0,iprint=-1))$prm
 #   est <- optimx(par=c(a.est,r.est),fn=ll,gr=dll,lower = lower,upper=upper,method="L-BFGS-B")  
   a.est = est[1]					# Update alpha estimate
   r.est = est[2]					# Update rho estimate
   
-  dldd <- dflan.grad(mc,a.est,r.est,death,model,dalpha=TRUE,drho=TRUE)
+  dldd <- dflan.grad(m=mc,mutations=a.est,fitness=r.est,death=death,model=model,dalpha=TRUE,drho=TRUE)
   
   p2 <- (dldd$Q)^2
   dpa <- dldd$dQ_da
@@ -908,7 +919,6 @@ MutationFitnessMLOptimization <- function(mc,mfn=NULL,cvfn=NULL,model=c("LD","H"
 }
 
 MutationProbabilityFitnessMLOptimization <- function(mc,fn,model=c("LD","H"),death=0,winsor=512){
-  if(max(mc) > winsor) mc[mc > winsor] = winsor
   
   if(missing(model)) model <- "LD"
   model <- match.arg(model)
@@ -916,12 +926,21 @@ MutationProbabilityFitnessMLOptimization <- function(mc,fn,model=c("LD","H"),dea
   mfn <- mean(fn)
   cvfn <- sd(fn)/mfn
   
+  
+  # Initialization
+  est <- MutationFitnessGFEstimation(mc,mfn=mfn,cvfn=cvfn,death=death,model=model)
+  if(!est$succeeds) warning("Initialization of 'fitness' with 'GF'-method has failed.") 
+  pm.est <- est$mutprob*mfn ; r.est <- est$fitness
+  
+  # Winsorization
+  if(max(mc) > winsor) mc[mc > winsor] = winsor
+  
   ll <- function(param){
     pm <- param[1]
     r <- param[2]
     p <- mapply(function(x,y){
       y <- y/mfn
-      log(dflan(x,pm*y,r,death,model))
+      log(dflan(m=x,mutations=pm*y,fitness=r,death=death,model=model))
     },mc,fn)
     -sum(p)
   }
@@ -932,22 +951,20 @@ MutationProbabilityFitnessMLOptimization <- function(mc,fn,model=c("LD","H"),dea
     r = param[2]
     res <- mapply(function(x,y){
       y <- y/mfn
-      p<-dflan.grad(x,pm*y,r,death,model,dalpha=TRUE,drho=TRUE)
+      p<-dflan.grad(m=x,mutations=pm*y,fitness=r,death=death,model=model,dalpha=TRUE,drho=TRUE)
       rbind(p$dQ_da*y,p$dQ_dr)/p$Q
     },mc,fn)
     -apply(res,1,sum)
   }
   
-  est <- MutationFitnessGFEstimation(mc,mfn=mfn,cvfn=cvfn,death=death,model=model)
-  if(!est$succeeds){
-    warning("Initialization of 'fitness' with 'GF'-method has failed.")
-    
-  }
-  pm.est <- est$mutprob*mfn ; r.est <- est$fitness
-  
   
   lower = 0.1*c(pm.est,r.est)
   upper = 10*c(pm.est,r.est)
+  
+  if(!est$succeeds) {
+    lower[2] <- 10*r.est ; 
+    upper[2] <- 500*r.est
+  }
   
   est <- lbfgsb3(prm=c(pm.est,r.est),fn=ll,gr=dll,lower = lower,upper=upper,control=list(trace=0,iprint=-1))$prm
   
@@ -955,7 +972,7 @@ MutationProbabilityFitnessMLOptimization <- function(mc,fn,model=c("LD","H"),dea
   r.est = est[2]					# Update rho estimate
   
   dldd <- mapply(function(x,y){
-	    dflan.grad(x,pm.est*y,r.est,death,model,dalpha=TRUE,drho=TRUE)
+	    dflan.grad(m=x,mutations=pm.est*y,fitness=r.est,death=death,model=model,dalpha=TRUE,drho=TRUE)
 	  },mc,fn)
   
   p2 <- (unlist(dldd[1,]))^2
@@ -1056,8 +1073,8 @@ MutationFitnessP0Estimation <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,model=c("L
     output <- list(mutprob=pm,sd.mutprob=sdpm)
   } else output <- list(mutations=a,sd.mutations=sda)
   
-  if(!is.null(fn)) r <- FitnessP0Optimization(mc,fn,model,mut=pm,death,winsor)
-  else r <- FitnessP0Optimization(mc,fn,model,mut=a,death,winsor)
+  if(!is.null(fn)) r <- FitnessP0Optimization(mc=mc,fn=fn,model=model,mut=pm,death=death,winsor=winsor)
+  else r <- FitnessP0Optimization(mc=mc,fn=fn,model=model,mut=a,death=death,winsor=winsor)
     
   c(output,fitness=r$fitness,sd.fitness=r$sd.fitness)  
   
@@ -1068,6 +1085,12 @@ FitnessP0Optimization <- function(mc,fn=NULL,model=c("LD","H"),mut,death=0,winso
   if(missing(model)) model <- "LD"
   model <- match.arg(model)
 
+  # Initialization
+  est <- FitnessGFEstimation(mc,death,model)
+  if(!est$succeeds) warning("Initialization of 'fitness' with 'GF'-method has failed.")
+  r.est <- est$fitness
+  
+  # Winsorization
   if(max(mc) > winsor){ mc[which(mc>winsor)] = winsor}
   
   
@@ -1075,13 +1098,13 @@ FitnessP0Optimization <- function(mc,fn=NULL,model=c("LD","H"),mut,death=0,winso
     if(missing(mut)) mut <- 1
     
     ll <- function(r){
-      p <- log(dflan(mc,mut,r,death,model))
+      p <- log(dflan(m=mc,mutations=mut,fitness=r,death=death,model=model))
       -sum(p)
     }
     
     # gradient of log-likelihood of the sample
     dll <- function(r){
-      p <- dflan.grad(mc,mut,r,death,model,dalpha=FALSE,drho=TRUE)
+      p <- dflan.grad(m=mc,mutations=mut,fitness=r,death=death,model=model,dalpha=FALSE,drho=TRUE)
       res <- p$dQ_dr/p$Q
       -sum(res)
     }
@@ -1090,7 +1113,7 @@ FitnessP0Optimization <- function(mc,fn=NULL,model=c("LD","H"),mut,death=0,winso
     
     ll <- function(r){
       p <- mapply(function(x,y){
-	    log(dflan(x,mut*y,r,death,model))
+	    log(dflan(m=x,mutations=mut*y,fitness=r,death=death,model=model))
 	  },mc,fn)
       -sum(p)
     }
@@ -1098,7 +1121,7 @@ FitnessP0Optimization <- function(mc,fn=NULL,model=c("LD","H"),mut,death=0,winso
     # gradient of log-likelihood of the sample
     dll <- function(r){
       res <- mapply(function(x,y){
-	      p<-dflan.grad(x,mut*y,r,death,model,dalpha=FALSE,drho=TRUE)      
+	      p<-dflan.grad(m=x,mutations=mut*y,fitness=r,death=death,model=model,dalpha=FALSE,drho=TRUE)      
 	      p$dQ_dr/p$Q
 	    },mc,fn)
       -sum(res)
@@ -1106,18 +1129,22 @@ FitnessP0Optimization <- function(mc,fn=NULL,model=c("LD","H"),mut,death=0,winso
   
   }
     
-  r.est <- FitnessGFEstimation(mc,death,model)
-  if(!r.est$succeeds) warning("Initialization of 'fitness' with 'GF'-method has failed.")
-  r.est <- r.est$fitness
   
   lower = 0.1*r.est
   upper = 10*r.est
   
-  r.est <- lbfgsb3(prm=r.est,fn=ll,gr=dll,lower = lower,upper=upper,control=list(trace=0,iprint=-1))$prm
+  if(est$succeeds) {
+    lower <- 10*r.est ; 
+    upper <- 500*r.est
+  }
   
-  if(is.null(fn)) dldd <- dflan.grad(mc,mut,r.est,death,model,dalpha=FALSE,drho=TRUE)
+  est <- lbfgsb3(prm=r.est,fn=ll,gr=dll,lower = lower,upper=upper,control=list(trace=0,iprint=-1))
+  r.est <- est$prm
+  
+  if(is.null(fn)) dldd <- dflan.grad(m=mc,mutations=mut,fitness=r.est,death=death,model=model,dalpha=FALSE,drho=TRUE)
+  
   else dldd <- mapply(function(x,y){
-		  dflan.grad(x,mut*y,r.est,death,model,dalpha=FALSE,drho=TRUE)
+		  dflan.grad(m=x,mutations=mut*y,fitness=r.est,death=death,model=model,dalpha=FALSE,drho=TRUE)
 	       },mc,fn)
   
   I <- sum((dldd$dQ_dr)^2/(dldd$Q)^2)

@@ -611,11 +611,11 @@ std::vector<double> FLAN_ExponentialClone::computeGeneratingFunction2(double rho
   double eps =1e-8;
   
   std::vector<double> H(Z.size());
-  std::vector<double> itH=H.begin();
+  std::vector<double>::iterator itH=H.begin();
   
   for (std::vector<double>::iterator itZ = Z.begin() ; itZ != Z.end() ; ++itZ, ++itH){
-    if(fabs(*itZ) <= eps) return 0.;
-    else if(fabs(1-(*itZ)) <= eps) return 1.;
+    if(fabs(*itZ) <= eps) *itH=0.;
+    else if(fabs(1-(*itZ)) <= eps) *itH=1.;
     else {
       double dstar,zstar,I,h;
       
@@ -894,10 +894,10 @@ std::vector<double> FLAN_DiracClone::computeGeneratingFunction2(double rho,std::
 
     for(std::vector<double>::iterator itZ=Z.begin() ; itZ != Z.end() ; ++itZ, ++itH){
       // z=0 return 0
-      if (fabs((*itZ))<eps) return 0;
+      if (fabs((*itZ))<eps) *itH=0.;
 
       // z=1 return 1
-      if (fabs(1-(*itZ))<eps) return 1;
+      if (fabs(1-(*itZ))<eps) *itH=1.;
 
       // otherwize
       double s=0;
