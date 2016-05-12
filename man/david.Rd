@@ -39,6 +39,6 @@ mutestim(D11$mc,D11$fn)
 }
 
 \source{H. L. David, Probability distribution of drug-resistant mutants in unselected populations of 
-\emph{Mycobacterium tuberculosis}. \emph{Appl. Microbiol.}, 20(5):810–814 (1970).
+\emph{Mycobacterium tuberculosis}. \emph{Appl. Microbiol.}, 20(5):810-814 (1970).
 }
 \keyword{datasets}

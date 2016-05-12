@@ -103,6 +103,7 @@ summary(x)
 mutestim(x,method="GF")
 mutestim(x)
 mutestim(x,winsor=2000)
-mutestim(x,method="P0")
+
+\donttest{mutestim(x,method="P0")}
 }
 

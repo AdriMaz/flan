@@ -191,6 +191,16 @@ protected:
     FLAN_Clone(){};
 
     // create object for GF method
+    
+    FLAN_Clone(List params){
+      
+      mDeath=as<double>(params["death"]);
+      if(params.size() == 2) {
+	mFitness=as<double>(params["fitness"]);
+      }
+        
+    };
+    
     FLAN_Clone(double death){
       mDeath=death;
       
@@ -293,9 +303,16 @@ class FLAN_ExponentialClone : public FLAN_Clone {
     MATH_Integration* mIntegrator;
 
     void init() {
-      double flantol=Environment::global_env()[".flantol"];
-      double flansubd=Environment::global_env()[".flansubd"];
-      List fns=Environment::global_env().get(".integrands");
+      
+      
+//       double flantol=Environment::global_env()[".flantol"];
+//       double flansubd=Environment::global_env()[".flansubd"];
+//       List fns=Environment::global_env().get(".integrands");
+      Environment FlanEnv("FlanEnv");
+      double flantol=FlanEnv[".flantol"];
+      double flansubd=FlanEnv[".flansubd"];
+      List fns=FlanEnv.get(".integrands");
+      
 
 //       std::cout<<"Size ="<<integrands.size()<<std::endl;
       mIntegrator=new MATH_Integration(fns,flantol,flansubd);
@@ -306,6 +323,10 @@ class FLAN_ExponentialClone : public FLAN_Clone {
 
 
     FLAN_ExponentialClone():FLAN_Clone() {
+      init();
+    };
+    
+    FLAN_ExponentialClone(List params):FLAN_Clone(params) {
       init();
     };
     FLAN_ExponentialClone(double death):FLAN_Clone(death) {
@@ -362,6 +383,9 @@ public:
     };
     FLAN_DiracClone(double rho,double death):FLAN_Clone(rho,death) {
       if(death > 0) init_death();
+    };
+    FLAN_DiracClone(List params):FLAN_Clone(params) {
+      if(mDeath > 0) init_death();
     };
     ~FLAN_DiracClone(){};
 

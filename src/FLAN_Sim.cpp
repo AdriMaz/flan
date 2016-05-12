@@ -120,7 +120,7 @@ NumericVector FLAN_Sim::computeSampleMutantsNumber(int n)  {
 	    while(j<mc && !testneg){
 	      sj=sample[j];
 	      if(sj < 0){
-		std::cout<<"Negaative number !"<<std::endl;
+// 		std::cout<<"Negaative number !"<<std::endl;
 		testneg=true;
 		s=sj;
 // 		s=-1e-5;

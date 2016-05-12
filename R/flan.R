@@ -12,7 +12,7 @@
     # death:  death probability. Must be smaller than 0.5.
     # method:  estimation method as a character string: one of ML (default), P0, or GF.
     # winsor:  winsorization parameter: positive integer. Only used when method is ML or when method is P0 and fitness is NULL.
-    # model:  statistical lifetime model as a character string: one of LD (default) for Luria-Delbrück model with exponential lifetimes, or H for Haldane model with constant lifetimes.
+    # model:  statistical lifetime model as a character string: one of LD (default) for Luria-Delbruck model with exponential lifetimes, or H for Haldane model with constant lifetimes.
     # Assumptions for the estimation
     #   - fitness (if given)
     #   - death probability
@@ -29,7 +29,7 @@
     #   - Standard deviation of alpha, (or pi) and rho if non given
 
 mutestim <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                 # user's data
-                  fitness=NULL,death=0,                # user's parameters
+                  fitness=NULL,death=0.,                # user's parameters
                   method=c("ML","GF","P0"),winsor=512, # estimation method
                   model=c("LD","H"))                   # clone growth model
                   {
@@ -136,7 +136,7 @@ mutestim <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                 # user's dat
 
 
 flan.test <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                      # user's data
-               fitness=NULL,death=0,                         # user's parameters
+               fitness=NULL,death=0.,                         # user's parameters
                mutations0=1,mutprob0=NULL,fitness0=1,       # null hypotheses
                conf.level=0.95,                              # confidence level
                alternative=c("two.sided","less","greater"),  # alternative
@@ -462,7 +462,7 @@ flan.test <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                      # user
     #
     #   Returns the two samples mcs and fn
     #
-rflan <- function(n,mutations=1,mutprob=NULL,fitness=1,death=0,
+rflan <- function(n,mutations=1,mutprob=NULL,fitness=1,death=0.,
         dist=list(name="lnorm",meanlog=-0.3795851,sdlog=0.3016223),
         mfn=1e9,cvfn=0) {
 
@@ -549,7 +549,7 @@ rflan <- function(n,mutations=1,mutprob=NULL,fitness=1,death=0,
   #   death : death probability
   #   model : lifetimes distribution model : exponentialy distributed lifetimes ("LD") or constant lifetimes ("H")
 
-qflan <- function(p,mutations=1,fitness=1,death=0,model=c("LD","H"),lower.tail=TRUE){
+qflan <- function(p,mutations=1,fitness=1,death=0.,model=c("LD","H"),lower.tail=TRUE){
 
   if((sum(p < 0)+sum(p > 1)) != 0){
     stop("'p' must be a vector of positive and <= 1 numbers")
@@ -599,7 +599,7 @@ qflan <- function(p,mutations=1,fitness=1,death=0,model=c("LD","H"),lower.tail=T
   #   model : lifetimes distribution model : exponentialy distributed lifetimes ("LD") or constant lifetimes ("H")
 
 
-pflan <- function(m,mutations=1,fitness=1,death=0,model=c("LD","H"),lower.tail=TRUE){
+pflan <- function(m,mutations=1,fitness=1,death=0.,model=c("LD","H"),lower.tail=TRUE){
 
   if(sum(m < 0) > 0 | sum(trunc(m) != m) > 0){
     stop("'m' must be a vector of positive integers")
@@ -643,7 +643,7 @@ pflan <- function(m,mutations=1,fitness=1,death=0,model=c("LD","H"),lower.tail=T
   #   model : lifetimes distribution model : exponentialy distributed lifetimes ("LD") or constant lifetimes ("H")
 
 
-dflan <- function(m,mutations=1,fitness=1,death=0,model=c("LD","H")){
+dflan <- function(m,mutations=1,fitness=1,death=0.,model=c("LD","H")){
 
   if(sum(m < 0) > 0 | sum(trunc(m) != m) > 0){
     stop("'m' must be a vector of positive integers")
@@ -683,7 +683,7 @@ dflan <- function(m,mutations=1,fitness=1,death=0,model=c("LD","H")){
 
 
 ## Sampling
-adjust.rate <- function(dist,fitness=1,death=0){
+adjust.rate <- function(dist,fitness=1,death=0.){
 #   rescales the parameter(s) of distribution dist to obtain growh rate equal to fitness.
 #   The distribution is given and returned as a list of a character chain 
 #   followed by the list of parameters. 
@@ -711,7 +711,7 @@ adjust.rate <- function(dist,fitness=1,death=0){
 	f <- function(x){exp(-(s*exp(a*x*sqrt(2)+l)+x^2))}
 
 	I <- {integrate(f,
-	      lower=-Inf,upper=Inf,rel.tol=.flantol)}      # integrate from - to + infinity
+	      lower=-Inf,upper=Inf,rel.tol=.flantol,subdivisions=.flansubd)}      # integrate from - to + infinity
 	
 	I <- I$value                      # get the value
   	I <- I/sqrt(pi)			# rescale
@@ -732,7 +732,11 @@ adjust.rate <- function(dist,fitness=1,death=0){
 ## Estimation
 
 	      #//////////////////////////////////ML method//////////////////////////////////#
-MutationMLOptimization <- function(mc,mfn=NULL,cvfn=NULL,model=c("LD","H"),fitness=1,death=0,winsor=512){
+	      
+# Returns the ML estimate of mean number of mutation for a sample mc, given the fitness and death
+# If mfn or cvfn are non-empty, returns the estimate of mutation probability instead of the mean number, after decreasing the bias
+# induced if cvfn > 0
+MutationMLOptimization <- function(mc,mfn=NULL,cvfn=NULL,model=c("LD","H"),fitness=1,death=0.,winsor=512){
 
   if(missing(model)) model <- "LD"
   model <- match.arg(model)
@@ -789,8 +793,8 @@ MutationMLOptimization <- function(mc,mfn=NULL,cvfn=NULL,model=c("LD","H"),fitne
   
 }
 
-
-MutationProbabilityMLOptimization <- function(mc,fn,model=c("LD","H"),fitness=1,death=0,winsor=512){
+# Returns the ML estimate of mutation probability for a sample of couple (mc,fn), given the fitness and death
+MutationProbabilityMLOptimization <- function(mc,fn,model=c("LD","H"),fitness=1,death=0.,winsor=512){
 
   if(missing(model)) model <- "LD"
   model <- match.arg(model)
@@ -842,7 +846,10 @@ MutationProbabilityMLOptimization <- function(mc,fn,model=c("LD","H"),fitness=1,
 
 }
 
-MutationFitnessMLOptimization <- function(mc,mfn=NULL,cvfn=NULL,model=c("LD","H"),death=0,winsor=512){
+# Returns the ML estimates of mean number of mutation and fitness for a sample mc, given the death
+# If mfn or cvfn are non-empty, returns the estimate of mutation probability instead of the mean number, after decreasing the bias
+# induced if cvfn > 0
+MutationFitnessMLOptimization <- function(mc,mfn=NULL,cvfn=NULL,model=c("LD","H"),death=0.,winsor=512){
 
   if(missing(model)) model <- "LD"
   model <- match.arg(model)
@@ -918,7 +925,9 @@ MutationFitnessMLOptimization <- function(mc,mfn=NULL,cvfn=NULL,model=c("LD","H"
 
 }
 
-MutationProbabilityFitnessMLOptimization <- function(mc,fn,model=c("LD","H"),death=0,winsor=512){
+
+# Returns the ML estimates of mutation probability and fitness for a sample of couple (mc,fn), given the death
+MutationProbabilityFitnessMLOptimization <- function(mc,fn,model=c("LD","H"),death=0.,winsor=512){
   
   if(missing(model)) model <- "LD"
   model <- match.arg(model)
@@ -994,7 +1003,8 @@ MutationProbabilityFitnessMLOptimization <- function(mc,fn,model=c("LD","H"),dea
 
 	      #//////////////////////////////////P0 method//////////////////////////////////#
 
-MutationsNumberP0Estimation <- function(mc,death=0){
+# Returns the P0 estimate of mean number of mutations for a sample of couple mc, given the death
+MutationsNumberP0Estimation <- function(mc,death=0.){
 
 # Return the estimate of alpha for a sample mc
 # by p0-method under cell deaths with probability delta
@@ -1020,7 +1030,10 @@ MutationsNumberP0Estimation <- function(mc,death=0){
 }
 
 
-MutationP0Estimation <- function(mc,mfn=NULL,cvfn=NULL,death=0){
+# Returns the P0 estimate of mean number of mutations for a sample of couple mc, given the death
+# If mfn or cvfn are non-empty, returns the estimate of the mutation probability instaed of the mean number
+# after decreasing the induced bias if cvfn > 0
+MutationP0Estimation <- function(mc,mfn=NULL,cvfn=NULL,death=0.){
 
 # Return the estimate of alpha for a sample mc
 # by p0-method under cell deaths with probability delta
@@ -1045,8 +1058,10 @@ MutationP0Estimation <- function(mc,mfn=NULL,cvfn=NULL,death=0){
   } else list(mutations=a,sd.mutations=sda)  
 }
 
-
-MutationFitnessP0Estimation <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,model=c("LD","H"),death=0,winsor=512){
+# Returns the P0 estimate of mean number of mutations and fitness for a sample of couple mc,given the death
+# If mfn or cvfn are non-empty, returns the estimate of the mutation probability instaed of the mean number
+# after decreasing the induced bias if cvfn > 0
+MutationFitnessP0Estimation <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,model=c("LD","H"),death=0.,winsor=512){
 
   if(missing(model)) model <- "LD"
   model <- match.arg(model)
@@ -1080,7 +1095,10 @@ MutationFitnessP0Estimation <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,model=c("L
   
 }
 
-FitnessP0Optimization <- function(mc,fn=NULL,model=c("LD","H"),mut,death=0,winsor=512){
+
+# Returns the ML estimate of fitness for a sample of couple mc, given the mean number of mutations (or mutation probability) and death
+# If fn is non-empty, 
+FitnessP0Optimization <- function(mc,fn=NULL,model=c("LD","H"),mut,death=0.,winsor=512){
 
   if(missing(model)) model <- "LD"
   model <- match.arg(model)
@@ -1155,13 +1173,13 @@ FitnessP0Optimization <- function(mc,fn=NULL,model=c("LD","H"),mut,death=0,winso
 
 	      #//////////////////////////////////GF method//////////////////////////////////#
 
-MutationGFEstimation <- function(mc,mfn=NULL,cvfn=NULL,fitness=1,death=0,model=c("LD","H")){
+MutationGFEstimation <- function(mc,mfn=NULL,cvfn=NULL,fitness=1,death=0.,model=c("LD","H")){
 
   if(missing(model)) model <- "LD"
   model <- match.arg(model)
 
   q <- .tunings$q
-  b <- quantile(mc,q,names=F)+1           # scaling factor
+  b <- quantile(mc,q,names=FALSE)+1           # scaling factor
   
   Mutmodel= new(FlanMutMod,list(
     mc=mc,
@@ -1175,14 +1193,14 @@ MutationGFEstimation <- function(mc,mfn=NULL,cvfn=NULL,fitness=1,death=0,model=c
   
 }
 
-FitnessGFEstimation <- function(mc,death=0,model=c("LD","H")){
+FitnessGFEstimation <- function(mc,death=0.,model=c("LD","H")){
 
   if(missing(model)) model <- "LD"
   model <- match.arg(model)
 
   tu <- .tunings
   q <- tu$q
-  b <- quantile(mc,q,names=F)+1           # scaling factor
+  b <- quantile(mc,q,names=FALSE)+1           # scaling factor
   z1 <- tu$z1                            # lower value
   z2 <- tu$z2                            # higher value
   z1<-z1^(1/b); z2<-z2^(1/b) ;            # rescale variables 
@@ -1191,8 +1209,8 @@ FitnessGFEstimation <- function(mc,death=0,model=c("LD","H")){
   g2 <- mean(z2^mc)                   # empirical generating function at z2
   y <- log(g1)/log(g2)                   # get ratio of logs
   
-  if(model == "LD") clone=new(FlanExpClone,death)
-  if(model == "H") clone=new(FlanDirClone,death)
+  if(model == "LD") clone=new(FlanExpClone,list(death=death))
+  if(model == "H") clone=new(FlanDirClone,list(death=death))
   
   f <- function(r){
     PGF <- clone$pgf2(r,c(z1,z2))
@@ -1213,14 +1231,14 @@ FitnessGFEstimation <- function(mc,death=0,model=c("LD","H")){
 }
 
 
-MutationFitnessGFEstimation <- function(mc,mfn=NULL,cvfn=NULL,death=0,model=c("LD","H")){
+MutationFitnessGFEstimation <- function(mc,mfn=NULL,cvfn=NULL,death=0.,model=c("LD","H")){
 
   if(missing(model)) model <- "LD"
   model <- match.arg(model)
 
   tu <- .tunings
   q <- tu$q
-  b <- quantile(mc,q,names=F)+1           # scaling factor
+  b <- quantile(mc,q,names=FALSE)+1           # scaling factor
   z1 <- tu$z1                            # lower value
   z2 <- tu$z2                            # higher value
   z3 <- tu$z3
@@ -1261,7 +1279,7 @@ MutationFitnessGFEstimation <- function(mc,mfn=NULL,cvfn=NULL,death=0,model=c("L
    
 }
 
-dclone <- function(m,fitness=1,death=0,model=c("LD","H")){
+dclone <- function(m,fitness=1,death=0.,model=c("LD","H")){
 
   if(sum(m < 0) > 0 | sum(trunc(m) != m) > 0){
     stop("'m' must be a vector of positive integers")
@@ -1277,8 +1295,8 @@ dclone <- function(m,fitness=1,death=0,model=c("LD","H")){
   model <- match.arg(model)
 
   
-  if(model=="LD") clone <- new(FlanExpClone,fitness,death)
-  if(model == "H") clone <- new(FlanDirClone,fitness,death)
+  if(model=="LD") clone <- new(FlanExpClone,list(fitness=fitness,death=death))
+  if(model == "H") clone <- new(FlanDirClone,list(fitness=fitness,death=death))
   
   
   M <- max(m)
@@ -1290,7 +1308,7 @@ dclone <- function(m,fitness=1,death=0,model=c("LD","H")){
 
 
 
-dflan.grad <- function(m,mutations=1,fitness=1,death=0,model=c("LD","H"),dalpha=TRUE,drho=FALSE){
+dflan.grad <- function(m,mutations=1,fitness=1,death=0.,model=c("LD","H"),dalpha=TRUE,drho=FALSE){
 
   if(sum(m < 0) > 0 | sum(trunc(m) != m) > 0){
     stop("'m' must be a vector of positive integers")
@@ -1333,7 +1351,7 @@ dflan.grad <- function(m,mutations=1,fitness=1,death=0,model=c("LD","H"),dalpha=
 }
 
 
-deduce.dflan <- function(m,mutations=1,fitness=1,death=0,model=c("LD","H"),clone){
+deduce.dflan <- function(m,mutations=1,fitness=1,death=0.,model=c("LD","H"),clone){
 
   if(sum(m < 0) > 0 | sum(trunc(m) != m) > 0){
     stop("'m' must be a vector of positive integers")
@@ -1366,7 +1384,7 @@ deduce.dflan <- function(m,mutations=1,fitness=1,death=0,model=c("LD","H"),clone
   output[m+1]
 }
 
-deduce.dflanda <- function(m,mutations=1,fitness=1,death=0,model=c("LD","H"),clone){
+deduce.dflanda <- function(m,mutations=1,fitness=1,death=0.,model=c("LD","H"),clone){
 
   if(sum(m < 0) > 0 | sum(trunc(m) != m) > 0){
     stop("'m' must be a vector of positive integers")
@@ -1417,68 +1435,68 @@ flantest <- function(Tstat,parameter,estimate,p.value,conf.int,estimates,null.va
 }
 
 # Print function for flantest objects, inspired from print function for htest objects
-print.flantest <- function(object){
+print.flantest <- function(x,...){
   digits <- getOption("digits")
   prefix <- "\t"
   cat("\n")
-  if(object$nsamples == 2){
-    cat(strwrap(paste("Paired ",object$method,"-test"," (",object$model," model)",sep=""), prefix=prefix), sep="\n")
+  if(x$nsamples == 2){
+    cat(strwrap(paste("Two sample ",x$method,"-test"," (",x$model," model)",sep=""), prefix=prefix), sep="\n")
   } else {
-    cat(strwrap(paste("One sample ",object$method,"-test"," (",object$model," model)",sep=""), prefix=prefix), sep="\n")
+    cat(strwrap(paste("One sample ",x$method,"-test"," (",x$model," model)",sep=""), prefix=prefix), sep="\n")
   }
   cat("\n")
   cat("------------------------------------- Data -----------------------------------\n")
 
-  if(object$nsamples == 2){
-    if(length(object$data.name) == 1){
-      cat("data:  ",object$data.name[[1]][1]," and ",object$data.name[[1]][2],"\n", sep="")
+  if(x$nsamples == 2){
+    if(length(x$data.name) == 1){
+      cat("data:  ",x$data.name[[1]][1]," and ",x$data.name[[1]][2],"\n", sep="")
     }
-    if(length(object$data.name) == 2){
-      if(length(object$data.name[[2]]) == 2){
-	cat("data:  ",object$data.name[[1]][1]," with ",object$data.name[[2]][1],
-	" and ",object$data.name[[1]][2]," with ",object$data.name[[2]][2],"\n", sep="")
+    if(length(x$data.name) == 2){
+      if(length(x$data.name[[2]]) == 2){
+	cat("data:  ",x$data.name[[1]][1]," with ",x$data.name[[2]][1],
+	" and ",x$data.name[[1]][2]," with ",x$data.name[[2]][2],"\n", sep="")
       } else {
-	cat("data:  ",object$data.name[[1]][1]," with ",object$data.name[[2]][1],
-	" and ",object$data.name[[1]][2],"\n", sep="")
+	cat("data:  ",x$data.name[[1]][1]," with ",x$data.name[[2]][1],
+	" and ",x$data.name[[1]][2],"\n", sep="")
       }
     }
   }
-  if(object$nsamples == 1){
-    if(length(object$data.name) == 1){
-      cat("data:  ",object$data.name[[1]][1],"\n", sep="")
+  if(x$nsamples == 1){
+    if(length(x$data.name) == 1){
+      cat("data:  ",x$data.name[[1]][1],"\n", sep="")
     }
-    if(length(object$data.name) == 2){
-      cat("data:  ",object$data.name[[1]][1]," with ",object$data.name[[2]][1],"\n", sep="")
+    if(length(x$data.name) == 2){
+      cat("data:  ",x$data.name[[1]][1]," with ",x$data.name[[2]][1],"\n", sep="")
     }
   }
   
   out <- character()
 
-  if(!is.null(object$null.value)){
-    if(length(object$null.value) == 1){
-      if(!is.null(object$parameter)){
-	if(object$nsamples == 2){
-	  Nparam <- dim(object$param)[2]
+  if(!is.null(x$null.value)){
+    if(length(x$null.value) == 1){
+      if(!is.null(x$parameter)){
+	if(x$nsamples == 2){
+	  Nparam <- dim(x$param)[2]
 	  cat("Sample 1 parameters : ")
 	  for(i in 1:Nparam){
-	    out <- c(out,paste(colnames(object$parameter)[i], "=", format(signif(object$parameter[1,i], 
+	    out <- c(out,paste(colnames(x$parameter)[i], "=", format(signif(x$parameter[1,i], 
 	      max(1, digits - 2)))))
 	  }
 	  cat(strwrap(paste(out, collapse=", ")), sep="\n")
 	  out <- character()
 	  cat("Sample 2 parameters : ")
 	  for(i in 1:Nparam){
-	    out <- c(out,paste(colnames(object$parameter)[i], "=", format(signif(object$parameter[2,i], 
+	    out <- c(out,paste(colnames(x$parameter)[i], "=", format(signif(x$parameter[2,i], 
 	      max(1, digits - 2)))))
 	  }
 	} else {
-	  Nparam <- length(object$parameter)
+	  Nparam <- length(x$parameter)
 	  for(i in 1:Nparam){
-	    if(names(object$parameter[i])=="mfn"){
-	      out <- c(out,paste(names(object$parameter[i]), "=", format(object$parameter[i], 
+	    if(names(x$parameter[i])=="mfn"){
+	      out <- c(out,paste(names(x$parameter[i]), "=", format(x$parameter[i], 
 	      scientific=TRUE,digit=5)))
 	    } else {
-	      out <- c(out,paste(names(object$parameter[i]), "=", format(signif(object$parameter[i], 
+	      out <- c(out,paste(names(x$parameter[i]), "=", format(signif(x$parameter[i], 
 	      max(1, digits - 2)))))
 	    }
 	  }
@@ -1486,121 +1504,121 @@ print.flantest <- function(object){
       }
       cat(strwrap(paste(out, collapse=", ")), sep="\n")
       cat("---------------------------------- Statistics --------------------------------\n")
-      if(!is.null(object$Tstat)){
-	cat("Tstat =", format(signif(object$Tstat, 
+      if(!is.null(x$Tstat)){
+	cat("Tstat =", format(signif(x$Tstat, 
 	  max(1, digits - 2))),"\n")
       }
-      if (!is.null(object$p.value)) {
-	fp <- format.pval(object$p.value, digits= max(1, digits - 
+      if (!is.null(x$p.value)) {
+	fp <- format.pval(x$p.value, digits= max(1, digits - 
 	    3))
-	cat("p-value for",names(object$null.value[1]), if (substr(fp, 1, 1) == 
+	cat("p-value for",names(x$null.value[1]), if (substr(fp, 1, 1) == 
 	  "<") fp else paste("=", fp),"\n")
       }
       
-      if (!is.null(object$alternative)) {
+      if (!is.null(x$alternative)) {
 	cat("Alternative hypothesis: ")
-	alt.char <- switch(object$alternative, two.sided="not equal to", 
+	alt.char <- switch(x$alternative, two.sided="not equal to", 
 		less="less than", greater="greater than")
-	cat("true ", names(object$null.value), " is ", alt.char, 
-	  " ", object$null.value, "\n", sep="")
+	cat("true ", names(x$null.value), " is ", alt.char, 
+	  " ", x$null.value, "\n", sep="")
       }
       
-      if (!is.null(object$conf.int)) {
-	cat(format(100 * attr(object$conf.int, "conf.level")), " percent confidence interval:\n",
-	paste(format(object$conf.int),collapse="  "),
+      if (!is.null(x$conf.int)) {
+	cat(format(100 * attr(x$conf.int, "conf.level")), " percent confidence interval:\n",
+	paste(format(x$conf.int),collapse="  "),
 	"\n")
       }
-      if (!is.null(object$estimate)) {
-	if(object$nsamples == 1){
+      if (!is.null(x$estimate)) {
+	if(x$nsamples == 1){
 	  cat("Sample estimates : \n")
-	  print(object$estimate)
+	  print(x$estimate)
 	}
-	if(object$nsamples == 2){
+	if(x$nsamples == 2){
 	  cat("Sample 1 estimates : \n")
-	  print(object$estimate[1,])
+	  print(x$estimate[1,])
 	  cat("Sample 2 estimates : \n")
-	  print(object$estimate[2,])
+	  print(x$estimate[2,])
 	}
       }
-    } else if(length(object$null.value)==2){
+    } else if(length(x$null.value)==2){
       
-      if(!is.null(object$parameter)){
-	if(object$nsamples == 2){
+      if(!is.null(x$parameter)){
+	if(x$nsamples == 2){
 	  cat("Sample 1 parameters : ")
-	  Nparam <- dim(object$param)[2]
+	  Nparam <- dim(x$param)[2]
 	  for(i in 1:Nparam){
-	    out <- c(out,paste(colnames(object$parameter)[i], "=", format(signif(object$parameter[1,i], 
+	    out <- c(out,paste(colnames(x$parameter)[i], "=", format(signif(x$parameter[1,i], 
 	      max(1, digits - 2)))))
 	  }
 	  cat(strwrap(paste(out, collapse=", ")), sep="\n")
 	  out <- character()
 	  cat("Sample 2 parameters : ")
 	  for(i in 1:Nparam){
-	    if(colnames(object$parameter)[i] == "mfn"){
-	      out <- c(out,paste(colnames(object$parameter)[i], "=", format(object$parameter[2,i], 
+	    if(colnames(x$parameter)[i] == "mfn"){
+	      out <- c(out,paste(colnames(x$parameter)[i], "=", format(x$parameter[2,i], 
 	      scientific=TRUE,digit=5)))
 	    } else {
-	      out <- c(out,paste(colnames(object$parameter)[i], "=", format(signif(object$parameter[2,i], 
+	      out <- c(out,paste(colnames(x$parameter)[i], "=", format(signif(x$parameter[2,i], 
 	      max(1, digits - 2)))))
 	    }
 	  }
 	} 
-	if(object$nsamples == 1){
+	if(x$nsamples == 1){
 	  cat("Sample parameters : ")
-	  Nparam <- length(object$parameter)
+	  Nparam <- length(x$parameter)
 
 	  for(i in 1:Nparam){
-	    out <- c(out,paste(names(object$parameter[i]), "=", format(signif(object$parameter[i], 
+	    out <- c(out,paste(names(x$parameter[i]), "=", format(signif(x$parameter[i], 
 	      max(1, digits - 2)))))
 	  }
 	}
       }
       cat(strwrap(paste(out, collapse=", ")), sep="\n")
       cat("---------------------------------- Statistics --------------------------------\n")
-      if(!is.null(object$Tstat)){
-	cat("Tstat = (",format(signif(object$Tstat[1], 
-	  max(1, digits - 2)))," , ",format(signif(object$Tstat[2],
+      if(!is.null(x$Tstat)){
+	cat("Tstat = (",format(signif(x$Tstat[1], 
+	  max(1, digits - 2)))," , ",format(signif(x$Tstat[2],
 	  max(1, digits - 2))),")","\n",sep="")
       }
-      if (!is.null(object$p.value)) {
-	fp1 <- format.pval(object$p.value[1], digits=max(1, digits - 
+      if (!is.null(x$p.value)) {
+	fp1 <- format.pval(x$p.value[1], digits=max(1, digits - 
 	    3))
-	fp2 <- format.pval(object$p.value[2], digits=max(1, digits - 
+	fp2 <- format.pval(x$p.value[2], digits=max(1, digits - 
 	    3))
-	cat("p-value for",names(object$null.value[1]), if (substr(fp1, 1, 1) == 
-	  "<") fp1 else paste("=", fp1),"\np-value for",names(object$null.value[2]),if (substr(fp2, 1, 1) == 
+	cat("p-value for",names(x$null.value[1]), if (substr(fp1, 1, 1) == 
+	  "<") fp1 else paste("=", fp1),"\np-value for",names(x$null.value[2]),if (substr(fp2, 1, 1) == 
 	  "<") fp2 else paste("=", fp2),"\n")
       }
-      if (!is.null(object$alternative)) {
+      if (!is.null(x$alternative)) {
 	cat("Alternative hypotheses: ")
-	alt.char1 <- switch(object$alternative[1], two.sided="not equal to", 
+	alt.char1 <- switch(x$alternative[1], two.sided="not equal to", 
 		less="less than", greater="greater than")
-	alt.char2 <- switch(object$alternative[2], two.sided="not equal to", 
+	alt.char2 <- switch(x$alternative[2], two.sided="not equal to", 
 		less="less than", greater="greater than")
-	cat("true ", names(object$null.value[1]), " is ", alt.char1, 
-	  " ", object$null.value[1], "\n", sep="")
+	cat("true ", names(x$null.value[1]), " is ", alt.char1, 
+	  " ", x$null.value[1], "\n", sep="")
 	cat("                        ")
-	cat("true ", names(object$null.value[2]), " is ", alt.char2, 
-	  " ", object$null.value[2], "\n", sep="")
+	cat("true ", names(x$null.value[2]), " is ", alt.char2, 
+	  " ", x$null.value[2], "\n", sep="")
       }
-      if (!is.null(object$conf.int)) {
-	cat(format(100 * attr(object$conf.int, "conf.level")), " percent confidence interval for ",names(object$null.value[1]),": \n", 
-	  paste(format(object$conf.int[,1]),collapse="   "),
+      if (!is.null(x$conf.int)) {
+	cat(format(100 * attr(x$conf.int, "conf.level")), " percent confidence interval for ",names(x$null.value[1]),": \n", 
+	  paste(format(x$conf.int[,1]),collapse="   "),
 	  "\n",
-	  format(100 * attr(object$conf.int, "conf.level")), " percent confidence interval for ",names(object$null.value[2]),": \n",
-	  paste(format(object$conf.int[,2]),collapse="   "),
+	  format(100 * attr(x$conf.int, "conf.level")), " percent confidence interval for ",names(x$null.value[2]),": \n",
+	  paste(format(x$conf.int[,2]),collapse="   "),
 	  "\n",sep="")
       }
-      if (!is.null(object$estimate)) {
-	if(object$nsamples == 1){
+      if (!is.null(x$estimate)) {
+	if(x$nsamples == 1){
 	  cat("Sample estimates : \n")
-	  print(object$estimate[1,])
+	  print(x$estimate[1,])
 	}
-	if(object$nsamples == 2){
+	if(x$nsamples == 2){
 	  cat("Sample 1 estimates : \n")
-	  print(object$estimate[1,])
+	  print(x$estimate[1,])
 	  cat("Sample 2 estimates : \n")
-	  print(object$estimate[2,])
+	  print(x$estimate[2,])
 	}
       }
     } 
@@ -1609,7 +1627,8 @@ print.flantest <- function(object){
 }
 
 
-draw.clone <- function(t,mutprob=1e-2,fitness=1,dist=list("lnorm",meanlog=-0.3795851,sdlog=0.3016223),death=0){
+draw.clone <- function(t,mutprob=1e-2,fitness=1,death=0.,
+	     dist=list("lnorm",meanlog=-0.3795851,sdlog=0.3016223)){
   #   Simulates a clone up to time t, represents the clone, and
   #   returns the vector of split times.
   #   At each division, the probability of having a mutant is mutprob.

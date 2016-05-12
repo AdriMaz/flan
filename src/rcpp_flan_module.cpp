@@ -1,11 +1,6 @@
 #include "rcpp_flan_module.h"
 
 RCPP_MODULE(flan_module) {
-  class_<FLAN_Sim>("FlanSim")
-	.constructor<List>()
-	.method("rflan",&FLAN_Sim::computeSamplesMutantsFinalsNumber,"compute sample mutants")
-  ;
-
   class_<FLAN_MutationModel>("FlanMutMod")
 	.constructor<List>()
 	.method("pflan",&FLAN_MutationModel::computeCumulativeFunction,"compute cumulative function")
@@ -20,17 +15,21 @@ RCPP_MODULE(flan_module) {
 	.method("unbias.mutprob",&FLAN_MutationModel::unbiasPiEstimation,"unbias mutprob estimation")
   ;
   
+  class_<FLAN_Sim>("FlanSim")
+	.constructor<List>()
+	.method("rflan",&FLAN_Sim::computeSamplesMutantsFinalsNumber,"compute sample mutants")
+  ;
+
+  
   class_<FLAN_ExponentialClone>("FlanExpClone")
-	.constructor<double>()
-	.constructor<double,double>()
+	.constructor<List>()
 	.method("dclone",&FLAN_ExponentialClone::computeProbability,"compute probability")
 	.method("dclonedr",&FLAN_ExponentialClone::computeProbability1DerivativeRho,"compute probability")
 	.method("pgf2",&FLAN_ExponentialClone::computeGeneratingFunction2,"compute generating function for several z")
   ;
   
   class_<FLAN_DiracClone>("FlanDirClone")
-	.constructor<double>()
-	.constructor<double,double>()
+	.constructor<List>()
 	.method("dclone",&FLAN_DiracClone::computeProbability,"compute probability")
 	.method("pgf2",&FLAN_DiracClone::computeGeneratingFunction2,"compute generating function for several z")
   ;

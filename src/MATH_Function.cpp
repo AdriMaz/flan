@@ -11,7 +11,7 @@ double MATH_Integration::testintegralFunction(double a, double b,double rho,doub
   setFunctionName(name);
   List res=(*mIntegrate)(*mIntegrand, a, b, _["rel.tol"] = mReltol,_["subdivisions"] = mSubd,_["rho"] =rho,_["delta"] =delta);
   double integ=as<double>(res["value"]);
-  std::cout<<integ<<std::endl;
+//   std::cout<<integ<<std::endl;
 
   name="CLONE_dP0_dr_WD";
   setFunctionName(name);

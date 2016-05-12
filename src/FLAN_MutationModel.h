@@ -49,7 +49,9 @@ protected:
     
     
     void init_GFest(){
-      List tu=Environment::global_env().get(".tunings");
+//       List tu=Environment::global_env().get(".tunings");
+      Environment FlanEnv("FlanEnv");
+      List tu=FlanEnv.get(".tunings");
       mTuning=tu;
     };
     

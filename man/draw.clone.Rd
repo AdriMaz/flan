@@ -33,13 +33,6 @@
   
 }
 
-
-\value{
-
-
-
-}
-
 \seealso{
   \code{\link{rflan}}
 }

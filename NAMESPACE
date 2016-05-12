@@ -1,11 +1,16 @@
 useDynLib(flan)
 
-exportPattern(".")
-#export(
-# print.flantest,flan.test,
-# mutestim,
-# rflan,pflan,qflan,dflan,
-# draw.clone
-#)
+#exportPattern(".")
+export(
+ flan.test,
+ mutestim,
+ rflan,pflan,qflan,dflan,
+ draw.clone
+ )
 
 import(Rcpp)
+import(lbfgsb3)
+importFrom("graphics", "axis", "matlines", "matplot")
+importFrom("methods", "new")
+importFrom("stats", "integrate", "pnorm", "qnorm", "quantile", "rexp",
+           "rgamma", "rlnorm", "runif", "sd", "uniroot")
