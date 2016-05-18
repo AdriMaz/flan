@@ -1,6 +1,6 @@
 Package: flan
 Version: 0.1
-Date: 2016-05-06
+Date: 2016-05-18
 Type: Package
 Title: Inference on Mutation Models.
 Authors@R: c(person("Adrien","Mazoyer", role =c("aut","cre"),email="adrien.mazoyer@imag.fr"),
@@ -17,7 +17,7 @@ License: GPL
 URL: http://www.r-project.org,
      https://github.com/AdriMaz/flan
 BugReports: adrien.mazoyer@imag.fr
-Depends: R (>= 3.0.0), Rcpp (>= 0.12.3), lbfgsb3, methods
+Depends: R (>= 3.0.0), Rcpp (>= 0.12.5), lbfgsb3, methods
 LinkingTo: Rcpp
 RcppModules: flan_module
 LazyData: true
