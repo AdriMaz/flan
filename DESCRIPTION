@@ -2,7 +2,7 @@ Package: flan
 Version: 0.1
 Date: 2016-05-06
 Type: Package
-Title: Fluctuation Analysis of Mutant Cell Counts
+Title: Inference on Mutation Models.
 Authors@R: c(person("Adrien","Mazoyer", role =c("aut","cre"),email="adrien.mazoyer@imag.fr"),
              person("Remy", "Drouilhet", role = "aut", email = "remy.drouilhet@imag.fr"),
              person("Stephane", "Despreaux", role = "aut", email = "stephane.despreaux@imag.fr"),
@@ -12,11 +12,10 @@ Author: Adrien Mazoyer [aut, cre],
 	Stephane Despreaux [aut], 
 	Bernard Ycart [aut]
 Maintainer: Adrien Mazoyer <adrien.mazoyer@imag.fr>
-Description: Statistical tools for fluctuation analysis of mutant cells counts.
+Description: Tools for fluctuations analysis of mutant cells counts. 
 License: GPL
 URL: http://www.r-project.org,
      https://github.com/AdriMaz/flan
-     http://www-ljk.imag.fr/membres/Bernard.Ycart/LD
 BugReports: adrien.mazoyer@imag.fr
 Depends: R (>= 3.0.0), Rcpp (>= 0.12.3), lbfgsb3, methods
 LinkingTo: Rcpp

@@ -743,11 +743,17 @@ MutationMLOptimization <- function(mc,mfn=NULL,cvfn=NULL,model=c("LD","H"),fitne
 
   
   # Initialization
-  a.est <- MutationGFEstimation(mc,fitness=fitness,death=death,model=model)$mutations
+  est <- MutationGFEstimation(mc,fitness=fitness,death=death,model=model)
+  
+  a.est <- est$mutations
   
   # Winsorization
   if(max(mc) > winsor) mc[mc > winsor] = winsor
   
+  if(dflan(m=max(mc),mutations=a.est,fitness=fitness,death=death,model=model)==0) {
+    warning("Infinite log-likelihood: returns GF estimates (try a larger value for 'winsor')." )
+    return(list(mutations=a.est,sd.mutations=est$sd.mutations))
+  }
   
   dC <- dclone(m=0:max(mc),fitness=fitness,death=death,model=model)
   
@@ -803,10 +809,16 @@ MutationProbabilityMLOptimization <- function(mc,fn,model=c("LD","H"),fitness=1,
   cvfn <- sd(fn)/mfn
   
   # Initialization
-  pm.est <- MutationGFEstimation(mc=mc,mfn=mfn,cvfn=cvfn,fitness=fitness,death=death,model=model)$mutprob*mfn
+  est <- MutationGFEstimation(mc=mc,mfn=mfn,cvfn=cvfn,fitness=fitness,death=death,model=model)
 
+  pm.est <- est$mutprob*mfn
   # Winsorization
   if(max(mc) > winsor) mc[mc > winsor] = winsor
+  
+  if(dflan(m=max(mc),mutations=pm.est,fitness=fitness,death=death,model=model)==0) {
+    warning("Infinite log-likelihood: returns GF estimates (try a larger value for 'winsor')." )
+    return(list(mutprob=pm.est/mfn,sd.mutprob=est$sd.mutprob))
+  }
   
   dC <- dclone(m=0:max(mc),fitness=fitness,death=death,model=model)
   
@@ -862,10 +874,16 @@ MutationFitnessMLOptimization <- function(mc,mfn=NULL,cvfn=NULL,model=c("LD","H"
   # Winsorization
   if(max(mc) > winsor) mc[mc > winsor] = winsor
   
+  if(dflan(m=max(mc),mutations=a.est,fitness=r.est,death=death,model=model)==0) {
+    warning("Infinite log-likelihood: returns GF estimates (try a larger value for 'winsor')." )
+    return(list(mutations=a.est,sd.mutations=est$sd.mutations,fitness=r.est,sd.fitness=est$sd.fitness))
+  }
+  
   ll <- function(param){
     a <- param[1]
     r <- param[2]
-    p <- log(dflan(m=mc,mutations=a,fitness=r,death=death,model=model))
+    p <- dflan(m=mc,mutations=a,fitness=r,death=death,model=model)
+    p <- log(p)
     -sum(p)
   }
   
@@ -943,6 +961,11 @@ MutationProbabilityFitnessMLOptimization <- function(mc,fn,model=c("LD","H"),dea
   
   # Winsorization
   if(max(mc) > winsor) mc[mc > winsor] = winsor
+  
+  if(dflan(m=max(mc),mutations=pm.est,fitness=r.est,death=death,model=model)==0) {
+    warning("Infinite log-likelihood: returns GF estimates (try a larger value for 'winsor')." )
+    return(list(mutprob=pm.est/mfn,sd.mutations=est$sd.mutprob,fitness=r.est,sd.fitness=est$sd.fitness))
+  }
   
   ll <- function(param){
     pm <- param[1]
@@ -1111,9 +1134,18 @@ FitnessP0Optimization <- function(mc,fn=NULL,model=c("LD","H"),mut,death=0.,wins
   # Winsorization
   if(max(mc) > winsor){ mc[which(mc>winsor)] = winsor}
   
+  if(dflan(m=max(mc),mutations=mut,fitness=r.est,death=death,model=model)==0) {
+    warning("Infinite log-likelihood: returns GF estimates (try a larger value for 'winsor')." )
+    return(list(mutations=a.est,sd.mutations=est$sd.mutations,fitness=r.est,sd.fitness=est$sd.fitness))
+  }
   
   if(is.null(fn)){
     if(missing(mut)) mut <- 1
+    
+  if(dflan(m=max(mc),mutations=mut,fitness=r.est,death=death,model=model)==0) {
+    warning("Infinite log-likelihood: returns GF estimates (try a larger value for 'winsor')." )
+    return(list(fitness=r.est,sd.fitness=est$sd.fitness))
+  }
     
     ll <- function(r){
       p <- log(dflan(m=mc,mutations=mut,fitness=r,death=death,model=model))
@@ -1128,6 +1160,11 @@ FitnessP0Optimization <- function(mc,fn=NULL,model=c("LD","H"),mut,death=0.,wins
     }
   } else {
     if(missing(mut)) mut <- 1e-9
+    
+  if(dflan(m=max(mc),mutations=mut*mean(fn),fitness=r.est,death=death,model=model)==0) {
+    warning("Infinite log-likelihood: returns GF estimates (try a larger value for 'winsor')." )
+    return(list(fitness=r.est,sd.fitness=est$sd.fitness))
+  }
     
     ll <- function(r){
       p <- mapply(function(x,y){
@@ -1151,7 +1188,7 @@ FitnessP0Optimization <- function(mc,fn=NULL,model=c("LD","H"),mut,death=0.,wins
   lower = 0.1*r.est
   upper = 10*r.est
   
-  if(est$succeeds) {
+  if(!est$succeeds) {
     lower <- 10*r.est ; 
     upper <- 500*r.est
   }
