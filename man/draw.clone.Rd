@@ -11,7 +11,8 @@
 
 \usage{
   draw.clone(t,mutprob=1e-2,fitness=1,death=0,
-	     dist=list("lnorm",meanlog=-0.3795851,sdlog=0.3016223))
+	     dist=list("lnorm",meanlog=-0.3795851,sdlog=0.3016223),
+	     col=c("green4","orange4"))
 }
 
 \arguments{
@@ -20,6 +21,7 @@
   \item{fitness}{ fitness parameter: numeric positive. }
   \item{death}{ death probability: numeric between 0 and 0.5. } 
   \item{dist}{ lifetime distribution for mutant cells. See Details. }
+  \item{col}{ vector of size 2 of colors. The first is for the normal cells, the second for the mutant cells. }
 }
 
 
@@ -28,8 +30,6 @@
   This function does not provide a representation of a realistic realization of a mutation model (mutation probability too high, time of end of experiment to small).
   
   The argument \code{dist} is a list beginning with the distribution name followed by its parameters, and must be one the 4 following distributions: "dirac"(location), "exp"(rate), "lnorm"(meanlog, sdlog), "gamma"(shape, scale). 
-  
-  
   
 }
 

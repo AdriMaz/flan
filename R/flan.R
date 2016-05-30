@@ -1136,7 +1136,7 @@ FitnessP0Optimization <- function(mc,fn=NULL,model=c("LD","H"),mut,death=0.,wins
   
   if(dflan(m=max(mc),mutations=mut,fitness=r.est,death=death,model=model)==0) {
     warning("Infinite log-likelihood: returns GF estimates (try a larger value for 'winsor')." )
-    return(list(mutations=a.est,sd.mutations=est$sd.mutations,fitness=r.est,sd.fitness=est$sd.fitness))
+    return(list(fitness=r.est,sd.fitness=est$sd.fitness))
   }
   
   if(is.null(fn)){
@@ -1666,7 +1666,8 @@ print.flantest <- function(x,...){
 
 
 draw.clone <- function(t,mutprob=1e-2,fitness=1,death=0.,
-	     dist=list("lnorm",meanlog=-0.3795851,sdlog=0.3016223)){
+	     dist=list("lnorm",meanlog=-0.3795851,sdlog=0.3016223),
+	     col=c("green4","orange4")){
   #   Simulates a clone up to time t, represents the clone, and
   #   returns the vector of split times.
   #   At each division, the probability of having a mutant is mutprob.
@@ -1755,11 +1756,11 @@ draw.clone <- function(t,mutprob=1e-2,fitness=1,death=0.,
     warning("too many cells to plot")
     }else{
 		    # treatment for graphics
-  if(mutprob == 0){colnor <- "green4"}
-  else{
-  colnor <- "green4"                      # color for normal cells
-  colmut <- "orangered"                   # color for mutants
-  }
+#   if(mutprob == 0){colnor <- "green4"}
+#   else{
+  colnor <- col[1]                      # color for normal cells
+  colmut <- col[2]                   # color for mutants
+#   }
   nc <- length(CE)                        # number of cells
   if (nc>1){                              # something to plot
   OR <- sort(OR,index.return=TRUE)$ix     # order for plotting
