@@ -85,6 +85,7 @@ flan.test(list(b1,b2))
 # realistic random sample of size 100: mutation probability 1e-9,
 # mean final number 1e9, coefficient of variation on final numbers 0.3,
 # fitness 0.9, lognormal lifetimes, 5% mutant deaths
+\donttest{
 x <- rflan(100,mutprob=1e-9,mfn=1e9,cvfn=0.3,fitness=0.9,death=0.05)
 
 # test on mutations and fitness, without final numbers
@@ -94,6 +95,7 @@ flan.test(x$mc,mutations0=1,fitness0=0.9)
 flan.test(x$mc,x$fn,mutprob0=1e-9,fitness0=0.9)
 
 # given fitness
+
 flan.test(x$mc,x$fn,fitness=0.9,mutprob0=1e-9)
 
 # take deaths into account
@@ -101,10 +103,10 @@ flan.test(x$mc,x$fn,mutprob0=1e-9,fitness0=0.9,death=0.05)
 
 # change method
 flan.test(x$mc,x$fn,mutprob0=1e-9,fitness0=0.9,death=0.05,method="GF")
-flan.test(x$mc,x$fn,mutprob0=1e-9,fitness0=0.9,death=0.05,method="P0")
 
+flan.test(x$mc,x$fn,mutprob0=1e-9,fitness0=0.9,death=0.05,method="P0")
 # change model
 flan.test(x$mc,x$fn,mutprob0=1e-9,fitness0=0.9,model="H")
-
+}
 }
 

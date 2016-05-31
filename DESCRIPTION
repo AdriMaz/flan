@@ -2,21 +2,21 @@ Package: flan
 Version: 0.1
 Date: 2016-05-18
 Type: Package
-Title: Inference on Mutation Models.
-Authors@R: c(person("Adrien","Mazoyer", role =c("aut","cre"),email="adrien.mazoyer@imag.fr"),
-             person("Remy", "Drouilhet", role = "aut", email = "remy.drouilhet@imag.fr"),
-             person("Stephane", "Despreaux", role = "aut", email = "stephane.despreaux@imag.fr"),
-             person("Bernard", "Ycart", role = "aut", email = "bernard.ycart@imag.fr"))
+Title: Inference on Mutation Models
+Authors@R: c(person("Adrien","Mazoyer", role =c("aut","cre"),email="Adrien.Mazoyer@imag.fr"),
+             person("Remy", "Drouilhet", role = "ctb"),
+             person("Stephane", "Despreaux", role = "ctb"),
+             person("Bernard", "Ycart", role = "aut"))
 Author: Adrien Mazoyer [aut, cre],
-	Remy Drouilhet [aut], 
-	Stephane Despreaux [aut], 
+	Remy Drouilhet [ctb], 
+	Stephane Despreaux [ctb], 
 	Bernard Ycart [aut]
-Maintainer: Adrien Mazoyer <adrien.mazoyer@imag.fr>
+Maintainer: Adrien Mazoyer <Adrien.Mazoyer@imag.fr>
 Description: Tools for fluctuations analysis of mutant cells counts. 
 License: GPL
 URL: http://www.r-project.org,
      https://github.com/AdriMaz/flan
-BugReports: adrien.mazoyer@imag.fr
+BugReports: Adrien.Mazoyer@imag.fr
 Depends: R (>= 3.0.0), Rcpp (>= 0.12.5), lbfgsb3, methods
 LinkingTo: Rcpp
 RcppModules: flan_module

@@ -88,8 +88,9 @@ X$mc              # mutant counts
 X$fn              # final numbers
 
 # mean number of mutations 2, fitness parameter 0.5 (realistic model, but slow)
+\donttest{
 rflan(1000,mutations=2,fitness=0.5)$mc
-
+}
 # exponential lifetimes (Luria-Delbrück model, fast)
 rflan(1000,mutations=2,fitness=0.5,dist=list(name="exp",rate=1))$mc
 
@@ -98,6 +99,7 @@ rflan(1000,mutations=2,fitness=0.5,dist=list(name="dirac",location=1))$mc
 
 # specifying mutation probability and mean final number
 rflan(1000,mutprob=2e-9,mfn=2e9,fitness=0.5,dist=list(name="dirac",location=1))$mc
+
 
 # positive cell death probability
 rflan(1000,mutprob=2e-9,mfn=2e9,death=0.1,fitness=0.5,dist=list(name="dirac",location=1))$mc
