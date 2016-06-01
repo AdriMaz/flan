@@ -98,10 +98,12 @@ rflan(1000,mutations=2,fitness=0.5,dist=list(name="exp",rate=1))$mc
 rflan(1000,mutations=2,fitness=0.5,dist=list(name="dirac",location=1))$mc
 
 # specifying mutation probability and mean final number
+\donttest{
 rflan(1000,mutprob=2e-9,mfn=2e9,fitness=0.5,dist=list(name="dirac",location=1))$mc
 
 
 # positive cell death probability
 rflan(1000,mutprob=2e-9,mfn=2e9,death=0.1,fitness=0.5,dist=list(name="dirac",location=1))$mc
+}
 }
 

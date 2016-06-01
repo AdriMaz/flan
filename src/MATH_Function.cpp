@@ -6,22 +6,6 @@
 using namespace Rcpp;
 
 
-double MATH_Integration::testintegralFunction(double a, double b,double rho,double delta) {
-  std::string name="CLONE_P0_WD";
-  setFunctionName(name);
-  List res=(*mIntegrate)(*mIntegrand, a, b, _["rel.tol"] = mReltol,_["subdivisions"] = mSubd,_["rho"] =rho,_["delta"] =delta);
-  double integ=as<double>(res["value"]);
-//   std::cout<<integ<<std::endl;
-
-  name="CLONE_dP0_dr_WD";
-  setFunctionName(name);
-  res=(*mIntegrate)(*mIntegrand, a, b, _["rel.tol"] = mReltol,_["subdivisions"] = mSubd,_["rho"] =rho,_["delta"] =delta);
-  integ=as<double>(res["value"]);
-
-  return integ;
-}
-
-
 double MATH_Integration::integralFunction(double a, double b,double rho,double delta,double k) {
 
   List res;
@@ -58,7 +42,6 @@ void MATH_Polynom::square_fft(){
   int n=mCoef.size();
   
   std::vector<double> temp=mCoef;
-//   std::vector<double> temp2(n-1);
   
   n*=2;
   n--;
@@ -71,15 +54,11 @@ void MATH_Polynom::square_fft(){
   int N=floor(tp);
   
   if(N != tp) {
-//     std::cout<<"Rajout de 0 numéro2"<<std::endl;
     N++;
     N=pow(2,N);
-//     std::cout<<"N ="<<N<<std::endl;
     temp.resize(N);
-//     for(std::vector<double>::iterator it=temp.begin()+n+1 ; it!=temp.end() ; ++it) *it =0;
   }
   
-//   std::cout<<"size of temp = "<<temp.size()<<std::endl;
   
   
   
@@ -105,20 +84,4 @@ void MATH_Polynom::square_fft(){
     
   
 }
-
-
-// NumericVector MATH_ZeroEquation::unirootFunction(){
-//   
-//   NumericVector output;
-//   NumericVector Int=getInterval();
-//   double binf=Int[0],bsup=Int[1];
-//   
-//   if((*mFunc)(binf)*(*mFunc)(bsup) > 0){
-//     output[0]=1 ; output[1] = false;
-//   } else {
-//     List res=(*mSolver)(*mFunc,_["interval"]=mInterval);
-//     output[0]=res["root"];output[1]=true;
-//   }
-//   return output; 
-// }
 

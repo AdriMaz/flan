@@ -53,12 +53,6 @@ List FLAN_Sim::computeSamplesMutantsFinalsNumber(int n)  {
       double sdLog=sqrt(sdLog2);
       double meanLog=log(mMfn)-sdLog2/2;
       
-
-//       for(NumericVector::iterator it = finalCount.begin();
-// 	  it != finalCount.end(); ++it) {
-// 	    *it=R::rlnorm(meanLog,sdLog);
-//       }
-      
       NumericVector finalCount=rlnorm(n,meanLog,sdLog);
 
       mutantCount=computeSampleMutantsNumber(n,finalCount);
@@ -71,14 +65,7 @@ List FLAN_Sim::computeSamplesMutantsFinalsNumber(int n)  {
       return List::create(_["mc"]=mutantCount,
 			  _["fn"]=R_NilValue);
   }
-  //export in R
-//   return List::create(_["mc"]=mutantCount,_["fn"]=finalCount);
-  
-//   return List::create(_["mc"]=NumericVector(mutantCount.begin(),mutantCount.end()),
-// 		      _["fn"]=NumericVector(finalCount.begin(),finalCount.end())
-//   );
-
-
+ 
 }
 
 
@@ -101,29 +88,22 @@ NumericVector FLAN_Sim::computeSampleMutantsNumber(int n)  {
     int i=0,j;
     bool testneg;
     for (NumericVector::iterator it = mutantCount.begin(); it != mutantCount.end(); ++it,i++) {
-//       int i=0;i<n;i++) {
         // simulate a poisson number
 
-// 	  mc=(int)(mcs[i]);
 	  mc=(int)(*it);
 
         if (mc>0) {
             //Poisson sum of Yule variables
             NumericVector sample=mClone->computeSample(mc);
 
-            //s = sum_j sample[j]
-//             int m=sample.getSize();
             s=0;
 	    j=0;
 	    testneg=false;
-//             for (int j=0;j<m;j++){
 	    while(j<mc && !testneg){
 	      sj=sample[j];
 	      if(sj < 0){
-// 		std::cout<<"Negaative number !"<<std::endl;
 		testneg=true;
 		s=sj;
-// 		s=-1e-5;
 	      } else {
 		s+=sj;
 		j++;
@@ -151,16 +131,13 @@ NumericVector FLAN_Sim::computeSampleMutantsNumber(int n,
 					  NumericVector& finalCount)  {
 
     std::vector <double> mutantCount(n);
-//     FLAN_SimClone* clone=new FLAN_SimClone(mFitness,mDeath,mDist);
 
     // poisson number of mutation
 
 //     NumericVector sample;
     double s,sj;
     // set the size of the mutants
-//     mutantCount.resize(n);
 
-//     double mcs;
     double lambda;
     int mc,j;
     bool testneg;
@@ -181,13 +158,11 @@ NumericVector FLAN_Sim::computeSampleMutantsNumber(int n,
             s=0;
 	    j=0;
 	    testneg=false;
-//             for (int j=0;j<m;j++){
 	    while(j<mc && !testneg){
 	      sj=sample[j];
 	      if(sj < 0){
 		testneg=true;
 		s=sj;
-// 		s=-1e-5;
 	      } else {
 		s+=sj;
 		j++;

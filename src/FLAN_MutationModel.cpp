@@ -28,8 +28,7 @@
 NumericVector FLAN_MutationModel::computeProbability(int m) {
     
     //vector of clone probabilities
-//     NumericVector P(m+1);
-    
+   
     NumericVector P=mClone->computeProbability(m);
     
     return deduceProbability(m,P);
@@ -41,30 +40,20 @@ NumericVector FLAN_MutationModel::deduceProbability(int m,NumericVector& P) {
     // initialize Q
     std::vector<double> Q(m+1);
     
-//     for(NumericVector::iterator it=Q.begin(); it != Q.end(); ++it) *it=0;
-//     for (int k=0;k<=m;k++) Q[k]=0;
     
     //initial probability q0
     Q[0]=exp(-mMutNumber*(1.-P[0]));
     
-//     if(m == 0) return NumericVector(Q[0]);
-//     if(m == 0) return Q[0];
     if(m > 0){
       double s=0;
-  //     int k=1;
-  //     int i;
       for (int k=1;k<=m;k++) {
-  //     for(std::vector<double>::iterator itQ=Q.begin()+1 ; itQ!=Q.end(); ++itQ,k++){
 	  // convolution
 	  s=0;
   // 	i=1;
 	  for (int i=1;i<=k;i++) {
-  // 	for(NumericVector::iterator itP=P.begin()+1 ; itP!=P.end(); ++itP,i++){
 	      s+=i*P[i]*Q[k-i];
-  // 	  s+=i*(*itP)*Q[k-i];
 	  }
 	  Q[k]=(mMutNumber/k)*s;
-  // 	(*itQ)=(mMutNumber/k)*s;
       }
     }
       
@@ -79,7 +68,6 @@ List FLAN_MutationModel::computeProbability1DerivativeAlpha(int m
     
                                                  
     
-//     NumericVector P(m+1);
     // compute the probabilities of mClone
     NumericVector P=mClone->computeProbability(m);
     
@@ -97,59 +85,41 @@ List FLAN_MutationModel::deduceProbability1DerivativeAlpha(int m,
     //initial probability Q0
     std::vector<double> Q(m+1);
     std::vector<double> dQ_da(m+1);
-//     Q.resize(m+1);
-//     dQ_da.resize(m+1);
+
     
-//     for(NumericVector::iterator it=Q.begin(); it != Q.end(); ++it) *it=0;
     
     //initial probability q0
     Q[0]=exp(-mMutNumber*(1.-P[0]));
         // first derivatives of Q with respect to mMutNumber
     dQ_da[0]=-(1-P[0])*Q[0];
    
-//     if (m == 0) return true;
     if (m == 0) return List::create(_["Q"]=Q[0],
 				    _["dQ_da"]=dQ_da[0]
 				   );
     
     double s,ds_da; 
-//     int k=1,i;
     for (int k=1;k<=m;k++) {
-//     NumericVector::iterator itdQ=dQ_da.begin()+1;
-//     for(NumericVector::iterator itQ=Q.begin()+1 ; itQ!=Q.end(); ++itQ,++itdQ,k++){
         s=0;ds_da=0;
         for (int i=1;i<=k;i++) {
-// 	i=1;
-// 	for(NumericVector::iterator itP=P.begin()+1 ; itP!=P.end(); ++itP,i++){
+
             s+=i*P[i]*Q[k-i];
 	    ds_da+=P[i]*Q[k-i];
-// 	    s+=i*(*itP)*Q[k-i];
-// 	    ds_da+=(*itP)*Q[k-i];
+
         }
 	Q[k]=(mMutNumber/k)*s;
         dQ_da[k]=ds_da-Q[k];
-// 	*itQ=(mMutNumber/k)*s;
-//         *itdQ=ds_da-(*itQ);
     }
     return List::create(_["Q"]=NumericVector(Q.begin(),Q.end()),
 			_["dQ_da"]=NumericVector(dQ_da.begin(),dQ_da.end())
 		       );
-//     return true;
 }
 
 
-List FLAN_MutationModel::computeProbability1DerivativeRho(int m
-// 							  NumericVector& Q,
-// 							  NumericVector& dQ_dr
-									) {
+List FLAN_MutationModel::computeProbability1DerivativeRho(int m) {
     
-                                                 
-    
-//     NumericVector P(m+1);
-//     NumericVector dP_dr(m+1);
+         
     
     // compute the probabilities and their derivative with respect to mFitness of mClone
-//     P=mClone->computeProbability(m);
     List P_dP_dr=mClone->computeProbability1DerivativeRho(m);
     
     NumericVector P=P_dP_dr["P"];
@@ -165,18 +135,14 @@ List FLAN_MutationModel::computeProbability1DerivativeRho(int m
 
 List FLAN_MutationModel::deduceProbability1DerivativeRho(int m,
 							  NumericVector& P,
-							  NumericVector& dP_dr
-// 							  NumericVector& Q,
-// 							  NumericVector& dQ_dr
-								       ) {
+							  NumericVector& dP_dr) {
     
                                                     
     //initial probability Q0
 
     std::vector<double> Q(m+1);
     std::vector<double> dQ_dr(m+1);
-//     Q.resize(m+1);
-//     dQ_dr.resize(m+1);
+
     
     // first derivatives of Q with respect to mFitness
     Q[0]=exp(-mMutNumber*(1.-P[0]));
@@ -188,31 +154,22 @@ List FLAN_MutationModel::deduceProbability1DerivativeRho(int m,
 				  );
     
     double s=0,ds_dr=0;
-//     int k=1,i;
-//     NumericVector::iterator itdQ=dQ_dr.begin()+1;
-//     NumericVector::iterator itdP;
+
     for (int k=1;k<=m;k++) {
-//     for(NumericVector::iterator itQ=Q.begin()+1 ; itQ!=Q.end(); ++itQ,++itdQ,k++){
         s=0;ds_dr=0;
-// 	i=1;
-// 	itdP=dP_dr.begin()+1;
         for (int i=1;i<=k;i++) {
-// 	for(NumericVector::iterator itP=P.begin()+1 ; itP!=P.end(); ++itP,++itdP,i++){
             s +=i*P[i]*Q[k-i];
 	    ds_dr+=dP_dr[i]*Q[k-i];
-// 	    s +=i*(*itP)*Q[k-i];
-// 	    ds_dr+=(*itdP)*Q[k-i];
+
         }
         Q[k] =(mMutNumber/k)*s;
 	dQ_dr[k]=mMutNumber*ds_dr;
-// 	*itQ =(mMutNumber/k)*s;
-// 	*itdQ=mMutNumber*ds_dr;
+
 
     }
     return List::create(_["Q"]=NumericVector(Q.begin(),Q.end()),
 			_["dQ_dr"]=NumericVector(dQ_dr.begin(),dQ_dr.end())
 			);
-//     return true;
 }
 
 
@@ -226,10 +183,6 @@ List FLAN_MutationModel::computeProbability1DerivativesAlphaRho(int m
                                                  
     // compute the derivative with respect to mFitness of GY
     
-//     NumericVector P;
-//     NumericVector dP_dr;
-    
-//     P=mClone->computeProbability(m);
     List P_dP=mClone->computeProbability1DerivativeRho(m);
     
     NumericVector P=P_dP["P"];
@@ -253,9 +206,7 @@ List FLAN_MutationModel::deduceProbability1DerivativesAlphaRho(int m,
     std::vector<double> Q(m+1);
     std::vector<double> dQ_da(m+1);
     std::vector<double> dQ_dr(m+1);
-//     Q.resize(m+1);
-//     dQ_da.resize(m+1);
-//     dQ_dr.resize(m+1);
+
     
     
     Q[0]=exp(-mMutNumber*(1-P[0]));
@@ -272,31 +223,19 @@ List FLAN_MutationModel::deduceProbability1DerivativesAlphaRho(int m,
 				 );
     
     double s,ds_da,ds_dr;
-//     int k=1,i;
-//     NumericVector::iterator itdQa=dQ_da.begin()+1;
-//     NumericVector::iterator itdQr=dQ_dr.begin()+1;
-//     NumericVector::iterator itdP;
+
     for (int k=1;k<=m;k++) {
-//     for(NumericVector::iterator itQ=Q.begin()+1 ; itQ!=Q.end(); ++itQ,++itdQa,++itdQr,k++){
         s=0;ds_da=0;ds_dr=0;
-// 	itdP=dP_dr.begin()+1;
-// 	i=1;
         for (int i=1;i<=k;i++) {
-// 	for(NumericVector::iterator itP=P.begin()+1 ; itP!=P.end(); ++itP,++itdP,i++){
             s +=i*P[i]*Q[k-i];
 	    ds_da+=P[i]*Q[k-i];
 	    ds_dr+=dP_dr[i]*Q[k-i];
-// 	    s +=i*(*itP)*Q[k-i];
-// 	    ds_da+=(*itP)*Q[k-i];
-// 	    ds_dr+=(*itdP)*Q[k-i];
-	  
+
         }
         Q[k]=(mMutNumber/k)*s;
 	dQ_da[k]=ds_da-Q[k];
 	dQ_dr[k]=mMutNumber*ds_dr;
-// 	*itQ=(mMutNumber/k)*s;
-// 	*itdQa=ds_da-(*itQ);
-// 	*itdQr=mMutNumber*ds_dr;
+
     }
     return List::create(_["Q"]=NumericVector(Q.begin(),Q.end()),
 			_["dQ_da"]=NumericVector(dQ_da.begin(),dQ_da.end()),
@@ -315,14 +254,7 @@ NumericVector FLAN_MutationModel::computeCumulativeFunction(int m) {
     
     std::partial_sum(Q.begin(),Q.end(),cumsum.begin(),std::plus<double>());
     
-    //initial probability q0
-//     cumsum[0]=Q[0];
-// //     sum_pk+=pk[0];
-//     
-//     for (int k=1;k<=m;k++) {
-//       cumsum[k]=cumsum[k-1]+Q[k];
-//     }
-//     
+    
     if(!mLT) {
       for(std::vector<double>::iterator it=cumsum.begin();it!=cumsum.end();++it) {
 	(*it)*=-1;
@@ -341,7 +273,8 @@ List FLAN_MutationModel::MutationGFEstimation(){
   
   int n=mSample.size();
   
-  double z3=mTuning["z3"];
+//   double z3=mTuning["z3"];
+  double z3=0.8;
   
   z3=pow(z3,1./mScale);
   
@@ -394,7 +327,6 @@ double FLAN_MutationModel::covariance2(double z1, double z2) {
 // 
 NumericMatrix FLAN_MutationModel::covariance(double z1, double z2,double z3) {
 
-//     double cvfn2=cvfn*cvfn;
     
     NumericMatrix M(3,3);
     M(0,0)=covariance2(z1,z1);

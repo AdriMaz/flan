@@ -1,6 +1,6 @@
 Package: flan
 Version: 0.1
-Date: 2016-05-31
+Date: 2016-06-01
 Type: Package
 Title: Inference on Mutation Models
 Authors@R: c(person("Adrien","Mazoyer", role =c("aut","cre"),email="Adrien.Mazoyer@imag.fr"),

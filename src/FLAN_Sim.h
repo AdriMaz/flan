@@ -44,7 +44,6 @@ public:
       
       List dist=args["dist"];
       FLAN_Dist* mDist=new FLAN_Dist(dist);          // Lifetime Distribution
-//       mDist->adjustGrowthRate(mDeath);   // Rescales parameter to unit growth rate
       
       
       mMfn=as<double>(args["mfn"]);

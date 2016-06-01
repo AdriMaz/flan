@@ -45,15 +45,7 @@ protected:
     NumericVector mSample;
     double mMfn,mCvfn;
     double mScale;
-    List mTuning;
-    
-    
-    void init_GFest(){
-//       List tu=Environment::global_env().get(".tunings");
-      Environment FlanEnv("FlanEnv");
-      List tu=FlanEnv.get(".tunings");
-      mTuning=tu;
-    };
+
     
 public: 
 
@@ -83,14 +75,12 @@ public:
       mFitness=rho;
       mDeath=death;
       
-      FLAN_Clone* clone;
+      FLAN_Clone* clone=new FLAN_DiracClone(rho,death);
       
       if(model.compare("LD") == 0){
 	clone=new FLAN_ExponentialClone(rho,death);
       }
-      if(model.compare("H") == 0){
-	clone=new FLAN_DiracClone(rho,death);
-      }
+
       mClone=clone;
       
       mLT=true;
@@ -99,23 +89,33 @@ public:
     // Create object for distribution
     FLAN_MutationModel(List args){
   
-      if(args.size()==5){
+      if(args.size()==4){
+	mMutNumber=as<double>(args["mutations"]);
+	mFitness=as<double>(args["fitness"]);
+	mDeath=as<double>(args["death"]);
+
+	mLT=as<bool>(args["lt"]);
+	
+	
+      } else if(args.size()==6){
 	mMutNumber=as<double>(args["mutations"]);
 	mFitness=as<double>(args["fitness"]);
 	mDeath=as<double>(args["death"]);
 	
 	std::string model=args["model"];
 	
-	FLAN_Clone* clone=new FLAN_ExponentialClone(mFitness,mDeath);;
+	FLAN_Clone* clone=new FLAN_DiracClone(mFitness,mDeath);
 	
-	if(model.compare("H") == 0){
-	  clone=new FLAN_DiracClone(mFitness,mDeath);
+	if(model.compare("LD") == 0){
+	  clone=new FLAN_ExponentialClone(mFitness,mDeath,args["integrands"]); 
 	}
+
 	mClone=clone;
 	
 	mLT=as<bool>(args["lt"]);
 	
-      } else if (args.size()==7){
+	
+      } else if (args.size()==8){
 	
 	mSample=args["mc"];
 	if(!Rf_isNull(args["mfn"])){
@@ -131,16 +131,16 @@ public:
 	
 	std::string model=args["model"];
 	
-	FLAN_Clone* clone=new FLAN_ExponentialClone(mFitness,mDeath);
+	FLAN_Clone* clone=new FLAN_DiracClone(mFitness,mDeath);
 	
-	if(model.compare("H") == 0){
-	  clone=new FLAN_DiracClone(mFitness,mDeath);
+	
+	if(model.compare("LD") == 0){
+	 clone=new FLAN_ExponentialClone(mFitness,mDeath,args["integrands"]); 
 	}
+	
 	mClone=clone;
 	
 	mScale=as<double>(args["scale"]);
-	
-	init_GFest();
 	
       }
 
@@ -164,10 +164,7 @@ public:
       mClone=clone;
     };
     
-//     List getFns(){
-//       return mClone->get();
-// }
-    
+
     // Get attributes
     
     double getMutNumber(){
@@ -195,52 +192,25 @@ public:
     NumericVector deduceProbability(int m,NumericVector& pClone) ;
 			
 			    
-    List computeProbability1DerivativeAlpha(int m
-// 					    NumericVector& Q,
-// 					    NumericVector& dQ_da
-							  )  ;    
+    List computeProbability1DerivativeAlpha(int m)  ;    
     List deduceProbability1DerivativeAlpha(int m,
-					    NumericVector& pClone
-// 					    NumericVector& Q,
-// 					    NumericVector& dQ_da
-							 )  ;
+					    NumericVector& pClone)  ;
     
 					      
-    List computeProbability1DerivativeRho(int m
-// 					  NumericVector& Q,
-// 					  NumericVector& dQ_dr
-							)  ;
+    List computeProbability1DerivativeRho(int m)  ;
     List deduceProbability1DerivativeRho(int m,
 					  NumericVector& pClone,
-					  NumericVector& dpClone_r
-// 					  NumericVector& Q,
-// 					  NumericVector& dQ_dr
-						       ) ;
+					  NumericVector& dpClone_r) ;
     
 					    
-    List computeProbability1DerivativesAlphaRho(int m
-// 						NumericVector& Q,
-// 						NumericVector& dQ_da,
-// 						NumericVector& dQ_dr
-					       )  ;
+    List computeProbability1DerivativesAlphaRho(int m)  ;
     List deduceProbability1DerivativesAlphaRho(int m,
 						NumericVector& pClone,
-						NumericVector& dpClone_r
-// 						NumericVector& Q,
-// 						NumericVector& dQ_da,
-// 						NumericVector& dQ_dr
-					      )  ;
+						NumericVector& dpClone_r)  ;
     
-//     void computeProbability1Derivatives(int m,double alpha,double rho,double death) ;
     
     NumericVector computeCumulativeFunction(int m) ;
-    
-    
-    
-    //  compute the Generating function and its derivative
-//     double computeGeneratingFunction(double z)  ;
-//     double computeGeneratingFunctionDerivative(double z)  ;
-//    
+
 //     // --------------------
 //     // GF ESTIMATION covariance methods
 //     // -------------------

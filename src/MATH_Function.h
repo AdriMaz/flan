@@ -10,7 +10,7 @@ private:
 
   double mReltol;
   
-  double mSubd;
+  int mSubd;
 
   Function* mIntegrate;
 
@@ -25,11 +25,10 @@ protected:
 public:
 
     MATH_Integration() {};
-    MATH_Integration(List fns, double reltol, double subd){
+    MATH_Integration(List fns, double reltol, int subd){
       mReltol=reltol;
       mSubd=subd;
       mIntegrate=new Function("integrate");
-//       List fns=Environment::global_env().get(".integrands");
       fcts=fns;
 
       mIntegrand=new Function("identity");  // allouer
@@ -39,20 +38,15 @@ public:
 
     ~MATH_Integration(){};
 
-// List getFns(){return fcts;};
 
     void setFunctionName(std::string name){
-    //   std::cout<<"reltol=<"<<mReltol<<">"<<std::endl;
-    //       std::cout<<"Size de fcts="<<fcts.size()<<std::endl;
-    //   Function func(fcts[name]);
+
       *mIntegrand = fcts[name];
     };
 
   /*
    * Integrals functions
    */
-
-  double testintegralFunction(double a, double b,double rho, double delta);
   double integralFunction(double a, double b,double rho, double delta,double k);
 
 };
@@ -124,9 +118,7 @@ public:
     MATH_Polynom& operator*=(double f) {
       int i=0;
       for(std::vector<double>::iterator it=mCoef.begin() ; it!=mCoef.end() ; ++it,i++) {
-// 	std::cout<<"Avt *f : C["<<i<<"] ="<<*it<<std::endl;
 	(*it)*=f;
-// 	std::cout<<"Après *f : C["<<i<<"] ="<<*it<<std::endl;
       }
       return *this;
     };
@@ -140,61 +132,8 @@ public:
 
     void square_fft();
     
-//     void square_conv();
-
 
 };
-
-
-// class MATH_ZeroEquation {
-// 
-// private: 
-//   
-//   Function* mSolver;
-//   
-//   Function* mFunc;
-//   
-//   NumericVector mInterval; 
-// 
-// public:
-//   
-//     MATH_ZeroEquation() {};
-//     
-//     
-//     
-//     MATH_ZeroEquation(double binf,double bsup){
-// //       mReltol=reltol_;
-//       mSolver=new Function("uniroot");
-//       setInterval(binf,bsup);
-// //       List fns=Environment::global_env().get(".integrands");
-// //       fcts=fns;
-//       mFunc=new Function("identity");  // allouer
-//     };
-// 
-//     ~MATH_ZeroEquation(){};
-//     
-//     void setInterval(double binf,double bsup){
-//       mInterval[0]=binf;
-//       mInterval[1]=bsup;
-//     };
-//     
-//     void setFunction(Function func){
-//       *mFunc=func;
-//     }
-//     
-//     NumericVector getInterval(){
-//       return mInterval;
-//     };
-//     
-//     
-//     
-//     
-//     double unirootFunction();
-//     
-//     
-//     
-// };
-
 
 
 
