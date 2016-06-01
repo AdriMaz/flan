@@ -106,11 +106,8 @@ public:
 	
 	std::string model=args["model"];
 	
-	FLAN_Clone* clone;
+	FLAN_Clone* clone=new FLAN_ExponentialClone(mFitness,mDeath);;
 	
-	if(model.compare("LD") == 0){
-	  clone=new FLAN_ExponentialClone(mFitness,mDeath);
-	}
 	if(model.compare("H") == 0){
 	  clone=new FLAN_DiracClone(mFitness,mDeath);
 	}
@@ -134,11 +131,8 @@ public:
 	
 	std::string model=args["model"];
 	
-	FLAN_Clone* clone;
+	FLAN_Clone* clone=new FLAN_ExponentialClone(mFitness,mDeath);
 	
-	if(model.compare("LD") == 0){
-	  clone=new FLAN_ExponentialClone(mFitness,mDeath);
-	}
 	if(model.compare("H") == 0){
 	  clone=new FLAN_DiracClone(mFitness,mDeath);
 	}

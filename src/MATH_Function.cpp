@@ -35,7 +35,7 @@ double MATH_Integration::integralFunction(double a, double b,double rho,double d
 
 
 void MATH_Polynom::reduce(double eps){      
-      int i=0,dmax;
+      int i=0,dmax=mCoef.size()-1;
       std::vector<double>::iterator it1=mCoef.begin();
       std::vector<double>::iterator itmax;
       for(std::vector<double>::iterator it=mCoef.begin() ; it!=mCoef.end() ; ++it,i++) {
@@ -45,52 +45,13 @@ void MATH_Polynom::reduce(double eps){
 	  itmax=it; 
 	  dmax=i ;
 	}
-// 	if(*it > 0) dmax=i;
-      }
-//       mDeg=dmax;
-      
-//       std::cout<<"Initial size of mCoef ="<<mCoef.size()<<std::endl;
-//       for(std::vector<double>::iterator it=mCoef.begin() ; it!=mCoef.end() ; ++it) {
-// 	std::cout<<' '<<*it;
-//       } 
-//       std::cout<<' '<<std::endl;
 
-//       std::cout<<"Resize mCoef"<<std::endl;
+      }
+
       mCoef=std::vector<double>(it1,itmax+1);
-//       std::cout<<"new size of mCoef ="<<mCoef.size()<<std::endl;
-//       for(std::vector<double>::iterator it=mCoef.begin() ; it!=mCoef.end() ; ++it) {
-// 	std::cout<<' '<<*it;
-//       }
-//       std::cout<<' '<<std::endl;
-//       std::cout<<"new deg ="<<mCoef.size()-1<<std::endl;
-//       mDeg=mCoef.size()-1;
       mDeg=dmax;
-//       mCoef.resize(dmax+1);
     };
     
-    
-    
-// void MATH_Polynom::square_conv(){
-//   
-//   int n=mCoef.size();
-//   
-//   n*=2;
-//   n--;
-//   
-//   std::vector<double> temp(n);
-//   
-//   int i=0,j;
-//   for(std::vector<double>::iterator it1=mCoef.begin() ; it1 != mCoef.end() ; ++it1, i++){
-//     j=0;
-//     for(std::vector<double>::iterator it2=mCoef.begin() ; it2 != mCoef.end() ; ++it2, j++){
-//       temp[i+j]+=(*it1)*(*it2);
-//     }
-//   }
-//   
-//   setCoef(temp);
-//   
-// }
-
 
 void MATH_Polynom::square_fft(){
   

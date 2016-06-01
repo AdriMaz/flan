@@ -180,7 +180,6 @@ NumericVector FLAN_Sim::computeSampleMutantsNumber(int n,
 //             int m=sample.getSize();
             s=0;
 	    j=0;
-	    sj;
 	    testneg=false;
 //             for (int j=0;j<m;j++){
 	    while(j<mc && !testneg){

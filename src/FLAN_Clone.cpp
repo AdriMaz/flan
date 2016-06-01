@@ -617,7 +617,7 @@ std::vector<double> FLAN_ExponentialClone::computeGeneratingFunction2(double rho
     if(fabs(*itZ) <= eps) *itH=0.;
     else if(fabs(1-(*itZ)) <= eps) *itH=1.;
     else {
-      double dstar,zstar,I,h;
+      double dstar,zstar,I;
       
       dstar=mDeath/(1-mDeath);
       zstar=((*itZ)-dstar)/(1-(*itZ));

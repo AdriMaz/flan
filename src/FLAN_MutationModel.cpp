@@ -365,10 +365,8 @@ List FLAN_MutationModel::MutationGFEstimation(){
   sd_alpha/=n;
   sd_alpha=sqrt(sd_alpha);
   
-  bool mutprob=false;
   double tp,pmut,sd_pmut;
   if(mMfn > 0){
-    mutprob=true;
     pmut=alpha/mMfn;
     sd_pmut=sd_alpha/mMfn;
     
