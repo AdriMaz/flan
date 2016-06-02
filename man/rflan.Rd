@@ -76,11 +76,12 @@ qflan(c(0.95,0.99))
 
 # Luria-Delbrück model, mean number of mutations 2, fitness parameter 0.5
 qflan(c(0.95,0.99),mutations=2,fitness=0.5)
+\donttest{
 qflan(c(0.05,0.01),mutations=2,fitness=0.5,lower.tail=FALSE)
 
 # Haldane model, mean number of mutations 2, fitness parameter 0.5
 qflan(c(0.95,0.99),mutations=2,fitness=0.5,model="H")
-
+}
 #---------------------- random samples ----------------------------------
 # lognormal lifetime distribution, lognormal final numbers
 X <- rflan(100,cvfn=0.3)
