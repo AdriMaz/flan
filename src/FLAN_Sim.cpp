@@ -49,7 +49,7 @@ List FLAN_Sim::computeSamplesMutantsFinalsNumber(int n)  {
   NumericVector mutantCount(n);
 
   if (mCvfn>0) {
-      double sdLog2=log(1+mCvfn*mCvfn);
+      double sdLog2=log(1.+mCvfn*mCvfn);
       double sdLog=sqrt(sdLog2);
       double meanLog=log(mMfn)-sdLog2/2;
       

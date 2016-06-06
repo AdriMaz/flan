@@ -23,7 +23,6 @@ void MATH_Polynom::reduce(double eps){
       std::vector<double>::iterator it1=mCoef.begin();
       std::vector<double>::iterator itmax;
       for(std::vector<double>::iterator it=mCoef.begin() ; it!=mCoef.end() ; ++it,i++) {
-// 	std::cout<<"C["<<i<<"] ="<<*it<<std::endl;
 	if(*it <= eps) *it=0;
 	if(*it > 0) {
 	  itmax=it; 
@@ -48,14 +47,14 @@ void MATH_Polynom::square_fft(){
    
   temp.resize(n);
   
-  double tp=log2(n);
+  double tp=log2((double)(n));
   
   
   int N=floor(tp);
   
   if(N != tp) {
     N++;
-    N=pow(2,N);
+    N=pow(2.,N);
     temp.resize(N);
   }
   

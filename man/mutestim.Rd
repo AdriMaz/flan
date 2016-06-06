@@ -104,6 +104,7 @@ mutestim(x,method="GF")
 mutestim(x)
 mutestim(x,winsor=2000)
 
-\donttest{mutestim(x,method="P0")}
+\dontrun{
+mutestim(x,method="P0")}
 }
 

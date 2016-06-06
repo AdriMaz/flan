@@ -42,7 +42,7 @@ NumericVector FLAN_SimClone::computeSample(int n) {
         }
     } else {
         // case with death
-        double t,a=log(2*(1-mDeath));
+        double t,a=log(2.*(1-mDeath));
 	for(NumericVector::iterator it = sample.begin(); it != sample.end(); ++it) {
 	  double cg=0;
 	  int m=1;
@@ -292,7 +292,7 @@ NumericVector FLAN_ExponentialClone::computeProbability(int m){
       // equivalent computation
       double a=pow(d2,(1.-mFitness)/2.)*mFitness*R::gammafn(mFitness+1);
       for (int k=m1+1;k<=m;k++,++it) {
-	*it=a*pow(k,-mFitness-1);
+	*it=a*pow((double)(k),-mFitness-1);
       }
     }
  }
@@ -365,13 +365,14 @@ List FLAN_ExponentialClone::computeProbability1DerivativeRho(int m){
     double b=a*mFitness*R::gammafn(mFitness+1);
     double c=-0.5*log(d2)*mFitness+1.;
     double kpr;
+    double kd;
     for(int k=m1+1; k<=m ;k++ , ++itP,++itdP){
-	
-      kpr=pow(k,-mFitness-1);
+      kd=(double)(k);
+      kpr=pow(kd,-mFitness-1);
       *itP=a*kpr;
       
       *itdP=b*kpr*(
-            gfn*(c-mFitness*log(k))
+            gfn*(c-mFitness*log(kd))
             +rhodg);
     }
   }
@@ -454,9 +455,9 @@ NumericVector FLAN_DiracClone::computeProbability(int m){
     P[0]=0;
 
     if(m > 0){
-      int n=floor(log(m)/log(2));
+      int n=floor(log((double)(m))/log(2.));
         //take only the indices index=2^ind for ind in [0,n] where index < m
-      for (int k=0;k<=n;k++) P[pow(2,k)]=(1-pow(2,-mFitness))*pow(2,-k*mFitness);
+      for (int k=0;k<=n;k++) P[pow(2.,k)]=(1-pow(2.,-mFitness))*pow(2.,-k*mFitness);
     }
 
   } else {   
@@ -473,7 +474,7 @@ NumericVector FLAN_DiracClone::computeProbability(int m){
     // minimum number of iterations
     int i=0;
     double umd=1-mDeath;
-    double a=log(2*umd);
+    double a=log(2.*umd);
     double t=exp(-mFitness*a);
     double ti=1;//t^i
     int Pol_degree=1;
@@ -540,13 +541,13 @@ List FLAN_DiracClone::computeProbability1DerivativeRho(int m){
     if(m == 0) return List::create(_["P"]=P[0],_["dP_dr"]=dP_dr[0]);
     
 
-    int n=floor(log(m)/log(2));
+    int n=floor(log((double)(m))/log(2.));
     double index;
 
     for(int k=0;k<=n;k++) {
-      index=pow(2,k);
-      P[index]=(1-pow(2,-mFitness))*pow(2,-k*mFitness);
-      dP_dr[index]=log(2)*(pow(2,-mFitness*(k+1))-k*P[index]);
+      index=pow(2.,k);
+      P[index]=(1-pow(2.,-mFitness))*pow(2.,-k*mFitness);
+      dP_dr[index]=log(2.)*(pow(2.,-mFitness*(k+1))-k*P[index]);
     }
 
   } else {
@@ -650,16 +651,16 @@ std::vector<double> FLAN_DiracClone::computeGeneratingFunction2(double rho,std::
       // otherwize
       double s=0;
       if (mDeath<DEATH_EPS_DIST) {
-	  double a=pow(2,-rho);
-	  int n=floor(4-log(fabs(log((*itZ))))/log(2))+1;
+	  double a=pow(2.,-rho);
+	  int n=floor(4.-log(fabs(log((*itZ))))/log(2.))+1;
 
 	  for (int k=0;k<=n;k++) {
-	      s+=pow((*itZ),pow(2,k))*pow(a,k);
+	      s+=pow((*itZ),pow(2.,k))*pow(a,k);
 	  }
 	  s*=(1-a);
       } else {
-	  double a=log(2*(1-mDeath));
-	  double dstar=mDeath/(1-mDeath);
+	  double a=log(2.*(1.-mDeath));
+	  double dstar=mDeath/(1.-mDeath);
 	  int n=floor(-log(eps)/(rho*a))+1;
 	  double tp=exp(-rho*a);
 	  double tpi=1;
@@ -692,18 +693,18 @@ double FLAN_DiracClone::computeGeneratingFunction1DerivativeRho(double z) {
 
     if (mDeath<DEATH_EPS_DIST) {
         double a=pow(2,-mFitness);
-        int n=floor(4-log(fabs(log(z)))/log(2))+1;
+        int n=floor(4.-log(fabs(log(z)))/log(2.))+1;
 // 	n++;
         double s1=0,s2=0,t=0;
         for (int k=0;k<=n;k++) {
-            t=pow(z,pow(2,k))*pow(a,k);
+            t=pow(z,pow(2.,k))*pow(a,k);
             s1+=t;
             s2+=k*t;
 
         }
-        return log(2)*(a*s1-(1-a)*s2);
+        return log(2.)*(a*s1-(1-a)*s2);
     } else {
-        double a=log(2*(1-mDeath));
+        double a=log(2.*(1.-mDeath));
         double dstar=mDeath/(1-mDeath);
         int n=floor(-log(eps)/(mFitness*a))+1;
 
