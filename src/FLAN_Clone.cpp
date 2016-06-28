@@ -73,7 +73,7 @@ NumericVector FLAN_SimClone::computeSample(int n) {
 	      geoD=rgeom(1,p)[0];
 
 	      if(geoD>=0) *it=geoD+1;
-	      else if (geoD<0 || geoD!=geoD)*it=-1e-5;
+	      else if (geoD<0 || geoD!=geoD)*it=-1.e-5;
 	  }
       } else {
 	for(NumericVector::iterator it = sample.begin();it != sample.end(); ++it) {
@@ -89,7 +89,7 @@ NumericVector FLAN_SimClone::computeSample(int n) {
 	      geoD=rgeom(1,p*up)[0];
 	      
 	      if(geoD>=0) *it=geoD+1;
-	      else if (geoD<0 || geoD!=geoD) *it=-1e-55;
+	      else if (geoD<0 || geoD!=geoD) *it=-1.e-5;
 	      
 	    } else *it=0;
 	}

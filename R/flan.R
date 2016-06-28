@@ -843,8 +843,8 @@ MutationProbabilityMLOptimization <- function(mc,fn,model=c("LD","H"),fitness=1,
   dldd <- mapply(function(x,y){
 	    deduce.dflanda(m=x,mutations=pm.est*y,fitness=fitness,death=death,model=model,clone=dC)
 	  },mc,fn)
-  
-  I <- sum((unlist(dldd[2,])*fn)^2/unlist(dldd[1,])^2)            # Fisher information
+  dldd <- list(Q=unlist(dldd[1,]),dQ_da=unlist(dldd[2,]))
+  I <- sum((dldd$dQ_da*fn)^2/dldd$Q^2)            # Fisher information
   
   sdpm <- sqrt(1/I)
   
@@ -893,11 +893,11 @@ MutationFitnessMLOptimization <- function(mc,mfn=NULL,cvfn=NULL,model=c("LD","H"
   lower = 0.1*c(a.est,r.est)
   upper = 10*c(a.est,r.est)
   
-  if(!est$succeeds) {
-    lower[2] <- 10*r.est ; 
-    upper[2] <- 500*r.est
-  }
-  
+#   if(!est$succeeds) {
+#     lower[2] <- 10*r.est ; 
+#     upper[2] <- 500*r.est
+#   }
+#   
   est <- lbfgsb3(prm=c(a.est,r.est),fn=ll,gr=dll,lower = lower,upper=upper,control=list(trace=0,iprint=-1))$prm
   a.est = est[1]					# Update alpha estimate
   r.est = est[2]					# Update rho estimate
@@ -989,10 +989,10 @@ MutationProbabilityFitnessMLOptimization <- function(mc,fn,model=c("LD","H"),dea
   lower = 0.1*c(pm.est,r.est)
   upper = 10*c(pm.est,r.est)
   
-  if(!est$succeeds) {
-    lower[2] <- 10*r.est ; 
-    upper[2] <- 500*r.est
-  }
+#   if(!est$succeeds) {
+#     lower[2] <- 10*r.est ; 
+#     upper[2] <- 500*r.est
+#   }
   
   est <- lbfgsb3(prm=c(pm.est,r.est),fn=ll,gr=dll,lower = lower,upper=upper,control=list(trace=0,iprint=-1))$prm
   
@@ -1004,7 +1004,7 @@ MutationProbabilityFitnessMLOptimization <- function(mc,fn,model=c("LD","H"),dea
 	  },mc,fn)
   
   p2 <- (unlist(dldd[1,]))^2
-  dppm <- unlist(dldd[2,])
+  dppm <- unlist(dldd[2,])*fn
   dpr <- unlist(dldd[3,])
   
   Ipm <- sum((dppm^2/p2))
@@ -1189,11 +1189,14 @@ FitnessP0Optimization <- function(mc,fn=NULL,model=c("LD","H"),mut,death=0.,wins
   
   if(is.null(fn)) dldd <- dflan.grad(m=mc,mutations=mut,fitness=r.est,death=death,model=model,dalpha=FALSE,drho=TRUE)
   
-  else dldd <- mapply(function(x,y){
+  else { 
+    dldd <- mapply(function(x,y){
 		  dflan.grad(m=x,mutations=mut*y,fitness=r.est,death=death,model=model,dalpha=FALSE,drho=TRUE)
 	       },mc,fn)
+    dldd <- list(Q=unlist(dldd[1,]),dQ_dr=unlist(dldd[2,]))
+  }
   
-  I <- sum((dldd$dQ_dr)^2/(dldd$Q)^2)
+  I <- sum((dldd[[2]])^2/(dldd$Q)^2)
   
   sdr <- sqrt(1/I)
   list(fitness=r.est,sd.fitness=sdr)

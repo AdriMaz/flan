@@ -223,18 +223,29 @@ List FLAN_MutationModel::deduceProbability1DerivativesAlphaRho(int m,
 				 );
     
     double s,ds_da,ds_dr;
-
+    
+//     NumericVector::iterator itQ,itdQa,itdQr,itP,itdPr;
+//     int k=1;
     for (int k=1;k<=m;k++) {
+//     for (itQ = Q.begin()+1 ; itQ != Q.end() ; ++itQ, ++itdQa, ++itdQr, k++) {
         s=0;ds_da=0;ds_dr=0;
+// 	int i=1;
         for (int i=1;i<=k;i++) {
-            s +=i*P[i]*Q[k-i];
-	    ds_da+=P[i]*Q[k-i];
-	    ds_dr+=dP_dr[i]*Q[k-i];
+// 	for (itP = P.begin()+1 ; i<=k ; ++itP, ++itdPr, i++){
+	  s +=i*P[i]*Q[k-i];
+	  ds_da+=P[i]*Q[k-i];
+	  ds_dr+=dP_dr[i]*Q[k-i];
+// 	  s +=i*(*itP)*Q[k-i];
+// 	  ds_da+=(*itP)*Q[k-i];
+// 	  ds_dr+=(*itdPr)*Q[k-i];
 
         }
         Q[k]=(mMutNumber/k)*s;
 	dQ_da[k]=ds_da-Q[k];
 	dQ_dr[k]=mMutNumber*ds_dr;
+// 	*itQ=(mMutNumber/k)*s;
+// 	*itdQa=ds_da-(*itQ);
+// 	*itdQr=mMutNumber*ds_dr;
 
     }
     return List::create(_["Q"]=NumericVector(Q.begin(),Q.end()),
