@@ -79,8 +79,8 @@ private:
 
     double mFitness;
     double mDeath;
-    FLAN_Dist *mDist;   // Lifetime distribution
-    FLAN_Dist *mDistN;  // Lifetime distribution for normal cells (drawing function)
+    FLAN_Dist *mDist=NULL;   // Lifetime distribution
+    FLAN_Dist *mDistN=NULL;  // Lifetime distribution for normal cells (drawing function)
 
 protected:
   static const double DEATH_EPS_SIM;     // Threshold for death
@@ -88,13 +88,19 @@ protected:
 public:
     FLAN_SimClone(){};
 
-    ~FLAN_SimClone(){};
+    ~FLAN_SimClone(){
+      
+      if(!mDist) delete mDist;
+      if(!mDistN) delete mDistN;
+      
+    };
 
     FLAN_SimClone(double rho,double death, List dist){
 
       mFitness=rho;
       mDeath=death;
       
+      if(!mDist) delete mDist;
       mDist= new FLAN_Dist(dist);
 
     };
@@ -103,6 +109,9 @@ public:
 
       mFitness=rho;
       mDeath=death;
+      
+      if(!mDist) delete mDist;
+      if(!mDistN) delete mDistN;
       
       mDist= new FLAN_Dist(distm);
       mDistN= new FLAN_Dist(distn);
@@ -232,13 +241,15 @@ class FLAN_ExponentialClone : public FLAN_Clone {
   private:
 
 
-    MATH_Integration* mIntegrator;
+    MATH_Integration* mIntegrator=NULL;
 
     void init(List fns) {
       List info=Environment::base_namespace().get(".Machine");
       double flantol=info["double.eps"];
       flantol=sqrt(flantol);
       int flansubd=1000;
+      
+      if(!mIntegrator) delete mIntegrator;
       mIntegrator=new MATH_Integration(fns,flantol,flansubd);
     }
 
@@ -256,7 +267,9 @@ class FLAN_ExponentialClone : public FLAN_Clone {
     FLAN_ExponentialClone(double rho,double death,List fns):FLAN_Clone(rho,death) {
       init(fns);
     };
-    ~FLAN_ExponentialClone(){};
+    ~FLAN_ExponentialClone(){
+      if(!mIntegrator) delete mIntegrator;
+    };
 
     NumericVector computeProbability(int m);
     

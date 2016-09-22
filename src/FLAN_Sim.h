@@ -43,12 +43,15 @@ public:
       mDeath=as<double>(args["death"]);
       
       List dist=args["dist"];
-      FLAN_Dist* mDist=new FLAN_Dist(dist);          // Lifetime Distribution
+      
+      if(!mDist) delete mDist;
+      mDist=new FLAN_Dist(dist);          // Lifetime Distribution
       
       
       mMfn=as<double>(args["mfn"]);
       mCvfn=as<double>(args["cvfn"]);
       
+      if(!mClone) delete mClone;
       mClone=new FLAN_SimClone(mFitness,mDeath,mDist);
 
     };
@@ -57,7 +60,10 @@ public:
 
     /*! \brief  destroy an object.
      */
-    ~FLAN_Sim(){};
+    ~FLAN_Sim(){
+      if(!mClone) delete mClone;
+      if(!mDist) delete mDist;
+    };
 
 
 
@@ -66,7 +72,8 @@ private:
   double mMut;
   double mFitness;
   double mDeath;
-  FLAN_SimClone *mClone;        
+  FLAN_SimClone *mClone=NULL;        
+  FLAN_Dist *mDist=NULL;    
   double mMfn;
   double mCvfn;
 

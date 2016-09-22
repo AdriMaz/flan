@@ -1,15 +1,15 @@
 Package: flan
-Version: 0.2
-Date: 2016-06-06
+Version: 0.3
+Date: 2016-09-22
 Type: Package
-Title: Inference on Mutation Models
+Title: FLuctuation ANalysis on Mutation Models
 Authors@R: c(person("Adrien","Mazoyer", role =c("aut","cre"),email="Adrien.Mazoyer@imag.fr"),
-             person("Remy", "Drouilhet", role = "ctb"),
-             person("Stephane", "Despreaux", role = "ctb"),
+             person("Remy", "Drouilhet", role = "aut"),
+             person("Stephane", "Despreaux", role = "aut"),
              person("Bernard", "Ycart", role = "aut"))
 Author: Adrien Mazoyer [aut, cre],
-	Remy Drouilhet [ctb], 
-	Stephane Despreaux [ctb], 
+	Remy Drouilhet [aut], 
+	Stephane Despreaux [aut], 
 	Bernard Ycart [aut]
 Maintainer: Adrien Mazoyer <Adrien.Mazoyer@imag.fr>
 Description: Tools for fluctuations analysis of mutant cells counts. 

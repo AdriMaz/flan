@@ -12,9 +12,9 @@ private:
   
   int mSubd;
 
-  Function* mIntegrate;
+  Function* mIntegrate=NULL;
 
-  Function* mIntegrand;
+  Function* mIntegrand=NULL;
 
   List fcts;
 
@@ -28,15 +28,21 @@ public:
     MATH_Integration(List fns, double reltol, int subd){
       mReltol=reltol;
       mSubd=subd;
+      
+      if(!mIntegrate) delete mIntegrate;
       mIntegrate=new Function("integrate");
       fcts=fns;
 
+      if(!mIntegrand) delete mIntegrand;
       mIntegrand=new Function("identity");  // allouer
 
 
     };
 
-    ~MATH_Integration(){};
+    ~MATH_Integration(){
+      if(!mIntegrate) delete mIntegrate;
+      if(!mIntegrand) delete mIntegrand;
+    };
 
 
     void setFunctionName(std::string name){
@@ -63,6 +69,7 @@ private:
   };
   
   void init_fft(){
+    if(!mFFT) delete mFFT;
     mFFT= new Function("fft");
   };
   
@@ -70,7 +77,7 @@ protected:
    std::vector<double> mCoef;
    int mDeg;
    
-   Function* mFFT;
+   Function* mFFT=NULL;
 
 
 public:
@@ -84,7 +91,9 @@ public:
       init_fft();
     }
     
-    ~MATH_Polynom(){};
+    ~MATH_Polynom(){
+      if(!mFFT) delete mFFT;
+    };
     
     
     void setDegree(int deg){
