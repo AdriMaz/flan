@@ -14,4 +14,4 @@ import(lbfgsb3)
 importFrom("graphics", "axis", "matlines", "matplot")
 importFrom("methods", "new")
 importFrom("stats", "integrate", "pnorm", "qnorm", "quantile", "rexp",
-           "rgamma", "rlnorm", "runif", "sd", "uniroot")
+           "rgamma", "rlnorm", "runif","rbinom", "sd", "uniroot")

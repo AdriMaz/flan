@@ -9,34 +9,35 @@
 }
 
 \usage{
-  mutestim(mc,fn=NULL,mfn=NULL,cvfn=NULL,              # user's data
-                  fitness=NULL,death=0,                # user's parameters
-                  method=c("ML","GF","P0"),winsor=512, # estimation method
-                  model=c("LD","H"))                   # clone growth model
+  mutestim(mc,fn=NULL,mfn=NULL,cvfn=NULL,
+                  fitness=NULL,death=0,plateff=1.,
+                  method=c("ML","GF","P0"),winsor=512,
+                  model=c("LD","H"))
 }
 
 \arguments{
   \item{mc}{ a (non-empty) numeric vector of mutants counts. }
   \item{fn}{ an optional (non-empty) numeric vector with same length as \code{mc} of final numbers of cells.}
-  \item{mfn}{ mean final number of cells. Ignored if \code{fn} is non-missing. }
-  \item{cvfn}{ coefficient of variation of final number of cells. Ignored if \code{fn} is non-missing. }
-  \item{fitness}{ fitness parameter: ratio of growth rates of normal and mutant cells. Default 1. If \code{fitness} is \code{NULL}, then the fitness will be estimated. Otherwise, the given value will 
+  \item{mfn}{ mean final number of cells. Ignored if \code{fn} is non-missing. By default empty. }
+  \item{cvfn}{ coefficient of variation of final number of cells. Ignored if \code{fn} is non-missing. By default empty. }
+  \item{fitness}{ fitness parameter: ratio of growth rates of normal and mutant cells. If \code{fitness} is \code{NULL} (default), then the fitness will be estimated. Otherwise, the given value will
 be used to estimate the mean mutation number \code{mutations}. }
-  \item{death}{ death probability. Must be smaller than 0.5. } 
+  \item{death}{ death probability. Must be smaller than 0.5. By default 0. }
+  \item{plateff}{ plating efficiency parameter. Must be non-larger than 1. By default 1. }
   \item{method}{ estimation method as a character string: one of \code{ML} (default), \code{P0}, or \code{GF}. See details. }
   \item{winsor}{ winsorization parameter: positive integer. Only used when \code{method} is \code{ML} or when \code{method} is \code{P0} and \code{fitness} is NULL. See details. }
   \item{model}{ statistical lifetime model as a character string: one of \code{LD} (default) for Luria-Delbrück model (exponential lifetimes), or \code{H} for Haldane model with (constant lifetimes). }
 }
 
 \details{
-  Method \code{ML} is the classic maximum likelihood estimation method. The maximum is computed with a BFGS (bounded) algorithm. 
-  
+  Method \code{ML} is the classic maximum likelihood estimation method. The maximum is computed with a BFGS (bounded) algorithm.
+
   Method \code{P0} uses the number of null values in the sample, therefore it can be applied only if there is at least one zero in \code{mc}. The estimate of \code{fitness} is computed by maximum likelihood.
 
   Method \code{GF} uses the empirical generating function of \code{mc}. Since it is a very fast method, \code{"GF"} is used to initialize the values of the estimates for methods \code{"ML"} and \code{"P0"} (if the fitness is estimated).
-  
+
   If \code{fn} is non-empty, then \code{with.prob} is TRUE. If \code{method} is \code{P0} or \code{GF}, then \code{mfn} and \code{cvfn} are computed from \code{fn}, and the estimate of \code{mutprob} is computed from the estimate of \code{mutations}. If \code{method} is \code{ML}, the estimate of \code{mutprob} is first computed and the estimate of \code{mutations} is deduced.
-  
+
   The winsorization parameter \code{winsor} is used as a threshold for values in \code{mc} when maximum likelihood estimates are computed.
 }
 
@@ -51,16 +52,16 @@ be used to estimate the mean mutation number \code{mutations}. }
 }
 
 \references{
-  B. Ycart and N. Veziris: Unbiased estimates of mutation rates under fluctuating final counts. 
-PLoS one 9(7) e101434 (2014) 
-  
+  B. Ycart and N. Veziris: Unbiased estimates of mutation rates under fluctuating final counts.
+PLoS one 9(7) e101434 (2014)
+
   B. Ycart: Fluctuation analysis with cell deaths.
  J. Applied Probab. Statist, 9(1):12-28 (2014)
- 
-  B. Ycart: Fluctuation analysis: can estimates be trusted? 
+
+  B. Ycart: Fluctuation analysis: can estimates be trusted?
 One PLoS one 8(12) e80958 (2013)
- 
-  A. Hamon and B. Ycart: Statistics for the Luria-Delbrück distribution. 
+
+  A. Hamon and B. Ycart: Statistics for the Luria-Delbrück distribution.
 Elect. J. Statist., 6:1251-1272 (2012)
 }
 
@@ -105,6 +106,7 @@ mutestim(x)
 mutestim(x,winsor=2000)
 
 \dontrun{
-mutestim(x,method="P0")}
+  # None null count in the sample: P0 can not be used.
+  mutestim(x,method="P0")
 }
-
+}

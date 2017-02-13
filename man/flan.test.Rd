@@ -10,46 +10,50 @@
 
 \usage{
 
-  flan.test(mc,fn=NULL,mfn=NULL,cvfn=NULL,                   # user's data
-               fitness=NULL,death=0,                         # user's parameters
-               mutations0=1,mutprob0=NULL,fitness0=1,        # null hypotheses
-               conf.level=0.95,                              # confidence level
-               alternative=c("two.sided","less","greater"),  # alternative
-               method=c("ML","GF","P0"),winsor=512,          # estimation method
-               model=c("LD","H"))                            # clone growth model
+  flan.test(mc,fn=NULL,mfn=NULL,cvfn=NULL,
+               fitness=NULL,death=0,plateff=1,
+               mutations0=1,mutprob0=NULL,fitness0=1,
+               conf.level=0.95,
+               alternative=c("two.sided","less","greater"),
+               method=c("ML","GF","P0"),winsor=512,
+               model=c("LD","H"))
 }
 
 \arguments{
   \item{mc}{ a numeric vector of mutant counts or a list of two numeric vectors of mutant counts.  }
-  \item{fn}{ an optional numeric vector of final numbers or a list of two numeric vectors of final numbers. }  
+  \item{fn}{ an optional numeric vector of final numbers or a list of two numeric vectors of final numbers. }
   \item{mfn}{ mean final number of cells. Ignored if \code{fn} is non-missing. }
   \item{cvfn}{ coefficient of variation of final number of cells. Ignored if \code{fn} is non-missing. }
-  \item{fitness}{ fitness parameter: ratio of growth rates of normal and mutant cells. If \code{fitness} is \code{NULL} (default) then the fitness will be estimated. Otherwise, the given value will 
+  \item{fitness}{ fitness parameter: ratio of growth rates of normal and mutant cells. If \code{fitness} is \code{NULL} (default) then the fitness will be estimated. Otherwise, the given value will
 be used to estimate the mean mutation number \code{mutations} }
-  \item{death}{ death probability. Must be smaller than 0.5. } 
-  \item{mutations0}{ null hypothesis value for parameter mutations. See details.}
-  \item{mutprob0}{ null hypothesis value for parameter mutprob. See details.}
-  \item{fitness0}{ null hypothesis value for parameter fitness. See details.}
-  \item{alternative}{ a character string specifying the alternative hypothesis, must be one of \code{"two.sided"} (default), \code{"greater"} or \code{"less"}. }
+  \item{death}{ death probability. Must be smaller than 0.5. By default 0. }
+  \item{plateff}{ plating efficiency parameter. Must be non-larger than 1. By default 1. }
+  \item{mutations0}{ null hypothesis value for parameter mutations. See details. }
+  \item{mutprob0}{ null hypothesis value for parameter mutprob. See details. }
+  \item{fitness0}{ null hypothesis value for parameter fitness. See details. }
   \item{conf.level}{ confidence level of the interval. }
+  \item{alternative}{ a character string specifying the alternative hypothesis, must be one of \code{"two.sided"} (default), \code{"greater"} or \code{"less"}. }
   \item{method}{ estimation method as a character string: one of \code{ML} (default), \code{P0}, or \code{GF}. See \code{mutestim}. }
   \item{winsor}{ winsorization parameter: positive integer. Only used when \code{method} is \code{ML} or when    \code{method} is \code{P0} and \code{fitness} is NULL. See \code{mutestim}. }
   \item{model}{ statistical lifetime model as a character string: one of \code{LD} (default) for Luria-Delbrück model with exponential lifetimes, or \code{H} for Haldane model with constant lifetimes. }
 }
 
 \details{
-  \code{flan.test} tests the values of parameters \code{mutations}, \code{mutprob}, or \code{fitness}, with \code{mutations0} \code{mutprob0}, \code{fitness0} as null hypotheses. If \code{fn} or \code{mfn} are given, mutprob is tested, otherwise, \code{mutations} is tested. If \code{fitness} is given, it is not tested.
-  
-  \code{alternative} may be a two dimensional vector specifying the alternatives for the two parameters to be tested.  
-  
-  For the two-sample tests, the values in \code{mutations0}, \code{mutprob0} and \code{fitness0} apply to the difference between the two samples.
+  \code{flan.test} tests the values of parameters \code{mutations}, \code{mutprob}, or \code{fitness}, with \code{mutations0} \code{mutprob0}, \code{fitness0} as null hypotheses.
+
+  If \code{fn} or \code{mfn} are given, mutprob is tested, otherwise, \code{mutations} is tested. If \code{fitness} is given, it is not tested.
+
+  \code{alternative} may be a two dimensional vector specifying the alternatives for the two parameters to be tested.
+
+  If \code{mc} is a list, a two-sample test is performed. In that case, the values in \code{mutations0}, \code{mutprob0} and \code{fitness0} apply to the difference between the two samples (with 0 as default value)
+  For the two-sample tests, the parameters \code{mfn}, \code{cvfn}, \code{fitness}, \code{death} and \code{plateff} may be two dimensional vectors, where the first (resp. second) components are related to the first (resp. second) sample.
 }
 
 \value{
   Returns a list with class \code{"flantest"}. The structure of a \code{"flantest"} object, is similar to that of a \code{"htest"} object (see also  \code{\link{t.test}}).
   The class \code{"flantest"} contains the following components :
     \item{Tstat}{ the value of the computed statistic(s). }
-    \item{parameter}{ the values of \code{fitness} (if not tested) and \code{death}. }
+    \item{parameter}{ the values of \code{fitness} (if not tested), \code{death} and \code{plateff}. }
     \item{p.value}{ the p-value(s) of the test. }
     \item{conf.int}{ confidence interval(s) for the parameter(s) relative to the specified alternative. }
     \item{estimates}{ the estimate(s). }
@@ -68,7 +72,7 @@ be used to estimate the mean mutation number \code{mutations} }
 \examples{
 # one sample test, without final numbers
 b <- unlist(boeal)
-# is the mean mutation number greater than 0.7, and the fitness greater than 0.8? 
+# is the mean mutation number greater than 0.7, and the fitness greater than 0.8?
 flan.test(b,alternative="greater",mutations0=0.7,fitness0=0.8)
 # is the mean mutation number less than 0.8, given the fitness?
 flan.test(b,alternative="less",mutations0=0.8,fitness=0.84)
@@ -107,6 +111,13 @@ flan.test(x$mc,x$fn,mutprob0=1e-9,fitness0=0.9,death=0.05,method="GF")
 flan.test(x$mc,x$fn,mutprob0=1e-9,fitness0=0.9,death=0.05,method="P0")
 # change model
 flan.test(x$mc,x$fn,mutprob0=1e-9,fitness0=0.9,model="H")
-}
-}
 
+# Two-sample test
+y <- rflan(100,mutprob=1e-9,mfn=1e9,cvfn=0.3,fitness=1.2,death=0.05)
+MC <- list(x$mc,y$mc)
+FN <- list(x$fn,y$fn)
+#
+flan.test(mc=MC,fn=FN,fitness=c(0.9,1.1),death=0.05)
+
+}
+}
