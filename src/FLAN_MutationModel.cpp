@@ -1,7 +1,7 @@
 /**
   * FLAN Software
   *
-  * @author 2015-2020 Adrien Mazoyer  <adrien.mazoyer@imag.fr> 
+  * @author 2015-2020 Adrien Mazoyer  <adrien.mazoyer@imag.fr>
   * @see The GNU Public License (GPL)
   */
 /*
@@ -23,27 +23,28 @@
     // --------------------------
     // Probability methods
     //---------------------------
-    
+
 
 NumericVector FLAN_MutationModel::computeProbability(int m) {
-    
+
     //vector of clone probabilities
-   
+//     std::cout<<"Compute Clone probabilities"<<std::endl;
     NumericVector P=mClone->computeProbability(m);
-    
+
     return deduceProbability(m,P);
 }
 
 
 NumericVector FLAN_MutationModel::deduceProbability(int m,NumericVector& P) {
-    
+
     // initialize Q
     std::vector<double> Q(m+1);
-    
-    
+
+//     std::cout<<"Deduce Mutants probabilities"<<std::endl;
+
     //initial probability q0
     Q[0]=exp(-mMutNumber*(1.-P[0]));
-    
+
     if(m > 0){
       double s=0;
       for (int k=1;k<=m;k++) {
@@ -56,7 +57,7 @@ NumericVector FLAN_MutationModel::deduceProbability(int m,NumericVector& P) {
 	  Q[k]=(mMutNumber/k)*s;
       }
     }
-      
+
     return NumericVector(Q.begin(),Q.end());
 }
 
@@ -65,12 +66,12 @@ List FLAN_MutationModel::computeProbability1DerivativeAlpha(int m
 // 							    NumericVector& Q,
 // 							    NumericVector& dQ_da
 									  ) {
-    
-                                                 
-    
+
+
+
     // compute the probabilities of mClone
     NumericVector P=mClone->computeProbability(m);
-    
+
     return deduceProbability1DerivativeAlpha(m,P);
 }
 
@@ -80,24 +81,24 @@ List FLAN_MutationModel::deduceProbability1DerivativeAlpha(int m,
 // 							    NumericVector& Q,
 // 							    NumericVector& dQ_da
 							  ) {
-    
-                                                    
+
+
     //initial probability Q0
     std::vector<double> Q(m+1);
     std::vector<double> dQ_da(m+1);
 
-    
-    
+
+
     //initial probability q0
     Q[0]=exp(-mMutNumber*(1.-P[0]));
         // first derivatives of Q with respect to mMutNumber
     dQ_da[0]=-(1-P[0])*Q[0];
-   
+
     if (m == 0) return List::create(_["Q"]=Q[0],
 				    _["dQ_da"]=dQ_da[0]
 				   );
-    
-    double s,ds_da; 
+
+    double s,ds_da;
     for (int k=1;k<=m;k++) {
         s=0;ds_da=0;
         for (int i=1;i<=k;i++) {
@@ -116,15 +117,15 @@ List FLAN_MutationModel::deduceProbability1DerivativeAlpha(int m,
 
 
 List FLAN_MutationModel::computeProbability1DerivativeRho(int m) {
-    
-         
-    
+
+
+
     // compute the probabilities and their derivative with respect to mFitness of mClone
     List P_dP_dr=mClone->computeProbability1DerivativeRho(m);
-    
+
     NumericVector P=P_dP_dr["P"];
     NumericVector dP_dr=P_dP_dr["dP_dr"];
-    
+
     // compute the probabilities Q
 
     return deduceProbability1DerivativeRho(m,P,dP_dr);
@@ -136,23 +137,23 @@ List FLAN_MutationModel::computeProbability1DerivativeRho(int m) {
 List FLAN_MutationModel::deduceProbability1DerivativeRho(int m,
 							  NumericVector& P,
 							  NumericVector& dP_dr) {
-    
-                                                    
+
+
     //initial probability Q0
 
     std::vector<double> Q(m+1);
     std::vector<double> dQ_dr(m+1);
 
-    
+
     // first derivatives of Q with respect to mFitness
     Q[0]=exp(-mMutNumber*(1.-P[0]));
     dQ_dr[0]=mMutNumber*(dP_dr[0])*Q[0];
-    
+
 //     if (m==0) return true;
     if (m==0)  return List::create(_["Q"]=Q,
 				   _["dQ_dr"]=dQ_dr
 				  );
-    
+
     double s=0,ds_dr=0;
 
     for (int k=1;k<=m;k++) {
@@ -179,16 +180,16 @@ List FLAN_MutationModel::computeProbability1DerivativesAlphaRho(int m
 // 								NumericVector& dQ_da,
 // 								NumericVector& dQ_dr
 							       ) {
-    
-                                                 
+
+
     // compute the derivative with respect to mFitness of GY
-    
+
     List P_dP=mClone->computeProbability1DerivativeRho(m);
-    
+
     NumericVector P=P_dP["P"];
     NumericVector dP_dr=P_dP["dP_dr"];
-    
-    
+
+
     return deduceProbability1DerivativesAlphaRho(m,P,dP_dr);
 }
 
@@ -200,19 +201,19 @@ List FLAN_MutationModel::deduceProbability1DerivativesAlphaRho(int m,
 // 								NumericVector& dQ_da,
 // 								NumericVector& dQ_dr
 							      ) {
-    
-                                                    
+
+
     //initial probability Q0
     std::vector<double> Q(m+1);
     std::vector<double> dQ_da(m+1);
     std::vector<double> dQ_dr(m+1);
 
-    
-    
+
+
     Q[0]=exp(-mMutNumber*(1-P[0]));
     // first derivatives of Q with respect to mMutNumber
     dQ_da[0]=-(1-P[0])*Q[0];
-    
+
     // first derivatives of Q with respect to mFitness
     dQ_dr[0]=mMutNumber*(dP_dr[0])*Q[0];
 
@@ -221,9 +222,9 @@ List FLAN_MutationModel::deduceProbability1DerivativesAlphaRho(int m,
 				  _["dQ_da"]=dQ_da,
 				  _["dQ_dr"]=dQ_dr
 				 );
-    
+
     double s,ds_da,ds_dr;
-    
+
 //     NumericVector::iterator itQ,itdQa,itdQr,itP,itdPr;
 //     int k=1;
     for (int k=1;k<=m;k++) {
@@ -255,24 +256,24 @@ List FLAN_MutationModel::deduceProbability1DerivativesAlphaRho(int m,
 }
 
 
-  
+
 
 NumericVector FLAN_MutationModel::computeCumulativeFunction(int m) {
-		
+
     std::vector<double> cumsum(m+1);
-        
+
     NumericVector Q=computeProbability(m);
-    
+
     std::partial_sum(Q.begin(),Q.end(),cumsum.begin(),std::plus<double>());
-    
-    
+
+
     if(!mLT) {
       for(std::vector<double>::iterator it=cumsum.begin();it!=cumsum.end();++it) {
 	(*it)*=-1;
 	(*it)+=1;
       }
     }
-    
+
     return NumericVector(cumsum.begin(),cumsum.end());
 }
 
@@ -280,81 +281,117 @@ NumericVector FLAN_MutationModel::computeCumulativeFunction(int m) {
 // GF method
 
 
-List FLAN_MutationModel::MutationGFEstimation(){
-  
+List FLAN_MutationModel::MutationGFEstimation(bool init){
+
   int n=mSample.size();
-  
+
 //   double z3=mTuning["z3"];
   double z3=0.8;
-  
+
+
   z3=pow(z3,1./mScale);
-  
+
   double g=0;
-  
-  double alpha,hr,gg,sd_alpha;
-  
+
+  double alpha,hr,sd_alpha,tp,pmut,sd_pmut;;
+
   for(NumericVector::iterator it=mSample.begin() ; it!=mSample.end() ; ++it) g+=pow(z3,*it);
-  
+
   g/=n;
   
-  hr=mClone->computeGeneratingFunction(z3);
-  
-  alpha=log(g)/(hr-1);
+//   if(mPlateff < 1) z3=1-mPlateff+mPlateff*z3;
 
-  setMutNumber(alpha);
+  hr=mClone->computeGeneratingFunction(1-mPlateff+mPlateff*z3);
+
+  alpha=log(g)/(hr-1);
   
-  gg=exp(mMutNumber*(hr-1));
-  
-  sd_alpha=covariance2(z3,z3)/pow(gg*log(g)/mMutNumber,2);
-  sd_alpha/=n;
-  sd_alpha=sqrt(sd_alpha);
-  
-  double tp,pmut,sd_pmut;
-  if(mMfn > 0){
-    pmut=alpha/mMfn;
-    sd_pmut=sd_alpha/mMfn;
-    
-    if(mCvfn > 0){
-      tp=alpha*(1-hr)*pow(mCvfn,2.);
-      pmut*=(1+tp/2);
-      sd_pmut*=(1+tp);
-    }
-    
-    return(List::create(_["mutprob"]=pmut,_["sd.mutprob"]=sd_pmut));
-  } else return(List::create(_["mutations"]=alpha,_["sd.mutations"]=sd_alpha));
+  if(!init){
+// std::cout<<"Calcul de sd_alpha"<<std::endl;
+    setMutNumber(alpha);
+
+  //   gg=exp(alpha*(hr-1));
+
+  //   sd_alpha=covariance2(z3,z3)/pow(gg*log(g)/mMutNumber,2);
+    sd_alpha=sqrt(covariance2(z3,z3)/(n*pow(g*(hr-1),2)));
+//     std::cout<<"sd_alpha ="<<sd_alpha<<std::endl;
+//     sd_alpha/=n;
+//     sd_alpha=sqrt(sd_alpha);
+
+    if(mMfn > 0){
+      pmut=alpha/mMfn;
+      sd_pmut=sd_alpha/mMfn;
+
+      if(mCvfn > 0){
+	tp=alpha*(1-hr)*pow(mCvfn,2.);
+	pmut*=(1+tp/2);
+	sd_pmut*=(1+tp);
+      }
+
+      return(List::create(_["mutprob"]=pmut,_["sd.mutprob"]=sd_pmut));
+    } else return(List::create(_["mutations"]=alpha,_["sd.mutations"]=sd_alpha));
+  } else {
+    if(mMfn > 0){
+      pmut=alpha/mMfn;
+
+      if(mCvfn > 0){
+	tp=alpha*(1-hr)*pow(mCvfn,2.);
+	pmut*=(1+tp/2);
+      }
+
+      return(List::create(_["mutprob"]=pmut));
+    } else return(List::create(_["mutations"]=alpha));
+  } 
 }
 
 
 double FLAN_MutationModel::computeGeneratingFunction(double z) {
     return exp(mMutNumber*(mClone->computeGeneratingFunction(z)-1));
 }
-// 
-// 
+//
+//
 double FLAN_MutationModel::covariance2(double z1, double z2) {
-    return computeGeneratingFunction(z1*z2)-
+  double ump;
+  if(mPlateff < 1){  
+  ump=1-mPlateff;
+    
+  return computeGeneratingFunction(ump+mPlateff*z1*z2)-
+        computeGeneratingFunction(ump+mPlateff*z1)*
+        computeGeneratingFunction(ump+mPlateff*z2);
+  
+    
+  } else return computeGeneratingFunction(z1*z2)-
         computeGeneratingFunction(z1)*
         computeGeneratingFunction(z2);
 }
-// 
-NumericMatrix FLAN_MutationModel::covariance(double z1, double z2,double z3) {
+//
+// NumericMatrix FLAN_MutationModel::covariance(double z1, double z2,double z3) {
+NumericVector FLAN_MutationModel::covariance(double z1, double z2,double z3) {
 
+
+//     NumericMatrix M(3,3);
+    arma::mat C(3,3);
+    C(0,0)=covariance2(z1,z1);
+    C(0,1)=covariance2(z1,z2);
+    C(0,2)=covariance2(z1,z3);
+    C(1,0)=C(0,1);
+    C(1,1)=covariance2(z2,z2);
+    C(1,2)=covariance2(z2,z3);
+    C(2,0)=C(0,2);
+    C(2,1)=C(1,2);
+    C(2,2)=covariance2(z3,z3);
+//     for (int i=0;i<3;i++) {
+//         for (int j=0;j<i;j++) {
+//             M(i,j)=M(j,i);
+//         }
+//     }
     
-    NumericMatrix M(3,3);
-    M(0,0)=covariance2(z1,z1);
-    M(0,1)=covariance2(z1,z2);
-    M(0,2)=covariance2(z1,z3);
 
-  
-    M(1,1)=covariance2(z2,z2);
-    M(1,2)=covariance2(z2,z3);
-
-    M(2,2)=covariance2(z3,z3);
-    for (int i=0;i<3;i++) {
-        for (int j=0;j<i;j++) {
-            M(i,j)=M(j,i);
-        }
+    if(mPlateff < 1) {
+      z1=1-mPlateff+mPlateff*z1;
+      z2=1-mPlateff+mPlateff*z2;
+      z3=1-mPlateff+mPlateff*z3;
     }
-
+    
     double ccf_z1=mClone->computeGeneratingFunction(z1);
     double ccf_z2=mClone->computeGeneratingFunction(z2);
     double ccf_z3=mClone->computeGeneratingFunction(z3);
@@ -362,24 +399,29 @@ NumericMatrix FLAN_MutationModel::covariance(double z1, double z2,double z3) {
     double dccf_z1=mClone->computeGeneratingFunction1DerivativeRho(z1);
     double dccf_z2=mClone->computeGeneratingFunction1DerivativeRho(z2);
     double dccf_z3=mClone->computeGeneratingFunction1DerivativeRho(z3);
-    
+
 
     double d01=(ccf_z2-1)*dccf_z1-(ccf_z1-1)*dccf_z2;
     double d11=(ccf_z1-1)*dccf_z2-(ccf_z2-1)*dccf_z1;
+
+
+//     NumericMatrix CO(3,2);
+    arma::mat A(3,2);
+    A(0,1)= (ccf_z2-1)/(mMutNumber*d01*computeGeneratingFunction(z1));
+
+    A(1,1)=(ccf_z1-1)/(mMutNumber*d11*computeGeneratingFunction(z2));
+    A(2,1)= 0;
+
+    A(0,0)=(mMutNumber*dccf_z3*A(0,1))/(1-ccf_z3);
+    A(1,0)=(mMutNumber*dccf_z3*A(1,1))/(1-ccf_z3);
+    A(2,0)=1./(computeGeneratingFunction(z3)*(ccf_z3-1));
+
+//     NumericMatrix cov(2,2);
+    arma::mat cov(2,2);
     
-    
-    NumericMatrix CO(3,2);
-    CO(0,1)= (ccf_z2-1)/(mMutNumber*d01*computeGeneratingFunction(z1));
-    
-    CO(1,1)=(ccf_z1-1)/(mMutNumber*d11*computeGeneratingFunction(z2));
-    CO(2,1)= 0;
-    
-    CO(0,0)=(mMutNumber*dccf_z3*CO(0,1))/(1-ccf_z3);
-    CO(1,0)=(mMutNumber*dccf_z3*CO(1,1))/(1-ccf_z3);
-    CO(2,0)=1./(computeGeneratingFunction(z3)*(ccf_z3-1));
-    
-    NumericMatrix cov(2,2);
-    double d, c;
+    cov=A.t()*C*A;
+    /*
+    double d,c;
     for (int i=0;i<2;i++) {
         for (int j=0;j<2;j++) {
             d=0;
@@ -392,17 +434,17 @@ NumericMatrix FLAN_MutationModel::covariance(double z1, double z2,double z3) {
             }
             cov(i,j)=d;
         }
-    }
+    }*/
     
-    return cov;
-    
+    return NumericVector::create(cov(0,0),cov(1,1));
+
 }
-// 
-// 
+//
+//
 //  // Unbiased estimation of pi and its standart deviation if fluctuation of final counts
 List FLAN_MutationModel::unbiasPiEstimation(double sd,double z,
 					    double mfn,double cvfn)  {
-    
+
     double pm=mMutNumber/mfn;
     double sd_pm=sd/mfn;
     if(cvfn > 0){
@@ -410,6 +452,6 @@ List FLAN_MutationModel::unbiasPiEstimation(double sd,double z,
       pm*=1+f/2;
       sd_pm*=1+f;
     }
-    
+
     return List::create(_["mutprob"] = pm, _["sd.mutprob"]=sd_pm);
 }

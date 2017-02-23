@@ -32,8 +32,8 @@
 
 mutestim <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                 # user's data
                   fitness=NULL,death=0.,plateff=1.,                # user's parameters
-                  method=c("ML","GF","P0"),winsor=512, # estimation method
-                  model=c("LD","H"))                   # clone growth model
+                  model=c("LD","H"),                       # clone growth model
+                  method=c("ML","GF","P0"),winsor=512) # estimation method
                   {
 
     if(missing(method)){method <- "ML"}
@@ -43,6 +43,11 @@ mutestim <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                 # user's dat
 
     if(is.null(mc)){
       stop("'mc' is empty...")
+    }
+    if(sum(mc == 0) == length(mc)){
+      warning("'mc' does not contain mutants count...")
+      output <- list(mutations=0,sd.mutations=0,fitness=1,sd.fitness=0)
+      return(output)
     }
     if(sum(floor(mc)==mc) != length(mc)) stop("'mc' must be a vector of integer.")
     if(!is.null(fn)){
@@ -80,32 +85,35 @@ mutestim <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                 # user's dat
       stop("'winsor' must be a single positive integer.")
     }
     if(method=="P0" & sum(mc==0) == 0 & death == 0){
-      stop(paste("P0 method can not be used if 'mc' does not contain any null counts and if 'death' is null.",sep=" "))
+      stop("P0 method can not be used if 'mc' does not contain any null counts and if 'death' is null.")
+    }
+    if((method == "P0" | method == "ML") & plateff < 1){
+      warning("'plateff' can be taking into account only for GF method: 'plateff' is set to 1.")
     }
     if(is.null(fitness)){   # If fitness is empty : compiute estimates of mean number of mutations (mutation probaility), fitness
 
       # Maximum of Likelihood estimators
       if(method == "ML"){
 
-	if(!is.null(fn)) output <- MutationProbabilityFitnessMLOptimization(mc=mc,fn=fn,model=model,death=death,winsor=winsor)
-	else output <- MutationFitnessMLOptimization(mc=mc,mfn=mfn,cvfn=cvfn,model=model,death=death,winsor=winsor)
+	if(!is.null(fn)) output <- MutationProbabilityFitnessMLOptimization(mc=mc,fn=fn,death=death,model=model,winsor=winsor)
+	else output <- MutationFitnessMLOptimization(mc=mc,mfn=mfn,cvfn=cvfn,death=death,model=model,winsor=winsor)
 
       }
       # P0 method
-      if(method == "P0") output <- MutationFitnessP0Estimation(mc=mc,fn=fn,mfn=mfn,cvfn=cvfn,model=model,death=death,winsor=winsor)
+      if(method == "P0") output <- MutationFitnessP0Estimation(mc=mc,fn=fn,mfn=mfn,cvfn=cvfn,death=death,model=model,winsor=winsor)
 
       # GF method
       if(method == "GF") {
-	output <- MutationFitnessGFEstimation(mc=mc,mfn=mfn,cvfn=cvfn,death=death,model=model)
-	if(!output$succeeds) warning(paste("Impossible to estimate 'fitness' with 'GF'-method : 'fitness' is set to default value 1 and only",if(!is.null(mfn)){"mutation probability"}else{"mutation number"},"is estimated.",sep=" "))
+	output <- MutationFitnessGFEstimation(mc=mc,mfn=mfn,cvfn=cvfn,death=death,plateff=plateff,model=model,init=FALSE)
+	if(!output$succeeds) warning(paste("Impossible to estimate 'fitness' with 'GF'-method: 'fitness' is set to default value 1 and only",if(!is.null(mfn)){"mutation probability"}else{"mutation number"},"is estimated.",sep=" "))
 	output$succeeds <- NULL
       }
     } else {    # Else : compute estimate(s) of mean number of mutations, or mutation probability
 
       # Maximum of Likelihood estimator of mutations or mutprob
       if(method == "ML"){
-	if(!is.null(fn)) output <- MutationProbabilityMLOptimization(mc=mc,fn=fn,model=model,fitness=fitness,death=death,winsor=winsor)
-	else output <- MutationMLOptimization(mc=mc,mfn=mfn,cvfn=cvfn,model=model,fitness=fitness,death=death,winsor=winsor)
+	if(!is.null(fn)) output <- MutationProbabilityMLOptimization(mc=mc,fn=fn,fitness=fitness,death=death,model=model,winsor=winsor)
+	else output <- MutationMLOptimization(mc=mc,mfn=mfn,cvfn=cvfn,fitness=fitness,death=death,model=model,winsor=winsor)
 
 
       }
@@ -114,11 +122,11 @@ mutestim <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                 # user's dat
 
 
       # GF method
-      if(method == "GF")  output <- MutationGFEstimation(mc=mc,mfn=mfn,cvfn=cvfn,fitness=fitness,death=death,model=model)
+      if(method == "GF")  output <- MutationGFEstimation(mc=mc,mfn=mfn,cvfn=cvfn,fitness=fitness,death=death,plateff=plateff,model=model,init=FALSE)
 
     }
 
-    if(plateff < 1) output <- lapply(output,function(o) o*(plateff-1)/(plateff*log(plateff)))
+    # if(plateff < 1) output <- lapply(output,function(o) o*(plateff-1)/(plateff*log(plateff)))
     output
 }
 
@@ -141,11 +149,11 @@ mutestim <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                 # user's dat
 
 flan.test <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                      # user's data
                fitness=NULL,death=0.,plateff=1.,                        # user's parameters
+               model=c("LD","H"),                            # clone growth model
                mutations0=1,mutprob0=NULL,fitness0=1,       # null hypotheses
                conf.level=0.95,                              # confidence level
                alternative=c("two.sided","less","greater"),  # alternative
-               method=c("ML","GF","P0"),winsor=512,          # estimation method
-               model=c("LD","H"))                            # clone growth model
+               method=c("ML","GF","P0"),winsor=512)          # estimation method
                {
 
   with.prob <- FALSE               # Boolean: if TRUE (if fn, mfn, or cvfn are given), mutprob is tested instead of mutations
@@ -350,8 +358,9 @@ flan.test <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                      # user
   ests <- mapply(function(x,y,m,c,f,d,z){
             mutestim(mc=x,fn=y,
                      mfn=m,cvfn=c,
-                     method=method,model=model,
-                     fitness=f,death=d,plateff=z,winsor=winsor)
+                     fitness=f,death=d,plateff=z,
+                     model=model,
+                     method=method,winsor=winsor)
   },mc,fn,mfn,cvfn,fitness,death,plateff)
 
 
@@ -522,7 +531,7 @@ rflan <- function(n,mutations=1,mutprob=NULL,fitness=1,death=0.,plateff=1.,
     }
 
     if(cvfn == 0) output$fn <- rep(mfn,n)
-    if(plateff < 1) output$mc <- sapply(output$mc,function(mc) rbinom(1,size=mc,prob=plateff))
+    if(plateff < 1) output$mc <- sapply(output$mc,function(mc) if(mc > 0) rbinom(1,size=mc,prob=plateff) else 0)
 
     output
 }
@@ -599,17 +608,17 @@ pflan <- function(m,mutations=1,fitness=1,death=0.,model=c("LD","H"),lower.tail=
   if(missing(model)){model="LD"}
   model <- match.arg(model)
 
-if(model=="LD") {
-    integrands <- list(CLONE_P0_WD=function(x,rho,delta) {(1-x)*x^(rho-1)/(1-delta*x)},
-		       CLONE_PK_WD=function(x,rho,delta,k) {x^rho*(1-x)^(k-1)/(1-x*delta)^(k+1)}
-		       )
-  } else integrands <- NULL
+# if(model=="LD") {
+#     integrands <- list(CLONE_P0_WD=function(x,rho,delta) {(1-x)*x^(rho-1)/(1-delta*x)},
+# 		       CLONE_PK_WD=function(x,rho,delta,k) {x^rho*(1-x)^(k-1)/(1-x*delta)^(k+1)}
+# 		       )
+#   } else integrands <- NULL
 
   flan.mutmodel <- new(FlanMutMod,list(
     mutations=mutations,
     fitness=fitness,
     death=death,
-    integrands=integrands,
+    # integrands=integrands,
     model=model,
     lt=lower.tail
   ))
@@ -645,17 +654,17 @@ dflan <- function(m,mutations=1,fitness=1,death=0.,model=c("LD","H")){
   if(missing(model)){model="LD"}
   model <- match.arg(model)
 
-  if(model=="LD") {
-    integrands <- list(CLONE_P0_WD=function(x,rho,delta) {(1-x)*x^(rho-1)/(1-delta*x)},
-		       CLONE_PK_WD=function(x,rho,delta,k) {x^rho*(1-x)^(k-1)/(1-x*delta)^(k+1)}
-		       )
-  } else integrands <- NULL
+  # if(model=="LD") {
+  #   integrands <- list(CLONE_P0_WD=function(x,rho,delta) {(1-x)*x^(rho-1)/(1-delta*x)},
+	# 	       CLONE_PK_WD=function(x,rho,delta,k) {x^rho*(1-x)^(k-1)/(1-x*delta)^(k+1)}
+	# 	       )
+  # } else integrands <- NULL
 
   flan.mutmodel <- new(FlanMutMod,list(
     mutations=mutations,
     fitness=fitness,
     death=death,
-    integrands=integrands,
+    # integrands=integrands,
     model=model,
     lt=TRUE
   ))
@@ -726,14 +735,14 @@ adjust.rate <- function(dist,fitness=1,death=0.){
 # Returns the ML estimate of mean number of mutation for a sample mc, given the fitness and death
 # If mfn or cvfn are non-empty, returns the estimate of mutation probability instead of the mean number, after decreasing the bias
 # induced if cvfn > 0
-MutationMLOptimization <- function(mc,mfn=NULL,cvfn=NULL,model=c("LD","H"),fitness=1,death=0.,winsor=512){
+MutationMLOptimization <- function(mc,mfn=NULL,cvfn=NULL,fitness=1,death=0.,model=c("LD","H"),winsor=512){
 
   if(missing(model)) model <- "LD"
   model <- match.arg(model)
 
 
   # Initialization
-  est <- MutationGFEstimation(mc,fitness=fitness,death=death,model=model)
+  est <- MutationGFEstimation(mc,fitness=fitness,death=death,plateff=1.,model=model,init=TRUE)
 
   a.est <- est$mutations
 
@@ -774,14 +783,14 @@ MutationMLOptimization <- function(mc,mfn=NULL,cvfn=NULL,model=c("LD","H"),fitne
     if(cvfn > 0){
 #       z4=.tunings$z4
       z4 <- 0.55
-      if(model == "LD") {
-	integrands <- list(CLONE_PGF=function(x,rho,delta) {x^rho/(1+x*delta)})
-      } else integrands <- NULL
+  #     if(model == "LD") {
+	# integrands <- list(CLONE_PGF=function(x,rho,delta) {x^rho/(1+x*delta)})
+  #     } else integrands <- NULL
       Mutmodel <- new(FlanMutMod,list(
 		mutations=a.est,
 		fitness=fitness,
 		death=death,
-		integrands=integrands,
+		# integrands=integrands,
 		model=model,
 		lt=TRUE
 	      ))
@@ -794,7 +803,7 @@ MutationMLOptimization <- function(mc,mfn=NULL,cvfn=NULL,model=c("LD","H"),fitne
 }
 
 # Returns the ML estimate of mutation probability for a sample of couple (mc,fn), given the fitness and death
-MutationProbabilityMLOptimization <- function(mc,fn,model=c("LD","H"),fitness=1,death=0.,winsor=512){
+MutationProbabilityMLOptimization <- function(mc,fn,fitness=1,death=0.,model=c("LD","H"),winsor=512){
 
   if(missing(model)) model <- "LD"
   model <- match.arg(model)
@@ -803,7 +812,7 @@ MutationProbabilityMLOptimization <- function(mc,fn,model=c("LD","H"),fitness=1,
   cvfn <- sd(fn)/mfn
 
   # Initialization
-  est <- MutationGFEstimation(mc=mc,mfn=mfn,cvfn=cvfn,fitness=fitness,death=death,model=model)
+  est <- MutationGFEstimation(mc=mc,mfn=mfn,cvfn=cvfn,fitness=fitness,death=death,plateff=1,model=model,init=TRUE)
 
   pm.est <- est$mutprob*mfn
   # Winsorization
@@ -854,13 +863,13 @@ MutationProbabilityMLOptimization <- function(mc,fn,model=c("LD","H"),fitness=1,
 # Returns the ML estimates of mean number of mutation and fitness for a sample mc, given the death
 # If mfn or cvfn are non-empty, returns the estimate of mutation probability instead of the mean number, after decreasing the bias
 # induced if cvfn > 0
-MutationFitnessMLOptimization <- function(mc,mfn=NULL,cvfn=NULL,model=c("LD","H"),death=0.,winsor=512){
+MutationFitnessMLOptimization <- function(mc,mfn=NULL,cvfn=NULL,death=0.,model=c("LD","H"),winsor=512){
 
   if(missing(model)) model <- "LD"
   model <- match.arg(model)
 
   # Initialization
-  est <- MutationFitnessGFEstimation(mc=mc,death=death,model=model)
+  est <- MutationFitnessGFEstimation(mc=mc,death=death,plateff=1,model=model,init=TRUE)
   if(!est$succeeds) warning("Initialization of 'fitness' with 'GF'-method has failed.")
   a.est <- est$mutations ; r.est <- est$fitness
 
@@ -918,14 +927,14 @@ MutationFitnessMLOptimization <- function(mc,mfn=NULL,cvfn=NULL,model=c("LD","H"
   if(!is.null(mfn)) {
     if(cvfn > 0){
       z4 <- 0.55
-      if(model == "LD") {
-	integrands <- list(CLONE_PGF=function(x,rho,delta) {x^rho/(1+x*delta)})
-      } else integrands <- NULL
+      # if(model == "LD") {
+	# integrands <- list(CLONE_PGF=function(x,rho,delta) {x^rho/(1+x*delta)})
+  #     } else integrands <- NULL
       Mutmodel <- new(FlanMutMod,list(
 		mutations=a.est,
 		fitness=r.est,
 		death=death,
-		integrands=integrands,
+		# integrands=integrands,
 		model=model,
 		lt=TRUE
 	      ))
@@ -940,7 +949,7 @@ MutationFitnessMLOptimization <- function(mc,mfn=NULL,cvfn=NULL,model=c("LD","H"
 
 
 # Returns the ML estimates of mutation probability and fitness for a sample of couple (mc,fn), given the death
-MutationProbabilityFitnessMLOptimization <- function(mc,fn,model=c("LD","H"),death=0.,winsor=512){
+MutationProbabilityFitnessMLOptimization <- function(mc,fn,death=0.,model=c("LD","H"),winsor=512){
 
   if(missing(model)) model <- "LD"
   model <- match.arg(model)
@@ -950,7 +959,7 @@ MutationProbabilityFitnessMLOptimization <- function(mc,fn,model=c("LD","H"),dea
 
 
   # Initialization
-  est <- MutationFitnessGFEstimation(mc,mfn=mfn,cvfn=cvfn,death=death,model=model)
+  est <- MutationFitnessGFEstimation(mc,mfn=mfn,cvfn=cvfn,death=death,plateff=1,model=model,init=TRUE)
   if(!est$succeeds) warning("Initialization of 'fitness' with 'GF'-method has failed.")
   pm.est <- est$mutprob*mfn ; r.est <- est$fitness
 
@@ -1022,19 +1031,18 @@ MutationProbabilityFitnessMLOptimization <- function(mc,fn,model=c("LD","H"),dea
 	      #//////////////////////////////////P0 method//////////////////////////////////#
 
 # Returns the P0 estimate of mean number of mutations for a sample of couple mc, given the death
-MutationsNumberP0Estimation <- function(mc,death=0.){
+MutationsNumberP0Estimation <- function(mc,death=0.,plateff=1){
 
 # Return the estimate of alpha for a sample mc
 # by p0-method under cell deaths with probability delta
 # # when delta is known.
-  if(death > 0){
+  if(death > 0 | plateff < 1){
     dstar <- death/(1-death)			# extinction probability
     epgf <- function(z) mean(z^mc)		# empirical PGF
 
-    a <- -log(epgf(dstar))/(1-dstar)	#  estimate alpha
+    a <- -log(epgf((dstar-(1-plateff))/plateff))/(1-dstar)	#  estimate alpha
 
-    ## TODO: correction sda
-    sda <- (1-dstar)^(-2)*(epgf(dstar^2)/(epgf(dstar)^2)-1)	# variance of alpha's estimate
+    sda <- (1-dstar)^(-2)*(epgf(((dstar-(1-plateff))/plateff)^2)/(epgf(dstar-(1-plateff)/plateff)^2)-1)	# variance of alpha's estimate
 
     sda <- sqrt(sda/length(mc))
 
@@ -1052,23 +1060,22 @@ MutationsNumberP0Estimation <- function(mc,death=0.){
 # Returns the P0 estimate of mean number of mutations for a sample of couple mc, given the death
 # If mfn or cvfn are non-empty, returns the estimate of the mutation probability instaed of the mean number
 # after decreasing the induced bias if cvfn > 0
-MutationP0Estimation <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,death=0){
+MutationP0Estimation <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,death=0,plateff=1){
 
 # Return the estimate of alpha for a sample mc
 # by p0-method under cell deaths with probability delta
 # # when delta is known.
 
-  if(!is.null(fn)) {
-
-    pm <- MutationProbabilityP0MLOptimization(mc,fn,death)
-    list(pm=pm$mutprob,sd.mutprob=sdpm)
-
-  } else {
-    a <- MutationsNumberP0Estimation(mc,death)
+  if(is.null(fn) | death > 0) {
+    a <- MutationsNumberP0Estimation(mc,death,plateff)
 
     sda <- a$sd.mutations
     a <- a$mutations
 
+    if(!is.null(fn)){
+      mfn <- mean(fn)
+      cvfn <- sd(fn)/mfn
+    }
     if(!is.null(mfn)){
       pm <- a/mfn
       sdpm <- sda/mfn
@@ -1080,24 +1087,24 @@ MutationP0Estimation <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,death=0){
       }
       list(mutprob=pm,sd.mutprob=sdpm)
     } else list(mutations=a,sd.mutations=sda)
-  }
+  } else MutationProbabilityP0MLOptimization(mc,fn)
 }
 
 # Returns the P0 estimate of mean number of mutations and fitness for a sample of couple mc,given the death
 # If mfn or cvfn are non-empty, returns the estimate of the mutation probability instaed of the mean number
 # after decreasing the induced bias if cvfn > 0
-MutationFitnessP0Estimation <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,model=c("LD","H"),death=0.,winsor=512){
+MutationFitnessP0Estimation <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,death=0.,model=c("LD","H"),winsor=512){
 
   if(missing(model)) model <- "LD"
   model <- match.arg(model)
 
-  if(!is.null(fn)){
+  if(!is.null(fn) & death ==0){
 
-    pm <- MutationProbabilityP0MLOptimization(mc,fn,death)
+    pm <- MutationProbabilityP0MLOptimization(mc,fn)
     sdpm <- pm$sd.mutprob
     pm <- pm$mutprob
     output <- list(mutprob=pm,sd.mutprob=sdpm)
-    r <- FitnessP0Optimization(mc=mc,fn=fn,model=model,mut=pm,death=death,winsor=winsor)
+    r <- FitnessP0Optimization(mc=mc,fn=fn,mut=pm,death=death,model=model,winsor=winsor)
   } else {
     a <- MutationsNumberP0Estimation(mc,death)
 
@@ -1115,20 +1122,20 @@ MutationFitnessP0Estimation <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,model=c("L
       }
       output <- list(mutprob=pm,sd.mutprob=sdpm)
     } else output <- list(mutations=a,sd.mutations=sda)
-    r <- FitnessP0Optimization(mc=mc,model=model,mut=a,death=death,winsor=winsor)
+    r <- FitnessP0Optimization(mc=mc,mut=a,death=death,model=model,winsor=winsor)
   }
   c(output,fitness=r$fitness,sd.fitness=r$sd.fitness)
 
 }
 
 # Returns the P0ML estimate of mutation probability for a sample of couple (mc,fn), given the death
-MutationProbabilityP0MLOptimization <- function(mc,fn,death=0.){
+MutationProbabilityP0MLOptimization <- function(mc,fn){
 
   mfn <- mean(fn)
   cvfn <- sd(fn)/mfn
 
   # Initialization
-  est <- MutationP0Estimation(mc=mc,mfn=mfn,cvfn=cvfn,death=death)
+  est <- MutationP0Estimation(mc=mc,mfn=mfn,cvfn=cvfn,death=0)
 
   pm.est <- est$mutprob*mfn
 
@@ -1170,13 +1177,13 @@ MutationProbabilityP0MLOptimization <- function(mc,fn,death=0.){
 
 # Returns the ML estimate of fitness for a sample of couple mc, given the mean number of mutations (or mutation probability) and death
 # If fn is non-empty,
-FitnessP0Optimization <- function(mc,fn=NULL,model=c("LD","H"),mut,death=0.,winsor=512){
+FitnessP0Optimization <- function(mc,fn=NULL,mut,death=0.,model=c("LD","H"),winsor=512){
 
   if(missing(model)) model <- "LD"
   model <- match.arg(model)
 
   # Initialization
-  est <- FitnessGFEstimation(mc,death,model)
+  est <- FitnessGFEstimation(mc,death=death,plateff=1,model=model)
   if(!est$succeeds) warning("Initialization of 'fitness' with 'GF'-method has failed.")
   r.est <- est$fitness
 
@@ -1257,7 +1264,7 @@ FitnessP0Optimization <- function(mc,fn=NULL,model=c("LD","H"),mut,death=0.,wins
 
 	      #//////////////////////////////////GF method//////////////////////////////////#
 
-MutationGFEstimation <- function(mc,mfn=NULL,cvfn=NULL,fitness=1,death=0.,model=c("LD","H")){
+MutationGFEstimation <- function(mc,mfn=NULL,cvfn=NULL,fitness=1,death=0.,plateff=1.,model=c("LD","H"),init=FALSE){
 
   if(missing(model)) model <- "LD"
   model <- match.arg(model)
@@ -1265,23 +1272,23 @@ MutationGFEstimation <- function(mc,mfn=NULL,cvfn=NULL,fitness=1,death=0.,model=
   q <- 0.1
   b <- quantile(mc,q,names=FALSE)+1           # scaling factor
 
-  if(model == "LD") {
-    integrands <- list(CLONE_PGF=function(x,rho,delta) {x^rho/(1+x*delta)})
-  } else integrands <- NULL
+  # if(model == "LD") {
+  #   integrands <- list(CLONE_PGF=function(x,rho,delta) {x^rho/(1+x*delta)})
+  # } else integrands <- NULL
   Mutmodel <- new(FlanMutMod,list(
     mc=mc,
     mfn=mfn,cvfn=cvfn,
-    fitness=fitness,death=death,
-    integrands=integrands,
+    fitness=fitness,death=death,plateff=plateff,
+    # integrands=integrands,
     model=model,
     scale=b
   ))
 
-  Mutmodel$MutationGFEstimation()
+  Mutmodel$MutationGFEstimation(init)
 
 }
 
-FitnessGFEstimation <- function(mc,death=0.,model=c("LD","H")){
+FitnessGFEstimation <- function(mc,death=0.,plateff=1.,model=c("LD","H")){
 
   if(missing(model)) model <- "LD"
   model <- match.arg(model)
@@ -1291,14 +1298,23 @@ FitnessGFEstimation <- function(mc,death=0.,model=c("LD","H")){
 
   z1 <- 0.1                            # lower value
   z2 <- 0.9                            # higher value
+
   z1<-z1^(1/b); z2<-z2^(1/b) ;            # rescale variables
+
 
   g1 <- mean(z1^mc)                   # empirical generating function at z1
   g2 <- mean(z2^mc)                   # empirical generating function at z2
   y <- log(g1)/log(g2)                   # get ratio of logs
 
-  if(model == "LD") clone=new(FlanExpClone,list(death=death,integrands=list(CLONE_PGF=function(x,rho,delta) {x^rho/(1+x*delta)})))
-  if(model == "H") clone=new(FlanDirClone,list(death=death))
+  # if(model == "LD") clone=new(FlanExpClone,list(death=death,integrands=list(CLONE_PGF=function(x,rho,delta) {x^rho/(1+x*delta)})))
+  if(model == "LD") clone=new(FlanExpClone,list(death=death))
+  else clone=new(FlanDirClone,list(death=death))
+
+  if(plateff < 1) {
+    ump <- 1-plateff
+    z1 <- ump+plateff*z1
+    z2 <- ump+plateff*z2
+  }
 
   f <- function(r){
     PGF <- clone$pgf2(r,c(z1,z2))
@@ -1319,7 +1335,7 @@ FitnessGFEstimation <- function(mc,death=0.,model=c("LD","H")){
 }
 
 
-MutationFitnessGFEstimation <- function(mc,mfn=NULL,cvfn=NULL,death=0.,model=c("LD","H")){
+MutationFitnessGFEstimation <- function(mc,mfn=NULL,cvfn=NULL,death=0.,plateff=1.,model=c("LD","H"),init=FALSE){
 
   if(missing(model)) model <- "LD"
   model <- match.arg(model)
@@ -1333,48 +1349,48 @@ MutationFitnessGFEstimation <- function(mc,mfn=NULL,cvfn=NULL,death=0.,model=c("
   z3 <- 0.8
   z1<-z1^(1/b); z2<-z2^(1/b) ; z3 <- z3^(1/b)             # rescale variables
 
-  rho=FitnessGFEstimation(mc,death=death,model=model)
+  rho <- FitnessGFEstimation(mc,death=death,plateff=plateff,model=model)
 
   if(rho$succeeds){
 
-    a.est=MutationGFEstimation(mc,fitness=rho$fitness,death=death,model=model)
-
-    if(model == "LD") {
-      integrands <- list(CLONE_PGF=function(x,rho,delta) {x^rho/(1+x*delta)},
-			 CLONE_PGF_dr=function(x,rho,delta) {x^rho/(1+x*delta)*log(x)}
-			)
-     } else integrands <- NULL
-    Mutmodel <- new(FlanMutMod,list(
+    if(init){
+      mut <- MutationGFEstimation(mc,mfn=mfn,cvfn=cvfn,fitness=rho$fitness,death=death,plateff=plateff,model=model,init=init)
+      c(mut,fitness=rho$fitness,succeeds=rho$succeeds)
+    } else {
+      a.est <- MutationGFEstimation(mc,fitness=rho$fitness,death=death,plateff=plateff,model=model,init=TRUE)
+      Mutmodel <- new(FlanMutMod,list(
 		  mutations=a.est$mutations,
 		  fitness=rho$fitness,
 		  death=death,
-		  integrands=integrands,
+		  plateff=plateff,
 		  model=model,
 		  lt=TRUE
 		))
+      Cov <- Mutmodel$CovGFEstimation(z1,z2,z3)
+      sd <- sqrt(Cov/length(mc))
+      
+      if(!is.null(mfn)) {
+	if(cvfn > 0) {
+	  if(plateff < 1) z3 <- 1-plateff+plateff*z3
+	  pm.est <- Mutmodel$unbias.mutprob(sd[1],z3,mfn,cvfn)
+	}
+	else pm.est <- list(mutprob=a.est$mutations/mfn,sd.mutprob=sd[1]/mfn)
 
-    Cov <- Mutmodel$CovGFEstimation(z1,z2,z3)
+	c(pm.est,fitness=rho$fitness,sd.fitness=sd[2],
+		  succeeds=rho$succeeds)
 
-    sd <- sqrt(diag(Cov)/length(mc))
-
-    if(!is.null(mfn)) {
-      if(cvfn > 0) pm.est <- Mutmodel$unbias.mutprob(sd[1],z3,mfn,cvfn)
-      else pm.est <- list(mutprob=a.est$mutations/mfn,sd.mutprob=sd[1]/mfn)
-
-      c(pm.est,fitness=rho$fitness,sd.fitness=sd[2],
-		succeeds=rho$succeeds)
-
-    } else list(mutations=a.est$mutations,sd.mutations=sd[1],
-		fitness=rho$fitness,sd.fitness=sd[2],
-		succeeds=rho$succeeds)
+      } else list(mutations=a.est$mutations,sd.mutations=sd[1],
+		  fitness=rho$fitness,sd.fitness=sd[2],
+		  succeeds=rho$succeeds)
+    } 
   } else {
-    res <- MutationGFEstimation(mc,mfn,cvfn,rho$fitness,death,model)
+    res <- MutationGFEstimation(mc,mfn=mfn,cvfn=cvfn,fitness=rho$fitness,death=death,plateff=plateff,model=model,init=init)
     c(res,fitness=rho$fitness,sd.fitness=0,succeeds=rho$succeeds)
   }
 
 }
 
-dclone <- function(m,fitness=1,death=0.,model=c("LD","H")){
+dclone <- function(m,fitness=1.,death=0.,model=c("LD","H")){
 
   if(sum(m < 0) > 0 | sum(trunc(m) != m) > 0){
     stop("'m' must be a vector of positive integers")
@@ -1389,13 +1405,14 @@ dclone <- function(m,fitness=1,death=0.,model=c("LD","H")){
   if(missing(model)){model <- "LD"}
   model <- match.arg(model)
 
-  if(model == "LD") {
-    integrands <- list(CLONE_P0_WD=function(x,rho,delta) {(1-x)*x^(rho-1)/(1-delta*x)},
-		     CLONE_PK_WD=function(x,rho,delta,k) {x^rho*(1-x)^(k-1)/(1-x*delta)^(k+1)}
-		     )
-    clone <- new(FlanExpClone,list(fitness=fitness,death=death,integrands=integrands))
-  }
-  if(model == "H") clone <- new(FlanDirClone,list(fitness=fitness,death=death))
+  # if(model == "LD") {
+  #   integrands <- list(CLONE_P0_WD=function(x,rho,delta) {(1-x)*x^(rho-1)/(1-delta*x)},
+	# 	     CLONE_PK_WD=function(x,rho,delta,k) {x^rho*(1-x)^(k-1)/(1-x*delta)^(k+1)}
+	# 	     )
+    # clone <- new(FlanExpClone,list(fitness=fitness,death=death,integrands=integrands))
+  # }
+  if(model == "LD") clone <- new(FlanExpClone,list(fitness=fitness,death=death))
+  else clone <- new(FlanDirClone,list(fitness=fitness,death=death))
 
 
   M <- max(m)
@@ -1427,19 +1444,19 @@ dflan.grad <- function(m,mutations=1,fitness=1,death=0.,model=c("LD","H"),dalpha
   if(missing(model)){model="LD"}
   model <- match.arg(model)
 
-  if(model=="LD") {
-    integrands <- list(CLONE_P0_WD=function(x,rho,delta) {(1-x)*x^(rho-1)/(1-delta*x)},
-		       CLONE_PK_WD=function(x,rho,delta,k) {x^rho*(1-x)^(k-1)/(1-x*delta)^(k+1)},
-		       CLONE_dP0_dr_WD=function(x,rho,delta) {(1-x)*x^(rho-1)/(1-delta*x)*log(x)},
-		       CLONE_dPK_dr_WD=function(x,rho,delta,k) {x^rho*(1-x)^(k-1)/(1-x*delta)^(k+1)*log(x)}
-		       )
-  } else integrands <- NULL
-#
+#   if(model=="LD") {
+#     integrands <- list(CLONE_P0_WD=function(x,rho,delta) {(1-x)*x^(rho-1)/(1-delta*x)},
+# 		       CLONE_PK_WD=function(x,rho,delta,k) {x^rho*(1-x)^(k-1)/(1-x*delta)^(k+1)},
+# 		       CLONE_dP0_dr_WD=function(x,rho,delta) {(1-x)*x^(rho-1)/(1-delta*x)*log(x)},
+# 		       CLONE_dPK_dr_WD=function(x,rho,delta,k) {x^rho*(1-x)^(k-1)/(1-x*delta)^(k+1)*log(x)}
+# 		       )
+#   } else integrands <- NULL
+# #
   flan.mutmodel <- new(FlanMutMod,list(
     mutations=mutations,
     fitness=fitness,
     death=death,
-    integrands=integrands,
+    # integrands=integrands,
     model=model,
     lt=TRUE
   ))
@@ -1782,7 +1799,7 @@ draw.clone <- function(t,mutprob=1e-2,fitness=1,death=0.,
   DE <- de                                # all death dates
   OR <- or                                # all locations
 		    # main loop
-  while((nd>0)&&(nc<1e+4)){               # while divisions still happen
+  while((nd>0) & (nc<1e+4)){               # while divisions still happen
       g <- g+1                            # next generation
       ce <- 2*ce[div]; ce <- c(ce,ce+1)   # cells in next generation
 	  mu <- mu[div]                   # mutants that divide

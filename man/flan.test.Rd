@@ -12,11 +12,12 @@
 
   flan.test(mc,fn=NULL,mfn=NULL,cvfn=NULL,
                fitness=NULL,death=0,plateff=1,
+               model=c("LD","H"),
                mutations0=1,mutprob0=NULL,fitness0=1,
                conf.level=0.95,
                alternative=c("two.sided","less","greater"),
-               method=c("ML","GF","P0"),winsor=512,
-               model=c("LD","H"))
+               method=c("ML","GF","P0"),winsor=512
+               )
 }
 
 \arguments{
@@ -27,7 +28,8 @@
   \item{fitness}{ fitness parameter: ratio of growth rates of normal and mutant cells. If \code{fitness} is \code{NULL} (default) then the fitness will be estimated. Otherwise, the given value will
 be used to estimate the mean mutation number \code{mutations} }
   \item{death}{ death probability. Must be smaller than 0.5. By default 0. }
-  \item{plateff}{ plating efficiency parameter. Must be non-larger than 1. By default 1. }
+  \item{plateff}{ plating efficiency parameter. Must be non-larger than 1. By default 1. Available only for GF method.}
+  \item{model}{ statistical lifetime model as a character string: one of \code{LD} (default) for Luria-Delbrück model with exponential lifetimes, or \code{H} for Haldane model with constant lifetimes. }
   \item{mutations0}{ null hypothesis value for parameter mutations. See details. }
   \item{mutprob0}{ null hypothesis value for parameter mutprob. See details. }
   \item{fitness0}{ null hypothesis value for parameter fitness. See details. }
@@ -35,7 +37,6 @@ be used to estimate the mean mutation number \code{mutations} }
   \item{alternative}{ a character string specifying the alternative hypothesis, must be one of \code{"two.sided"} (default), \code{"greater"} or \code{"less"}. }
   \item{method}{ estimation method as a character string: one of \code{ML} (default), \code{P0}, or \code{GF}. See \code{mutestim}. }
   \item{winsor}{ winsorization parameter: positive integer. Only used when \code{method} is \code{ML} or when    \code{method} is \code{P0} and \code{fitness} is NULL. See \code{mutestim}. }
-  \item{model}{ statistical lifetime model as a character string: one of \code{LD} (default) for Luria-Delbrück model with exponential lifetimes, or \code{H} for Haldane model with constant lifetimes. }
 }
 
 \details{

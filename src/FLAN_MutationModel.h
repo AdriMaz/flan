@@ -1,7 +1,7 @@
 /**
   * FLAN Software
   *
-  * @author 2015-2020 Adrien Mazoyer  <adrien.mazoyer@imag.fr> 
+  * @author 2015-2020 Adrien Mazoyer  <adrien.mazoyer@imag.fr>
   * @see The GNU Public License (GPL)
   */
 /*
@@ -28,95 +28,116 @@ using namespace Rcpp ;
 
 
 class FLAN_MutationModel {
-  
+
 private:
-    
+
     FLAN_Clone* mClone;    // Clone object
-    
+
 protected:
-    
+
     double mMutNumber;     // Mean number of mutations
     double mFitness;       // Relative fitness
     double mDeath;         // Death probability
-    
+    double mPlateff;       // Plating efficiency
+
     bool mLT;              // logical: if TRUE probabilities are P[X <= x]
 			   //   otherwise, P[X > x]
-    
+
     NumericVector mSample;
     double mMfn,mCvfn;
     double mScale;
 
-    
-public: 
 
-    //  Create an object 
+public:
+
+    //  Create an object
     FLAN_MutationModel(){};
-    
+
     // Create object for GF method
     FLAN_MutationModel(double death,std::string model){
-  
+
       mDeath=death;
-      FLAN_Clone* clone;
-      
-      if(model.compare("LD") == 0){
-	clone=new FLAN_ExponentialClone(death);
-      }
-      if(model.compare("H") == 0){
-	clone=new FLAN_DiracClone(death);
-      }
+      FLAN_Clone* clone=NULL;
+
+      if(model.compare("H") == 0) clone=new FLAN_DiracClone(death);
+      else clone=new FLAN_ExponentialClone(death);
+
+
       mClone=clone;
     //   mZ4=0.55;
       mLT=true;
     };
-    
+
     // Create object for GF method
     FLAN_MutationModel(double rho,double death,std::string model){
-  
+
       mFitness=rho;
       mDeath=death;
-      
-      FLAN_Clone* clone=new FLAN_DiracClone(rho,death);
-      
-      if(model.compare("LD") == 0){
-	clone=new FLAN_ExponentialClone(rho,death);
-      }
+
+      FLAN_Clone* clone=NULL;
+      if(model.compare("H") == 0) clone=new FLAN_DiracClone(rho,death);
+      else clone=new FLAN_ExponentialClone(rho,death);
+
 
       mClone=clone;
-      
+
       mLT=true;
     };
-    
+
     // Create object for distribution
     FLAN_MutationModel(List args){
-  
+
       if(args.size()==4){
 	mMutNumber=as<double>(args["mutations"]);
 	mFitness=as<double>(args["fitness"]);
 	mDeath=as<double>(args["death"]);
 
 	mLT=as<bool>(args["lt"]);
-	
-	
-      } else if(args.size()==6){
+
+      } else if(args.size()==5){
+// 	std::cout<<"Constructor of MutModel"<<std::endl;
 	mMutNumber=as<double>(args["mutations"]);
+// 	std::cout<<"mutations ="<<mMutNumber<<std::endl;
+
 	mFitness=as<double>(args["fitness"]);
+// 	std::cout<<"fitness ="<<mFitness<<std::endl;
+
 	mDeath=as<double>(args["death"]);
+// 	std::cout<<"death ="<<mDeath<<std::endl;
+
 	
 	std::string model=args["model"];
 	
-	FLAN_Clone* clone=new FLAN_DiracClone(mFitness,mDeath);
+	FLAN_Clone* clone=NULL;
+	if(model.compare("H") == 0) clone=new FLAN_DiracClone(mFitness,mDeath);
+  // else clone=new FLAN_ExponentialClone(mFitness,mDeath,args["integrands"]);
+	else clone=new FLAN_ExponentialClone(mFitness,mDeath);
 	
-	if(model.compare("LD") == 0){
-	  clone=new FLAN_ExponentialClone(mFitness,mDeath,args["integrands"]); 
-	}
+	mClone=clone;
+
+	mLT=as<bool>(args["lt"]);
+
+      } else if(args.size()==6){
+//       } else if(args.size()==5){
+	mMutNumber=as<double>(args["mutations"]);
+	mFitness=as<double>(args["fitness"]);
+	mDeath=as<double>(args["death"]);
+	mPlateff=as<double>(args["plateff"]);
+
+	std::string model=args["model"];
+
+	FLAN_Clone* clone=NULL;
+	if(model.compare("H") == 0) clone=new FLAN_DiracClone(mFitness,mDeath);
+  // else clone=new FLAN_ExponentialClone(mFitness,mDeath,args["integrands"]);
+	else clone=new FLAN_ExponentialClone(mFitness,mDeath);
 
 	mClone=clone;
-	
+
 	mLT=as<bool>(args["lt"]);
-	
-	
+
+
       } else if (args.size()==8){
-	
+
 	mSample=args["mc"];
 	if(!Rf_isNull(args["mfn"])){
 	  mMfn=as<double>(args["mfn"]);
@@ -125,31 +146,30 @@ public:
 	  mMfn=-1;
 	  mCvfn=-1;
 	}
-	
+
 	mFitness=as<double>(args["fitness"]);
 	mDeath=as<double>(args["death"]);
-	
+	mPlateff=as<double>(args["plateff"]);
+
 	std::string model=args["model"];
-	
-	FLAN_Clone* clone=new FLAN_DiracClone(mFitness,mDeath);
-	
-	
-	if(model.compare("LD") == 0){
-	 clone=new FLAN_ExponentialClone(mFitness,mDeath,args["integrands"]); 
-	}
-	
+
+	FLAN_Clone* clone=NULL;
+	if(model.compare("H") == 0)clone=new FLAN_DiracClone(mFitness,mDeath);
+    // else clone=new FLAN_ExponentialClone(mFitness,mDeath,args["integrands"]);
+	else clone=new FLAN_ExponentialClone(mFitness,mDeath);
+
 	mClone=clone;
-	
+
 	mScale=as<double>(args["scale"]);
-	
+
       }
 
     };
-    
+
     // Destructor
-    ~FLAN_MutationModel(){};   
-    
-    
+    ~FLAN_MutationModel(){};
+
+
     // Set attributes
     void setMutNumber(double alpha) {
       mMutNumber=alpha;
@@ -163,10 +183,10 @@ public:
     void setClone(FLAN_Clone* clone){
       mClone=clone;
     };
-    
+
 
     // Get attributes
-    
+
     double getMutNumber(){
       return mMutNumber;
     };
@@ -174,57 +194,57 @@ public:
       return mFitness;
     };
     double getDeath(){
-      return mDeath;    
+      return mDeath;
     };
     FLAN_Clone* getClone(){
       return mClone;
     };
-    
-    
-    
+
+
+
     // --------------------------
     // Probability methods
     //---------------------------
-    
-    
+
+
     NumericVector computeProbability(int m) ;
 
     NumericVector deduceProbability(int m,NumericVector& pClone) ;
-			
-			    
-    List computeProbability1DerivativeAlpha(int m)  ;    
+
+
+    List computeProbability1DerivativeAlpha(int m)  ;
     List deduceProbability1DerivativeAlpha(int m,
 					    NumericVector& pClone)  ;
-    
-					      
+
+
     List computeProbability1DerivativeRho(int m)  ;
     List deduceProbability1DerivativeRho(int m,
 					  NumericVector& pClone,
 					  NumericVector& dpClone_r) ;
-    
-					    
+
+
     List computeProbability1DerivativesAlphaRho(int m)  ;
     List deduceProbability1DerivativesAlphaRho(int m,
 						NumericVector& pClone,
 						NumericVector& dpClone_r)  ;
-    
-    
+
+
     NumericVector computeCumulativeFunction(int m) ;
 
 //     // --------------------
 //     // GF ESTIMATION covariance methods
 //     // -------------------
-    
-    List MutationGFEstimation();
-    
+
+    List MutationGFEstimation(bool WithSd);
+
     double computeGeneratingFunction(double z);
-    
-// 
+
+//
     double covariance2(double z1, double z2) ;
-//     
-    NumericMatrix covariance(double z1,double z2,double z3) ;
-//     
-// 		    
+//
+    NumericVector covariance(double z1,double z2,double z3) ;
+//
+//
 //     // Unbiased estimation of pi and its standart deviation if fluctuation of final counts
     List unbiasPiEstimation(double sd, double z,
 			    double mfn,double cvfn);
