@@ -169,7 +169,7 @@ void MATH_Polynom::square_fft(){
   // gsl_fft_complex_workspace_free (workspace);
 
   //RcppArmadillo version
-  std::vector<double> temp;
+  std::vector<double> temp=mCoef;
   n*=2;
   n--;
   // std::cout<<"New value of n ="<<n<<std::endl;
