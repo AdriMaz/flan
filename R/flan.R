@@ -894,7 +894,7 @@ MutationFitnessMLOptimization <- function(mc,mfn=NULL,cvfn=NULL,death=0.,model=c
     a = param[1]
     r = param[2]
     p <- dflan.grad(m=mc,mutations=a,fitness=r,death=death,model=model,dalpha=TRUE,drho=TRUE)
-    res <- rbind(p$dQ_da,p$dQ_dr)/p$Q
+    res <- rbind(p$dQ_da/p$Q,p$dQ_dr/p$Q)
     -apply(res,1,sum)
   }
 
@@ -906,7 +906,7 @@ MutationFitnessMLOptimization <- function(mc,mfn=NULL,cvfn=NULL,death=0.,model=c
 #     upper[2] <- 500*r.est
 #   }
 #
-  est <- lbfgsb3(prm=c(a.est,r.est),fn=ll,gr=dll,lower = lower,upper=upper,control=list(trace=0,iprint=-1))$prm
+  est <- lbfgsb3(prm=c(a.est,r.est),fn=ll,lower = lower,upper=upper,control=list(trace=0,iprint=-1))$prm
   a.est = est[1]					# Update alpha estimate
   r.est = est[2]					# Update rho estimate
 
@@ -988,7 +988,7 @@ MutationProbabilityFitnessMLOptimization <- function(mc,fn,death=0.,model=c("LD"
     res <- mapply(function(x,y){
       y <- y/mfn
       p<-dflan.grad(m=x,mutations=pm*y,fitness=r,death=death,model=model,dalpha=TRUE,drho=TRUE)
-      rbind(p$dQ_da*y,p$dQ_dr)/p$Q
+      rbind(p$dQ_da*y/p$Q,p$dQ_dr/p$Q)
     },mc,fn)
     -apply(res,1,sum)
   }
@@ -1190,11 +1190,6 @@ FitnessP0Optimization <- function(mc,fn=NULL,mut,death=0.,model=c("LD","H"),wins
   # Winsorization
   if(max(mc) > winsor){ mc[which(mc>winsor)] = winsor}
 
-  if(dflan(m=max(mc),mutations=mut,fitness=r.est,death=death,model=model)==0) {
-    warning("Infinite log-likelihood: returns GF estimates (try a larger value for 'winsor')." )
-    return(list(fitness=r.est,sd.fitness=est$sd.fitness))
-  }
-
   if(is.null(fn)){
     if(missing(mut)) mut <- 1
 
@@ -1244,10 +1239,9 @@ FitnessP0Optimization <- function(mc,fn=NULL,mut,death=0.,model=c("LD","H"),wins
   lower = 0.1*r.est
   upper = 10*r.est
 
-  est <- lbfgsb3(prm=r.est,fn=ll,gr=dll,lower = lower,upper=upper,control=list(trace=0,iprint=-1))
-  r.est <- est$prm
+  r.est <- lbfgsb3(prm=r.est,fn=ll,gr=dll,lower = lower,upper=upper,control=list(trace=0,iprint=-1))$prm
 
-  if(is.null(fn)) dldd <- dflan.grad(m=mc,mutations=mut,fitness=r.est,death=death,model=model,dalpha=FALSE,drho=TRUE)
+  if(is.null(fn)) dldd <- flan:::dflan.grad(m=mc,mutations=mut,fitness=r.est,death=death,model=model,dalpha=FALSE,drho=TRUE)
 
   else {
     dldd <- mapply(function(x,y){
@@ -1256,7 +1250,7 @@ FitnessP0Optimization <- function(mc,fn=NULL,mut,death=0.,model=c("LD","H"),wins
     dldd <- list(Q=unlist(dldd[1,]),dQ_dr=unlist(dldd[2,]))
   }
 
-  I <- sum((dldd[[2]])^2/(dldd$Q)^2)
+  I <- sum((dldd$dQ_dr)^2/dldd$Q^2)
 
   sdr <- sqrt(1/I)
   list(fitness=r.est,sd.fitness=sdr)
@@ -1473,7 +1467,7 @@ dflan.grad <- function(m,mutations=1,fitness=1,death=0.,model=c("LD","H"),dalpha
 }
 
 
-deduce.dflan <- function(m,mutations=1,fitness=1,death=0.,model=c("LD","H"),clone){
+deduce.dflan <- function(m,mutations=1,fitness=1,death=0.,clone){
 
   if(sum(m < 0) > 0 | sum(trunc(m) != m) > 0){
     stop("'m' must be a vector of positive integers")
@@ -1505,7 +1499,7 @@ deduce.dflan <- function(m,mutations=1,fitness=1,death=0.,model=c("LD","H"),clon
   output[m+1]
 }
 
-deduce.dflanda <- function(m,mutations=1,fitness=1,death=0.,model=c("LD","H"),clone){
+deduce.dflanda <- function(m,mutations=1,fitness=1,death=0.,clone){
 
   if(sum(m < 0) > 0 | sum(trunc(m) != m) > 0){
     stop("'m' must be a vector of positive integers")
