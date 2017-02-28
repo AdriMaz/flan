@@ -517,7 +517,7 @@ NumericVector FLAN_DiracClone::computeProbability(int m){
     // initialize P
     P[0]=0;P[1]=1;
     sumP=1;
-    double err = 1;
+    // double err = 1;
     int dmax;
     int k;
     // loop
@@ -548,7 +548,7 @@ NumericVector FLAN_DiracClone::computeProbability(int m){
 	}
 
 	// next iteration
-	err = fabs(1-sumP_old/sumP);
+	// err = fabs(1-sumP_old/sumP);
   // std::cout<<"écart relatif (it n°"<<i<<") ="<<err<<std::endl;
     } //end loop
 
@@ -613,7 +613,7 @@ List FLAN_DiracClone::computeProbability1DerivativeRho(int m){
     P[0]=0;P[1]=1;
     dP_dr[0]=0;dP_dr[1]=t-umt;
     sumP=1;
-    double err = 1;
+    // double err = 1;
     int dmax;
     int k;
     // loop
@@ -650,7 +650,7 @@ List FLAN_DiracClone::computeProbability1DerivativeRho(int m){
 	  *itdP-=mPol[k]*iti;
 	}
 
-      err = fabs(1-sumP_old/sumP);
+      // err = fabs(1-sumP_old/sumP);
     }
 
     itdP=dP_dr.begin();

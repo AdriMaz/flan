@@ -365,9 +365,11 @@ double FLAN_MutationModel::covariance2(double z1, double z2) {
         computeGeneratingFunction(ump+mPlateff*z2);
   
     
-  } else return computeGeneratingFunction(z1*z2)-
+  } else {
+    return computeGeneratingFunction(z1*z2)-
         computeGeneratingFunction(z1)*
         computeGeneratingFunction(z2);
+  }
 }
 //
 // NumericMatrix FLAN_MutationModel::covariance(double z1, double z2,double z3) {
@@ -377,14 +379,23 @@ NumericVector FLAN_MutationModel::covariance(double z1, double z2,double z3) {
 //     NumericMatrix M(3,3);
     arma::mat C(3,3);
     C(0,0)=covariance2(z1,z1);
+//     std::cout<<"C(0,0) ="<<C(0,0)<<std::endl;
     C(0,1)=covariance2(z1,z2);
+//     std::cout<<"C(0,1) ="<<C(0,1)<<std::endl;
     C(0,2)=covariance2(z1,z3);
+//     std::cout<<"C(0,2) ="<<C(0,2)<<std::endl;
     C(1,0)=C(0,1);
+//     std::cout<<"C(1,0) ="<<C(1,0)<<std::endl;
     C(1,1)=covariance2(z2,z2);
+//     std::cout<<"C(1,1) ="<<C(1,1)<<std::endl;
     C(1,2)=covariance2(z2,z3);
+//     std::cout<<"C(1,2) ="<<C(1,2)<<std::endl;
     C(2,0)=C(0,2);
+//     std::cout<<"C(2,0) ="<<C(2,0)<<std::endl;
     C(2,1)=C(1,2);
+//     std::cout<<"C(2,1) ="<<C(2,1)<<std::endl;
     C(2,2)=covariance2(z3,z3);
+//     std::cout<<"C(2,2) ="<<C(2,2)<<std::endl;
 //     for (int i=0;i<3;i++) {
 //         for (int j=0;j<i;j++) {
 //             M(i,j)=M(j,i);
@@ -414,18 +425,27 @@ NumericVector FLAN_MutationModel::covariance(double z1, double z2,double z3) {
 //     NumericMatrix CO(3,2);
     arma::mat A(3,2);
     A(0,1)= (ccf_z2-1)/(mMutNumber*d01*computeGeneratingFunction(z1));
-
+//     std::cout<<"A(0,1) ="<<A(0,1)<<std::endl;
     A(1,1)=(ccf_z1-1)/(mMutNumber*d11*computeGeneratingFunction(z2));
+//     std::cout<<"A(1,1) ="<<A(1,1)<<std::endl;
     A(2,1)= 0;
+//     std::cout<<"A(2,1) ="<<A(2,1)<<std::endl;
 
     A(0,0)=(mMutNumber*dccf_z3*A(0,1))/(1-ccf_z3);
+    
+//     std::cout<<"A(0,0) ="<<A(0,0)<<std::endl;
     A(1,0)=(mMutNumber*dccf_z3*A(1,1))/(1-ccf_z3);
+//     std::cout<<"A(1,0) ="<<A(1,0)<<std::endl;
     A(2,0)=1./(computeGeneratingFunction(z3)*(ccf_z3-1));
+//     std::cout<<"A(2,0) ="<<A(2,0)<<std::endl;
 
 //     NumericMatrix cov(2,2);
     arma::mat cov(2,2);
     
     cov=A.t()*C*A;
+    
+//     std::cout<<"cov(0,0) ="<<cov(0,0)<<" and cov(1,1)="<<cov(1,1)<<std::endl;
+    
     /*
     double d,c;
     for (int i=0;i<2;i++) {

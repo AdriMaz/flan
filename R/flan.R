@@ -118,7 +118,7 @@ mutestim <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                 # user's dat
 
       }
       # P0 method
-      if(method == "P0") output <- MutationP0Estimation(mc,fn=fn,mfn=mfn,cvfn=cvfn,death=death)     # P0 estimator of mutations
+      if(method == "P0") output <- MutationP0Estimation(mc,fn=fn,mfn=mfn,cvfn=cvfn,death=death,plateff=plateff)     # P0 estimator of mutations
 
 
       # GF method
@@ -1033,6 +1033,10 @@ MutationsNumberP0Estimation <- function(mc,death=0.,plateff=1){
 # by p0-method under cell deaths with probability delta
 # # when delta is known.
   if(death > 0 | plateff < 1){
+    if(plateff < 1-dstar) {
+      warning("'plateff < 1-death/(1-death)': Fixed point method cannot be applied. 'plateff' is set to 1.")
+      plateff <- 1
+    }
     dstar <- death/(1-death)			# extinction probability
     epgf <- function(z) mean(z^mc)		# empirical PGF
 
@@ -1040,8 +1044,7 @@ MutationsNumberP0Estimation <- function(mc,death=0.,plateff=1){
 
     sda <- (1-dstar)^(-2)*(epgf(((dstar-(1-plateff))/plateff)^2)/(epgf(dstar-(1-plateff)/plateff)^2)-1)	# variance of alpha's estimate
 
-    sda <- sqrt(sda/length(mc))
-
+    sda <- sqrt(sda/length(mc))  
   } else {
     p0 <- mean(mc==0)
     a <- -log(p0)
@@ -1056,7 +1059,7 @@ MutationsNumberP0Estimation <- function(mc,death=0.,plateff=1){
 # Returns the P0 estimate of mean number of mutations for a sample of couple mc, given the death
 # If mfn or cvfn are non-empty, returns the estimate of the mutation probability instaed of the mean number
 # after decreasing the induced bias if cvfn > 0
-MutationP0Estimation <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,death=0.,plateff=1){
+MutationP0Estimation <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,death=0.,plateff=1.){
 
 # Return the estimate of alpha for a sample mc
 # by p0-method under cell deaths with probability delta

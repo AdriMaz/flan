@@ -23,4 +23,4 @@ RcppModules: flan_module
 LazyData: true
 NeedsCompilation: yes
 SystemRequirements: GNU GSL
-Packaged: 2017-02-23 11:15:08 UTC; AdrienMazoyer
+Packaged: 2017-02-28 14:35:03 UTC; mazoyera
