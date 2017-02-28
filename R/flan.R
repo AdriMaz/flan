@@ -635,7 +635,7 @@ pflan <- function(m,mutations=1.,fitness=1.,death=0.,model=c("LD","H"),lower.tai
   #   model : lifetimes distribution model : exponentialy distributed lifetimes ("LD") or constant lifetimes ("H")
 
 
-dflan <- function(m,mutations=1.,fitness=1.,death=0.,plateff=1.,model=c("LD","H")){
+dflan <- function(m,mutations=1.,fitness=1.,death=0.,model=c("LD","H")){
 
   if(sum(m < 0) > 0 | sum(trunc(m) != m) > 0){
     stop("'m' must be a vector of positive integers")
