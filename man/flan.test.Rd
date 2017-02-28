@@ -11,12 +11,12 @@
 \usage{
 
   flan.test(mc,fn=NULL,mfn=NULL,cvfn=NULL,
-               fitness=NULL,death=0,plateff=1,
+               fitness=NULL,death=0.,plateff=1.,
                model=c("LD","H"),
-               mutations0=1,mutprob0=NULL,fitness0=1,
+               mutations0=1.,mutprob0=NULL,fitness0=1.,
                conf.level=0.95,
                alternative=c("two.sided","less","greater"),
-               method=c("ML","GF","P0"),winsor=512
+               method=c("ML","GF","P0"),winsor=1024
                )
 }
 

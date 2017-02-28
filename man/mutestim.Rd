@@ -10,10 +10,10 @@
 
 \usage{
   mutestim(mc,fn=NULL,mfn=NULL,cvfn=NULL,
-                  fitness=NULL,death=0,plateff=1.,
+                  fitness=NULL,death=0.,plateff=1.,
                   model=c("LD","H"),
                   method=c("ML","GF","P0"),
-                  winsor=512)
+                  winsor=1024)
 }
 
 \arguments{

@@ -162,6 +162,7 @@ protected:
     static const double DEATH_EPS_DIST;     // Threshold for death
     double mFitness;    // Realtive fitness
     double mDeath;      // Death probability
+//     double mPlateff;
 
     FLAN_Clone(){};
 
@@ -187,6 +188,12 @@ protected:
       mFitness=rho;
       mDeath=death;
     };
+    
+//     FLAN_Clone(double rho,double death,double plateff){
+//       mFitness=rho;
+//       mDeath=death;
+//       mPlateff=plateff;
+//     };
 
 
     ~FLAN_Clone(){};

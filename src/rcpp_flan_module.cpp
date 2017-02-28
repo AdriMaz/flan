@@ -37,6 +37,7 @@ RCPP_MODULE(flan_module) {
   class_<FLAN_DiracClone>("FlanDirClone")
 	.constructor<List>()
 	.method("dclone",&FLAN_DiracClone::computeProbability,"compute probability")
+	.method("dclonedr",&FLAN_DiracClone::computeProbability1DerivativeRho,"compute probability")
 	.method("pgf2",&FLAN_DiracClone::computeGeneratingFunction2,"compute generating function for several z")
   ;
 

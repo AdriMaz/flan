@@ -10,14 +10,14 @@
 }
 
 \usage{
-  draw.clone(t,mutprob=1e-2,fitness=1,death=0,
+  draw.clone(t,mutprob=1.e-2,fitness=1.,death=0.,
 	     dist=list("lnorm",meanlog=-0.3795851,sdlog=0.3016223),
 	     col=c("green4","orange4"))
 }
 
 \arguments{
   \item{t}{ time of end of experiment . }
-  \item{mutprob}{ mutation probability: numeric between 0 and 1. By default 1e-2. }
+  \item{mutprob}{ mutation probability: numeric between 0 and 1. By default 1.e-2. }
   \item{fitness}{ fitness parameter: numeric positive. By default 1. }
   \item{death}{ death probability: numeric between 0 and 0.5. By default 0. }
   \item{dist}{ lifetime distribution for mutant cells. See Details. }

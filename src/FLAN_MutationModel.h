@@ -40,7 +40,7 @@ protected:
     double mDeath;         // Death probability
     double mPlateff;       // Plating efficiency
 
-    bool mLT;              // logical: if TRUE probabilities are P[X <= x]
+//     bool mLT;              // logical: if TRUE probabilities are P[X <= x]
 			   //   otherwise, P[X > x]
 
     NumericVector mSample;
@@ -65,7 +65,7 @@ public:
 
       mClone=clone;
     //   mZ4=0.55;
-      mLT=true;
+//       mLT=true;
     };
 
     // Create object for GF method
@@ -81,20 +81,20 @@ public:
 
       mClone=clone;
 
-      mLT=true;
+//       mLT=true;
     };
 
     // Create object for distribution
     FLAN_MutationModel(List args){
 
-      if(args.size()==4){
+      if(args.size()==3){
 	mMutNumber=as<double>(args["mutations"]);
 	mFitness=as<double>(args["fitness"]);
 	mDeath=as<double>(args["death"]);
 
-	mLT=as<bool>(args["lt"]);
+// 	mLT=as<bool>(args["lt"]);
 
-      } else if(args.size()==5){
+      } else if(args.size()==4){
 // 	std::cout<<"Constructor of MutModel"<<std::endl;
 	mMutNumber=as<double>(args["mutations"]);
 // 	std::cout<<"mutations ="<<mMutNumber<<std::endl;
@@ -115,14 +115,13 @@ public:
 	
 	mClone=clone;
 
-	mLT=as<bool>(args["lt"]);
+// 	mLT=as<bool>(args["lt"]);
 
-      } else if(args.size()==6){
-//       } else if(args.size()==5){
+      } else if(args.size()==5){
 	mMutNumber=as<double>(args["mutations"]);
 	mFitness=as<double>(args["fitness"]);
 	mDeath=as<double>(args["death"]);
-	mPlateff=as<double>(args["plateff"]);
+// 	mPlateff=as<double>(args["plateff"]);
 
 	std::string model=args["model"];
 
@@ -133,7 +132,7 @@ public:
 
 	mClone=clone;
 
-	mLT=as<bool>(args["lt"]);
+// 	mLT=as<bool>(args["lt"]);
 
 
       } else if (args.size()==8){
@@ -229,7 +228,7 @@ public:
 						NumericVector& dpClone_r)  ;
 
 
-    NumericVector computeCumulativeFunction(int m) ;
+    NumericVector computeCumulativeFunction(int m,bool lower_tail) ;
 
 //     // --------------------
 //     // GF ESTIMATION covariance methods

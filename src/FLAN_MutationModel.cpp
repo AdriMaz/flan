@@ -101,7 +101,7 @@ List FLAN_MutationModel::deduceProbability1DerivativeAlpha(int m,
     double s,ds_da;
     for (int k=1;k<=m;k++) {
         s=0;ds_da=0;
-        for (int i=1;i<=k;i++) {
+        for (int i=0;i<=k;i++) {
 
             s+=i*P[i]*Q[k-i];
 	    ds_da+=P[i]*Q[k-i];
@@ -158,12 +158,14 @@ List FLAN_MutationModel::deduceProbability1DerivativeRho(int m,
 
     for (int k=1;k<=m;k++) {
         s=0;ds_dr=0;
-        for (int i=1;i<=k;i++) {
+        for (int i=0;i<=k;i++) {
             s +=i*P[i]*Q[k-i];
 	    ds_dr+=dP_dr[i]*Q[k-i];
+// 	    ds_dr+=i*(dP_dr[i]*Q[k-i]+P[i]*dQ_dr[k-i]);
 
         }
         Q[k] =(mMutNumber/k)*s;
+// 	dQ_dr[k]=(mMutNumber/k)*ds_dr;
 	dQ_dr[k]=mMutNumber*ds_dr;
 
 
@@ -231,19 +233,23 @@ List FLAN_MutationModel::deduceProbability1DerivativesAlphaRho(int m,
 //     for (itQ = Q.begin()+1 ; itQ != Q.end() ; ++itQ, ++itdQa, ++itdQr, k++) {
         s=0;ds_da=0;ds_dr=0;
 // 	int i=1;
-        for (int i=1;i<=k;i++) {
+        for (int i=0;i<=k;i++) {
 // 	for (itP = P.begin()+1 ; i<=k ; ++itP, ++itdPr, i++){
 	  s +=i*P[i]*Q[k-i];
 	  ds_da+=P[i]*Q[k-i];
+// 	  ds_da+=i*P[i]*dQ_da[k-i];
 	  ds_dr+=dP_dr[i]*Q[k-i];
-// 	  s +=i*(*itP)*Q[k-i];
+// 	  ds_dr+=i*(dP_dr[i]*Q[k-i]+P[i]*dQ_dr[k-i]);
+	  // 	  s +=i*(*itP)*Q[k-i];
 // 	  ds_da+=(*itP)*Q[k-i];
 // 	  ds_dr+=(*itdPr)*Q[k-i];
 
         }
         Q[k]=(mMutNumber/k)*s;
 	dQ_da[k]=ds_da-Q[k];
+// 	dQ_da[k]=1./k*(s+mMutNumber*ds_da);
 	dQ_dr[k]=mMutNumber*ds_dr;
+// 	dQ_dr[k]=(mMutNumber/k)*s;
 // 	*itQ=(mMutNumber/k)*s;
 // 	*itdQa=ds_da-(*itQ);
 // 	*itdQr=mMutNumber*ds_dr;
@@ -258,7 +264,7 @@ List FLAN_MutationModel::deduceProbability1DerivativesAlphaRho(int m,
 
 
 
-NumericVector FLAN_MutationModel::computeCumulativeFunction(int m) {
+NumericVector FLAN_MutationModel::computeCumulativeFunction(int m,bool lower_tail) {
 
     std::vector<double> cumsum(m+1);
 
@@ -267,7 +273,7 @@ NumericVector FLAN_MutationModel::computeCumulativeFunction(int m) {
     std::partial_sum(Q.begin(),Q.end(),cumsum.begin(),std::plus<double>());
 
 
-    if(!mLT) {
+    if(!lower_tail) {
       for(std::vector<double>::iterator it=cumsum.begin();it!=cumsum.end();++it) {
 	(*it)*=-1;
 	(*it)+=1;

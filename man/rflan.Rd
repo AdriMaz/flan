@@ -13,10 +13,10 @@
 }
 
 \usage{
-  dflan(m,mutations=1,fitness=1,death=0,model=c("LD","H"))
-  pflan(m,mutations=1,fitness=1,death=0,model=c("LD","H"),lower.tail=TRUE)
-  qflan(p,mutations=1,fitness=1,death=0,model=c("LD","H"),lower.tail=TRUE)
-  rflan(n,mutations=1,mutprob=NULL,fitness=1,death=0,plateff=1.,
+  dflan(m,mutations=1.,fitness=1.,death=0.,model=c("LD","H"))
+  pflan(m,mutations=1.,fitness=1.,death=0.,model=c("LD","H"),lower.tail=TRUE)
+  qflan(p,mutations=1.,fitness=1.,death=0.,model=c("LD","H"),lower.tail=TRUE)
+  rflan(n,mutations=1.,mutprob=NULL,fitness=1.,death=0.,plateff=1.,
         dist=list(name="lnorm",meanlog=-0.3795851,sdlog=0.3016223),
         mfn=1e9,cvfn=0)
 }
