@@ -121,7 +121,7 @@ public:
 	mMutNumber=as<double>(args["mutations"]);
 	mFitness=as<double>(args["fitness"]);
 	mDeath=as<double>(args["death"]);
-// 	mPlateff=as<double>(args["plateff"]);
+	mPlateff=as<double>(args["plateff"]);
 
 	std::string model=args["model"];
 
