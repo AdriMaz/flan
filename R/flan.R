@@ -825,7 +825,7 @@ MutationProbabilityMLOptimization <- function(mc,fn,fitness=1.,death=0.,model=c(
   ll <- function(pm){
     p <- mapply(function(x,y){
       y <- y/mfn
-      log(deduce.dflan(m=x,mutations=pm*y,fitness=fitness,death=death,model=model,clone=dC))
+      log(deduce.dflan(m=x,mutations=pm*y,fitness=fitness,death=death,clone=dC))
     },mc,fn)
     -sum(p)
   }
@@ -1513,9 +1513,9 @@ deduce.dflan <- function(m,mutations=1.,fitness=1.,death=0.,clone){
     stop("'death' must be a single positive and < 0.5 number.")
   }
   M <- max(m)
-  if(length(clone) != M+1) {
-    stop("'clone' must be a vector with length 'm'+1.")
-  }
+#   if(length(clone) != M+1) {
+#     stop("'clone' must be a vector with length 'max(m)'+1.")
+#   }
 #   if(missing(model)){model="LD"}
 #   model <- match.arg(model)
 
@@ -1546,9 +1546,9 @@ deduce.dflanda <- function(m,mutations=1.,fitness=1.,death=0.,clone){
     stop("'death' must be a single positive and < 0.5 number.")
   }
   M <- max(m)
-  if(length(clone) != M+1) {
-    stop("'clone' must be a vector with length 'm'+1.")
-  }
+#   if(length(clone) != M+1) {
+#     stop("'clone' must be a vector with length 'max(m)'+1.")
+#   }
 
 #   if(missing(model)){model="LD"}
 #   model <- match.arg(model)
