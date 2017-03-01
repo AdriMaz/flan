@@ -113,7 +113,7 @@ void MATH_Polynom::reduce(double eps){
 
       mCoef=std::vector<double>(it1,itmax+1);
       mDeg=dmax;
-    };
+    }
 
 // #define REAL(z,i) ((z)[2*(i)])
 // #define IMAG(z,i) ((z)[2*(i)+1])

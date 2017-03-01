@@ -511,7 +511,7 @@ NumericVector FLAN_DiracClone::computeProbability(int m){
     int Pol_degree=1;
 
     double sumP;
-    double sumP_old;
+    // double sumP_old;
 
 
     // initialize P
@@ -527,7 +527,7 @@ NumericVector FLAN_DiracClone::computeProbability(int m){
 	// next iteration
 	i++;
 	ti*=t;
-	sumP_old=sumP;
+	// sumP_old=sumP;
 
 	// update P
 
@@ -606,7 +606,7 @@ List FLAN_DiracClone::computeProbability1DerivativeRho(int m){
     int Pol_degree=1;
 
     double sumP;
-    double sumP_old;
+    // double sumP_old;
 
 
     // initialize P
@@ -625,7 +625,7 @@ List FLAN_DiracClone::computeProbability1DerivativeRho(int m){
 	i++;
 	ti*=t;
 	iti=i*ti;
-	sumP_old=sumP;
+	// sumP_old=sumP;
 
 	// update P
 	mPol.square_fft();
