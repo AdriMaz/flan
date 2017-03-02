@@ -250,7 +250,22 @@ const double FLAN_Clone::DEATH_EPS_DIST=1.e-4;
 
 
 // create object for GF method
-
+//
+// double FLAN_ExponentialClone::testIntegral(double a, double b){
+//   MATH_Params params;
+//   params.rho=mFitness;
+//   double d1=mDeath/(1-mDeath);
+//   params.delta=d1;
+//
+//   mIntegrator->setFunction("TEST",&params);
+//   //integrate the function in [0,1]
+//   double I;
+//   // m=0 probability
+//   // std::cout<<"Call of computeIntegral"<<std::endl;
+//   I=mIntegrator->computeIntegral(a,b);
+//
+//   return I;
+// }
 
 NumericVector FLAN_ExponentialClone::computeProbability(int m){
 
@@ -368,13 +383,13 @@ List FLAN_ExponentialClone::computeProbability1DerivativeRho(int m){
     std::vector<double>::iterator itP=P.begin()+1 ;
     std::vector<double>::iterator itdP=dP_dr.begin()+1 ;
     for (int k=1;k<=m1;k++,++itP,++itdP) {
-      params.k=0.;
+      params.k=k;
 	mIntegrator->setFunction("CLONE_PK_WD",&params);
 	I=mIntegrator->computeIntegral(0.,1);
 	*itP=I*d2*mFitness;
 
 	mIntegrator->setFunctionName("CLONE_dPK_dr_WD");
-	I=mIntegrator->computeIntegral(0.,1);
+	I=mIntegrator->computeIntegral(0.,1.);
         *itdP=(*itP)/mFitness+I*d2*mFitness;
     }
 

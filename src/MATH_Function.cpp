@@ -59,6 +59,13 @@ else if (mName.compare("CLONE_dPGF_dr") == 0){
 
   res=pow(x,rho)/(1+x*delta)*log(x);
 }
+// else if(mName.compare("TEST") == 0){
+//   MATH_Params* params = (MATH_Params*) par;
+//   double rho = params->rho;
+//   // res=pow(x,rho)*log(x);
+//   res=pow(x,rho)/pow(1-x*delta,2)*log(x);
+//
+// }
 // std::cout<<"Set the parameters"<<std::endl;
   return(res);
 }

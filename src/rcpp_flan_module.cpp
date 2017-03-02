@@ -30,6 +30,7 @@ RCPP_MODULE(flan_module) {
   class_<FLAN_ExponentialClone>("FlanExpClone")
 	.constructor<List>()
 	.method("dclone",&FLAN_ExponentialClone::computeProbability,"compute probability")
+  // .method("integral",&FLAN_ExponentialClone::testIntegral,"compute integrale")
 	.method("dclonedr",&FLAN_ExponentialClone::computeProbability1DerivativeRho,"compute probability")
 	.method("pgf2",&FLAN_ExponentialClone::computeGeneratingFunction2,"compute generating function for several z")
   ;
@@ -41,4 +42,8 @@ RCPP_MODULE(flan_module) {
 	.method("pgf2",&FLAN_DiracClone::computeGeneratingFunction2,"compute generating function for several z")
   ;
 
+  //
+  // class_<MATH_Integration>("MathInt")
+  // .constructor<List>
+  //
 }

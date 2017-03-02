@@ -1,6 +1,5 @@
-useDynLib(flan)
+useDynLib(flan,.registration=TRUE)
 
-#exportPattern(".")
 export(
  flan.test,
  mutestim,
@@ -9,9 +8,8 @@ export(
  )
 S3method(print, flantest)
 
-import(Rcpp)
+import(Rcpp,methods)
 import(lbfgsb3)
 importFrom("graphics", "axis", "matlines", "matplot")
-importFrom("methods", "new")
 importFrom("stats", "integrate", "pnorm", "qnorm", "quantile", "rexp",
            "rgamma", "rlnorm", "runif","rbinom", "sd", "uniroot")

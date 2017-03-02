@@ -45,9 +45,11 @@ public:
     MATH_Integration(double reltol, int subd){
       mReltol=reltol;
       mSubd=subd;
+      //
       // if(!mParams) delete mParams;
       // mParams=NULL;
     };
+
 
     ~MATH_Integration(){
       // if(!mParams) delete mParams;

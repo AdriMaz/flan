@@ -1028,23 +1028,23 @@ MutationProbabilityFitnessMLOptimization <- function(mc,fn,death=0.,model=c("LD"
 
 # Returns the P0 estimate of mean number of mutations for a sample of couple mc, given the death
 MutationsNumberP0Estimation <- function(mc,death=0.,plateff=1){
-
+# TODO: simulation study for P0 with plateff
 # Return the estimate of alpha for a sample mc
 # by p0-method under cell deaths with probability delta
 # # when delta is known.
   if(death > 0 | plateff < 1){
+    dstar <- death/(1-death)			# extinction probability
     if(plateff < 1-dstar) {
       warning("'plateff < 1-death/(1-death)': Fixed point method cannot be applied. 'plateff' is set to 1.")
       plateff <- 1
     }
-    dstar <- death/(1-death)			# extinction probability
     epgf <- function(z) mean(z^mc)		# empirical PGF
 
     a <- -log(epgf((dstar-(1-plateff))/plateff))/(1-dstar)	#  estimate alpha
 
     sda <- (1-dstar)^(-2)*(epgf(((dstar-(1-plateff))/plateff)^2)/(epgf(dstar-(1-plateff)/plateff)^2)-1)	# variance of alpha's estimate
 
-    sda <- sqrt(sda/length(mc))  
+    sda <- sqrt(sda/length(mc))
   } else {
     p0 <- mean(mc==0)
     a <- -log(p0)
@@ -1066,7 +1066,7 @@ MutationP0Estimation <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,death=0.,plateff=
 # # when delta is known.
 
   if(is.null(fn) | death > 0) {
-    a <- MutationsNumberP0Estimation(mc,death,plateff)
+    a <- MutationsNumberP0Estimation(mc=mc,death=death,plateff=plateff)
 
     sda <- a$sd.mutations
     a <- a$mutations
@@ -1239,7 +1239,7 @@ FitnessP0Optimization <- function(mc,fn=NULL,mut,death=0.,model=c("LD","H"),wins
   upper = 10*r.est
 
   r.est <- lbfgsb3(prm=r.est,fn=ll,gr=dll,lower = lower,upper=upper,control=list(trace=0,iprint=-1))$prm
-  
+
 #   est2 <- optim(par=r.est,fn=ll,gr=dll,method='L-BFGS-B',lower=lower,upper=upper,hessian=TRUE)
 
   if(is.null(fn)) dldd <- dflan.grad(m=mc,mutations=mut,fitness=r.est,death=death,model=model,dalpha=FALSE,drho=TRUE)
@@ -1362,7 +1362,7 @@ MutationFitnessGFEstimation <- function(mc,mfn=NULL,cvfn=NULL,death=0.,plateff=1
 		))
       Cov <- Mutmodel$CovGFEstimation(z1,z2,z3)
       sd <- sqrt(Cov/length(mc))
-      
+
       if(!is.null(mfn)) {
 	if(cvfn > 0) {
 	  if(plateff < 1) z3 <- 1-plateff+plateff*z3
@@ -1376,7 +1376,7 @@ MutationFitnessGFEstimation <- function(mc,mfn=NULL,cvfn=NULL,death=0.,plateff=1
       } else list(mutations=a.est$mutations,sd.mutations=sd[1],
 		  fitness=rho$fitness,sd.fitness=sd[2],
 		  succeeds=rho$succeeds)
-    } 
+    }
   } else {
     res <- MutationGFEstimation(mc,mfn=mfn,cvfn=cvfn,fitness=rho$fitness,death=death,plateff=plateff,model=model,init=init)
     c(res,fitness=rho$fitness,sd.fitness=0.,succeeds=rho$succeeds)
@@ -1445,7 +1445,7 @@ dclone.dr <- function(m,fitness=1.,death=0.,model=c("LD","H")){
 
 
   output <- clone$dclonedr(M)
-  
+
   lapply(output,function(l) l[m+1])
 
 }
@@ -1994,4 +1994,11 @@ rdt <- function(n,dist){
 #
 #   sim$rclone(n)
 #
+# }
+#
+# test.integral <- function(a=0.,b=1.,fitness=1){
+#
+#   mInt <- new(FlanExpClone,list(fitness=fitness,death=0))
+#
+#   mInt$integral(a,b)
 # }

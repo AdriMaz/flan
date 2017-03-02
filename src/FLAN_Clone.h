@@ -188,7 +188,7 @@ protected:
       mFitness=rho;
       mDeath=death;
     };
-    
+
 //     FLAN_Clone(double rho,double death,double plateff){
 //       mFitness=rho;
 //       mDeath=death;
@@ -296,11 +296,14 @@ class FLAN_ExponentialClone : public FLAN_Clone {
 // 	std::cout<<"death(clone) ="<<mDeath<<std::endl;
 
       init();
-      
+
     };
     ~FLAN_ExponentialClone(){
       if(!mIntegrator) delete mIntegrator;
     };
+
+
+    double testIntegral(double a, double b);
 
     NumericVector computeProbability(int m);
 
