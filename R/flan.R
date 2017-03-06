@@ -38,8 +38,16 @@ mutestim <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                 # user's dat
 
     if(missing(method)){method <- "ML"}
     if(missing(model)){model <- "LD"}
-    method <- match.arg(method)
-    model <- match.arg(model)
+    method <- match.arg(method,several.ok=TRUE)
+    if(length(method) > 1){
+      if(sum(method == method[1]) == length(method)) method <- method[1]
+      else stop("If you use a 'data.table', 'method' can not have different values in a same class.")
+    }
+    model <- match.arg(model,several.ok=TRUE)
+    if(length(model) > 1){
+      if(sum(model == model[1]) == length(model)) model <- model[1]
+      else stop("If you use a 'data.table', 'model' can not have different values in a same class.")
+    }
 
     if(is.null(mc)){
       stop("'mc' is empty...")
@@ -59,33 +67,57 @@ mutestim <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                 # user's dat
       if(sd(fn) == 0) fn <- NULL
     }
     if(!is.null(mfn)){
-      if(mfn < 0 | length(mfn) > 1){
-	stop("'mfn' must be a single positive number.")
+      if(length(mfn) > 1){
+        if(sum(mfn == mfn[1]) == length(mfn)) mfn <- mfn[1]
+        else stop("If you use a 'data.table', 'mfn' can not have different values in a same class.")
+      }
+      if(mfn < 0){
+	stop("'mfn' must be a positive number.")
       }
       if(is.null(cvfn)) cvfn <- 0
     }
     if(!is.null(cvfn)){
-      if(cvfn < 0 | length(cvfn) > 1){
-	stop("'cvfn' must be a single positive number.")
+      if(length(cvfn) > 1){
+        if(sum(cvfn == cvfn[1]) == length(cvfn)) cvfn <- cvfn[1]
+        else stop("If you use a 'data.table', 'cvfn' can not have different values in a same class.")
+      }
+      if(cvfn < 0){
+	stop("'cvfn' must be a positive number.")
       }
       if(is.null(mfn)) mfn <- 1e9
     }
+    if(length(fitness) > 1){
+      if(sum(fitness == fitness[1]) == length(fitness)) fitness <- fitness[1]
+      else stop("If you use a 'data.table', 'fitness' can not have different values in a same class.")
+    }
     if(!is.null(fitness)){
-      if(fitness < 0 | length(fitness) > 1){
-	stop("'fitness' must be empty or a single positive number.")
+      if(fitness < 0){
+	stop("'fitness' must be empty or a positive number.")
       }
     }
-    if(death < 0 | death >= 0.5 | length(death) > 1){
-      stop("'death must be a single positive and < 0.5 number.")
+    if(length(death) > 1){
+      if(sum(death == death[1]) == length(death)) death <- death[1]
+      else stop("If you use a 'data.table', 'death' can not have different values in a same class.")
     }
-    if(plateff > 1 | length(plateff) > 1){
-      stop("'plateff' must be a single positive and <= 1 number.")
+    if(death < 0 | death >= 0.5){
+      stop("'death must be a positive and < 0.5 number.")
     }
-    if(winsor < 0 | trunc(winsor) != winsor | length(winsor) > 1){
+    if(length(plateff) > 1){
+      if(sum(plateff == plateff[1]) == length(plateff)) plateff <- plateff[1]
+      else stop("If you use a 'data.table', 'plateff' can not have different values in a same class.")
+    }
+    if(plateff > 1){
+      stop("'plateff' must be a positive and <= 1 number.")
+    }
+    if(length(winsor) > 1){
+      if(sum(winsor == winsor[1]) == length(winsor)) winsor <- winsor[1]
+      else stop("If you use a 'data.table', 'winsor' can not have different values in a same class.")
+    }
+    if(winsor < 0 | trunc(winsor) != winsor){
       stop("'winsor' must be a single positive integer.")
     }
     if(method=="P0" & sum(mc==0) == 0 & death == 0){
-      stop("P0 method can not be used if 'mc' does not contain any null counts and if 'death' is null.")
+      stop("If 'death' is zero, P0 method can not be used if 'mc' does not contain any null counts.")
     }
     if((method == "P0" | method == "ML") & plateff < 1){
       warning("'plateff' can be taking into account only for GF method: 'plateff' is set to 1.")
@@ -227,29 +259,97 @@ flan.test <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                      # user
       fn <- list(fn)
     }
   }
+  if(nsamples == 1){
+    if(!is.null(mfn)){
+      if(length(mfn) > 1) {
+        if(sum(mfn == mfn[1]) == length(mfn)) mfn <- mfn[1]
+        else stop("If you use a 'data.table', 'mfn' can not have different values in a same class.")
+      }
+      if(mfn < 0) stop("'mfn' must be empty or a positive number.")
+      if(is.null(cvfn)) cvfn <- 0
+      with.prob <- TRUE
+    }
+    if(!is.null(cvfn)){
+      if(length(cvfn) > 1) {
+        if(sum(cvfn == cvfn[1]) == length(cvfn)) cvfn <- cvfn[1]
+        else stop("If you use a 'data.table', 'cvfn' can not have different values in a same class.")
+      }
+      if(cvfn < 0) stop("'cvfn' must be empty or a positive number.")
+      if(is.null(mfn)) mfn <- 1e9
+      with.prob <- TRUE
+    }
+    if(!is.null(fitness)){
+      if(length(fitness) > 1){
+        if(sum(fitness == fitness[1]) == length(fitness)) fitness <- fitness[1]
+        else stop("If you use a 'data.table', 'fitness' can not have different values in a same class.")
+      }
+      if(fitness < 0) stop("'fitness' must be empty or a positive number.")
+      fitness0 <- NULL
+    }
+    if(with.prob & missing(mutprob0)) mutprob0 <- 1/mfn
 
-  if(!is.null(mfn)){
-    if(sum(mfn < 0) != 0 | length(mfn) > 2) stop("if given, 'mfn' must be a vector with size <= 2 of positive numbers.")
-    if(is.null(cvfn)) cvfn <- rep(0,length(mfn))
-    with.prob <- TRUE
+    if(length(death) > 1){
+      if(sum(death == death[1]) == length(death)) death <- death[1]
+      else stop("If you use a 'data.table', 'death' can not have different values in a same class.")
+    }
+    if(death >= 0.5) stop("'death' must be a positive and < 0.5 number.")
+
+    if(length(plateff) > 1){
+      if(sum(plateff == plateff[1]) == length(plateff)) plateff <- plateff[1]
+      else stop("If you use a 'data.table', 'plateff' can not have different values in a same class.")
+    }
+    if(plateff > 1) stop("'plateff' must be a positive and <= 1 number.")
+  } else {
+
+    if(!is.null(mfn)){
+      if(sum(mfn < 0) != 0 | length(mfn) > 2) stop("if given, 'mfn' must be a vector with size <= 2 of positive numbers.")
+      if(is.null(cvnf)) cvfn <- rep(0,length(mfn))
+      with.prob <- TRUE
+    }
+
+    if(!is.null(cvfn)){
+      if(sum(cvfn < 0) != 0 | length(cvfn) > 2) stop("if given, 'cvfn' must be a vector with size <= 2 of positive numbers.")
+      if(is.null(mfn)) mfn <- rep(1e9,length(cvfn))
+      with.prob <- TRUE
+    }
+    if(!is.null(fitness)){
+      if(sum(fitness < 0) != 0 | length(fitness) > 2) stop("if given, 'fitness' must be a vector with size <= 2 of positive numbers.")
+      fitness0 <- NULL
+    } else {
+      if(missing(fitness0)) fitness0 <- 0
+    }
+    if(missing(mutations0)) mutations0 <- 0
+    if(with.prob & missing(mutprob0)) mutprob0 <- 0
+
+    if(length(fitness) > 1){
+      if(sum(fitness == fitness[1]) == length(fitness)) fitness <- fitness[1]
+      else stop("If you use a 'data.table', 'cvfn' can not have different values in a same class.")
+    }
+
+    if(sum(death < 0 | death >= 0.5) != 0 | length(death) > 2) stop("'death' must be a vector with size <= 2 of positive and < 0.5 numbers.")
+    if(sum(plateff > 1) != 0 | length(plateff) > 2) stop("'plateff' must be a vector with size <= 2 of positive and <= 1 numbers.")
   }
-  if(!is.null(cvfn)){
-    if(sum(cvfn < 0) != 0 | length(cvfn) > 2) stop("if given, 'cvfn' must be a vector with size <= 2 of positive numbers.")
-    if(is.null(mfn)) mfn <- rep(1e9,length(cvfn))
-    with.prob <- TRUE
+
+  if(length(mutations0) > 1) {
+    if(sum(mutations0 == mutations0[1]) == length(mutations0)) mutations0 <- mutations0[1]
+    else stop("If you use a 'data.table', 'mutations0' can not have different values in a same class.")
   }
-  if(!is.null(fitness)){
-    if(sum(fitness < 0) != 0 | length(fitness) > 2) stop("if given, 'fitness' must be a vector with size <= 2 of positive numbers.")
-    fitness0 <- NULL
-  }
-  if(length(mutations0) > 1 | mutations0 < 0) stop("'mutations0' must be a single positive number.")
+  if(mutations0 < 0) stop("'mutations0' must be a positive number.")
 
   if(!is.null(fitness0)){
-    if(length(fitness0) > 1 | fitness0 < 0) stop("'fitness0' must be a single positive number.")
+    if(length(fitness0) > 1) {
+      if(sum(fitness0 == fitness0[1]) == length(fitness0)) fitness0 <- fitness0[1]
+      else stop("If you use a 'data.table', 'fitness0' can not have different values in a same class.")
+    }
+    if(fitness0 < 0) stop("'fitness0' must be a positive number.")
   }
 
   if(!is.null(mutprob0)){
-    if(length(mutprob0) > 1 | mutprob0 < 0 | mutprob0 >= 1) stop("if given, 'mutprob0' must be a positive and <= 1 number.")
+    if(length(mutprob0) > 1) {
+      if(sum(mutprob0 == mutprob0[1]) == length(mutprob0)) mutprob0 <- mutprob0[1]
+      else stop("If you use a 'data.table', 'mutprob0' can not have different values in a same class.")
+    }
+    if(mutprob0 < 0 | mutprob0 >= 1) stop("if given, 'mutprob0' must be a positive and <= 1 number.")
     with.prob <- TRUE
     if(is.null(mfn)) mfn <- 1e9
     if(is.null(cvfn)) cvfn <- 0
@@ -258,25 +358,30 @@ flan.test <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                      # user
       if(is.null(mfn)) mfn <- 1e9
       if(is.null(cvfn)) cvfn <- 0
       if(nsamples == 1) mutprob0 <- mutations0/mfn
+      else mutprob0 <- 0
     }
   }
 
 
+# }
   # Default values if two-samples test
-  if(nsamples == 2){
-    if(missing(mutations0)) mutations0 <- 0
-    if(is.null(fitness)){
-      if(missing(fitness0)) fitness0 <- 0
-    }
-    if(with.prob) {
-      if(missing(mutprob0)) mutprob0 <- 0
-    }
-  }
+  # if(nsamples == 2){
+  #   if(with.prob) {
+  #     if(missing(mutprob0)) mutprob0 <- 0
+  #   }
+  # }
 
-  if((length(conf.level) > 1) | conf.level > 1 | conf.level < 0) stop("'conf.level' must be a single positive and <= 1 numbers.")
-  if(sum(death < 0 | death >= 0.5) != 0 | length(death) > 2) stop("'death' must be a vector with size <= 2 of positive and < 0.5 numbers.")
-  if(sum(plateff > 1) != 0 | length(plateff) > 2) stop("'plateff' must be a vector with size <= 2 of positive and <= 1 numbers.")
-  if(winsor < 0 | trunc(winsor) != winsor | length(winsor) > 1) stop("'winsor' must be a single positive integer.")
+  if(length(conf.level) > 1) {
+    if(sum(conf.level == conf.level[1]) == length(conf.level)) conf.level <- conf.level[1]
+    else stop("If you use a 'data.table', 'conf.level' can not have different values in a same class.")
+  }
+  if(conf.level > 1 | conf.level < 0) stop("'conf.level' must be a positive and <= 1 numbers.")
+
+  if(length(winsor) > 1) {
+    if(sum(winsor == winsor[1]) == length(winsor)) winsor <- winsor[1]
+    else stop("If you use a 'data.table', 'winsor' can not have different values in a same class.")
+  }
+  if(winsor < 0 | trunc(winsor) != winsor) stop("'winsor' must be a single positive integer.")
 
 
   H0 <- c(if(with.prob) mutprob0 else mutations0,fitness0)     # Vector of null hypothesises
