@@ -303,7 +303,7 @@ flan.test <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                      # user
 
     if(!is.null(mfn)){
       if(sum(mfn < 0) != 0 | length(mfn) > 2) stop("if given, 'mfn' must be a vector with size <= 2 of positive numbers.")
-      if(is.null(cvnf)) cvfn <- rep(0,length(mfn))
+      if(is.null(cvfn)) cvfn <- rep(0,length(mfn))
       with.prob <- TRUE
     }
 
@@ -543,7 +543,7 @@ flan.test <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                      # user
 
   # Build object with 'flantest' class
 
-  flantest(Tstat=Tstat,estimate=ests,parameter=parameter,conf.int=cint,p.value=pval,
+  flan:::flantest(Tstat=Tstat,estimate=ests,parameter=parameter,conf.int=cint,p.value=pval,
   null.value=H0,alternative=alternative,data.name=dname,model=model,method=method,nsamples=nsamples)
 
 }

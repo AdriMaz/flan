@@ -499,9 +499,10 @@ NumericVector FLAN_DiracClone::computeProbability(int m){
     if(m > 0){
       int index=1;
       int n=floor(log((double)(m))/log(2.));
+      double tp = (1-pow(2.,-mFitness));
         //take only the indices index=2^ind for ind in [0,n] where index < m
       for (int k=0;k<=n;k++) {
-	P[index]=(1-pow(2.,-mFitness))*pow(2.,-k*mFitness);
+	P[index]=tp*pow(index,-mFitness);
 	index*=2;
       }
     }
@@ -591,12 +592,18 @@ List FLAN_DiracClone::computeProbability1DerivativeRho(int m){
 
     int n=floor(log((double)(m))/log(2.));
     int index=1;
+    double tp=(1-pow(2.,-mFitness));
+    double logindex=0;
+    double log2=log(2.);
+    double tp2=log2*(1/tp-1);
 
     for(int k=0;k<=n;k++) {
 //       index=(int)(pow(2,k));
-      P[index]=(1-pow(2.,-mFitness))*pow(2.,-k*mFitness);
-      dP_dr[index]=log(2.)*(pow(2.,-mFitness*(k+1))-k*P[index]);
+      P[index]=tp*pow(index,-mFitness);
+//       dP_dr[index]=log(2.)*(pow(2.,-mFitness*(k+1))-k*P[index]);
+      dP_dr[index]=P[index]*(tp2-logindex);
       index*=2;
+      logindex+=log2;
     }
 
   } else {
