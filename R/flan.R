@@ -8,7 +8,7 @@
     # fn:  an optional (non-empty) numeric vector with same length as mc of final numbers of cells.
     # mfn:  mean final number of cells which. Ignored if fn is non-missing.
     # cvfn:  coefficient of variation of final number of cells. Ignored if fn is non-missing.
-    # fitness:  fitness parameter: ratio of growth rates of normal and mutant cells. If fitness is NULL (default) then the fitness will be estimated. Otherwise, the given value will be used to estimate the mean mutation number mutations
+    # fitness:  fitness parameter: ratio of growth rates of normal and mutant cells. If fitness is NULL (default) then the fitness will be estimated. Otherwise, the given value will be used to estimate the mean mutations number mutations
     # death:  death probability. Must be smaller than 0.5.
     # plateff: plating efficiency.
     # method:  estimation method as a character string: one of ML (default), P0, or GF.
@@ -137,7 +137,7 @@ mutestim <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                 # user's dat
       # GF method
       if(method == "GF") {
 	output <- MutationFitnessGFEstimation(mc=mc,mfn=mfn,cvfn=cvfn,death=death,plateff=plateff,model=model,init=FALSE)
-	if(!output$succeeds) warning(paste("Impossible to estimate 'fitness' with 'GF'-method: 'fitness' is set to default value 1 and only",if(!is.null(mfn)){"mutation probability"}else{"mutation number"},"is estimated.",sep=" "))
+	if(!output$succeeds) warning(paste("Impossible to estimate 'fitness' with 'GF'-method: 'fitness' is set to default value 1 and only",if(!is.null(mfn)){"mutation probability"}else{"mutations number"},"is estimated.",sep=" "))
 	output$succeeds <- NULL
       }
     } else {    # Else : compute estimate(s) of mean number of mutations, or mutation probability
@@ -386,7 +386,7 @@ flan.test <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                      # user
 
   H0 <- c(if(with.prob) mutprob0 else mutations0,fitness0)     # Vector of null hypothesises
 
-  np <- length(H0)                                             # Number of tested values
+  np <- length(H0)                         # Number of tested values
 
   if(missing(alternative)) alternative <- rep("two.sided",np)
   if(missing(method)) method <- "ML"
@@ -403,7 +403,7 @@ flan.test <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                      # user
     names <- character()
 
     if(np == 1){
-      names(H0) <- if(with.prob) "mutation probability" else "mutation number"
+      names(H0) <- if(with.prob) "mutation probability" else "mutations number"
       parameter <- c(fitness,death,plateff)
       names <- c("fitness","death","plateff")
       if(with.prob){
@@ -412,7 +412,7 @@ flan.test <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                      # user
       }
     }
     if(np == 2) {
-      names(H0) <- c(if(with.prob) "mutation probability" else "mutation number", "fitness")
+      names(H0) <- c(if(with.prob) "mutation probability" else "mutations number", "fitness")
       parameter <- c(death,plateff)
       names <- c("death","plateff")
       if(with.prob){
@@ -470,36 +470,32 @@ flan.test <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                      # user
 
   if(np == 1){   # If only mutations (or mutprob) is tested
     if(length(alternative) > 1) alternative <- alternative[1]
-
-    Tstat <- unlist(ests[1,])    # Extract the estimate to compute statistic of the test
-    sds <- unlist(ests[2,])      # Standard deviation of the estimate
-    names(Tstat) <- NULL
-    ests <- Tstat                # Keep the estimate
-
     if(nsamples == 2){    # If Two-sample test
-      ests <- cbind(ests)
+      Tstat <- unlist(ests[1,])    # Extract the estimate to compute statistic of the test
+      sds <- unlist(ests[2,])      # Standard deviation of the estimate
+      ests <- Tstat                # Keep the estimate
       Tstat <- -diff(Tstat)      # Statistic of the test is build with difference of estimates
       sds <- sqrt(sum(sds^2))    # Standard deviation of the difference between estimates
-      colnames(ests) <- if(with.prob) "mutprob" else "mutations"
+    } else {
+      Tstat <- unlist(ests[1,1])    # Extract the estimate to compute statistic of the test
+      sds <- unlist(ests[2,1])      # Standard deviation of the estimate
+      ests <- Tstat                # Keep the estimate
     }
-    names(ests) <- if(with.prob) "mutprob" else "mutations"
-
-
-  }
-  if(np == 2){    # If fitness is also tested
+  } else if(np == 2){    # If fitness is also tested
     if(length(alternative) == 1) alternative <- rep(alternative,2)
     if(length(alternative) > 2) alternative <- alternative[c(1,2)]
-
-    Tstat <- rbind(unlist(ests[1,]),unlist(ests[3,]))   # Extract estimates to compute statistic of the test
-    sds <- rbind(unlist(ests[2,]),unlist(ests[4,]))     # Standard deviation of the estimates
-    colnames(Tstat) <- NULL
-    ests <- cbind(Tstat[1,],Tstat[2,])                  # Keep the estimates
-
     if(nsamples == 2){               # If Two-sample test
-      Tstat <-- apply(Tstat,1,diff)                     # Statistic of the test is build with difference of estimates
+      Tstat <- rbind(unlist(ests[1,]),unlist(ests[3,]))   # Extract estimates to compute statistic of the test
+      sds <- rbind(unlist(ests[2,]),unlist(ests[4,]))     # Standard deviation of the estimates
+      ests <- Tstat                                      # Keep the estimates
+      Tstat <- -apply(Tstat,1,diff)                     # Statistic of the test is build with difference of estimates
       sds <- apply(sds,1,function(s){sqrt(sum(s^2))})   # Standard deviation of the difference between estimates
+    } else {
+      Tstat <- c(unlist(ests[1,]),unlist(ests[3,]))   # Extract estimates to compute statistic of the test
+      sds <- c(unlist(ests[2,]),unlist(ests[4,]))     # Standard deviation of the estimates
+      ests <- Tstat                  # Keep the estimates
     }
-    colnames(ests) <- c(if(with.prob) "mutprob" else "mutations","fitness")
+
   }
 
   cint <- mapply(function(e,s,alt){
@@ -508,42 +504,41 @@ flan.test <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                      # user
     } else if(alt == "greater"){                              # and the alternative
       c(e-s*qnorm(conf.level),Inf)
     } else if(alt == "two.sided"){
-      e+s*c(-1,1)*qnorm((1+conf.level)/2)
+      res <- e+s*c(-1,1)*qnorm((1+conf.level)/2)
+      if(nsamples == 1 & res[1] < 0) res[1] <- 0
+      res
     }
   },Tstat,sds,alternative)
-
-
+  if(nsamples == 1) cint[1,cint[1,] < 0] <-0
 
   Tstat <- (Tstat-H0)/sds                                      # Statistic(s) of the test
 
   pval <- mapply(function(alt,tstat){
       if(alt == "less"){                                        # p-value(s) of the test
-	pnorm(tstat)                                            # with respect to the alternative
+         pnorm(tstat)                                            # with respect to the alternative
       } else if(alt == "greater"){
-	pnorm(tstat,lower.tail=FALSE)
+	       pnorm(tstat,lower.tail=FALSE)
       } else if(alt == "two.sided"){
-	2*pnorm(-abs(tstat))
+	       2*pnorm(-abs(tstat))
       }
-    },alternative,Tstat)
+  },alternative,Tstat)
 
-    if(nsamples == 2){
-      names(Tstat) <- sapply(colnames(ests),function(noun){paste(noun,"difference")})
+    if(nsamples == 1){
+      names(ests) <- c(if(with.prob) "mutation probability" else "mutations number",if(np == 2)"fitness")
     } else {
-      names(Tstat) <- names(ests)
+      if(np == 1) ests <- rbind(ests[1],ests[2])
+      colnames(ests) <- c(if(with.prob) "mutation probability" else "mutations number",if(np == 2)"fitness")
     }
-
-    colnames(cint) <- names(Tstat)
-    names(pval) <- names(Tstat)
-    names(alternative) <- names(Tstat)
-
-  rownames(cint) <- c("bInf","bSup")
-
-
-  attr(cint,"conf.level") <- conf.level
+    # colnames(ests) <- names(H0)
+    names(Tstat) <- names(H0)
+    names(pval) <- names(H0)
+    colnames(cint) <- names(H0)
+    rownames(cint) <- c("bInf","bSup")
+    attr(cint,"conf.level") <- conf.level
 
   # Build object with 'flantest' class
 
-  flan:::flantest(Tstat=Tstat,estimate=ests,parameter=parameter,conf.int=cint,p.value=pval,
+  flantest(Tstat=Tstat,estimate=ests,parameter=parameter,conf.int=cint,p.value=pval,
   null.value=H0,alternative=alternative,data.name=dname,model=model,method=method,nsamples=nsamples)
 
 }
@@ -1863,7 +1858,7 @@ print.flantest <- function(x,...){
       if (!is.null(x$estimate)) {
 	if(x$nsamples == 1){
 	  cat("Sample estimates : \n")
-	  print(x$estimate[1,])
+	  print(x$estimate)
 	}
 	if(x$nsamples == 2){
 	  cat("Sample 1 estimates : \n")
