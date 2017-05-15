@@ -487,7 +487,7 @@ flan.test <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                      # user
     if(nsamples == 2){               # If Two-sample test
       Tstat <- rbind(unlist(ests[1,]),unlist(ests[3,]))   # Extract estimates to compute statistic of the test
       sds <- rbind(unlist(ests[2,]),unlist(ests[4,]))     # Standard deviation of the estimates
-      ests <- Tstat                                      # Keep the estimates
+      ests <- t(Tstat)                                      # Keep the estimates
       Tstat <- -apply(Tstat,1,diff)                     # Statistic of the test is build with difference of estimates
       sds <- apply(sds,1,function(s){sqrt(sum(s^2))})   # Standard deviation of the difference between estimates
     } else {
