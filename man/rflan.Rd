@@ -13,9 +13,9 @@
 }
 
 \usage{
-  dflan(m,mutations=1.,fitness=1.,death=0.,model=c("LD","H"))
-  pflan(m,mutations=1.,fitness=1.,death=0.,model=c("LD","H"),lower.tail=TRUE)
-  qflan(p,mutations=1.,fitness=1.,death=0.,model=c("LD","H"),lower.tail=TRUE)
+  dflan(m,mutations=1.,fitness=1.,death=0.,plateff=1.,model=c("LD","H"))
+  pflan(m,mutations=1.,fitness=1.,death=0.,plateff=1.,model=c("LD","H"),lower.tail=TRUE)
+  qflan(p,mutations=1.,fitness=1.,death=0.,plateff=1.,model=c("LD","H"),lower.tail=TRUE)
   rflan(n,mutations=1.,mutprob=NULL,fitness=1.,death=0.,plateff=1.,
         dist=list(name="lnorm",meanlog=-0.3795851,sdlog=0.3016223),
         mfn=1e9,cvfn=0)
@@ -49,7 +49,9 @@
 
   whith \eqn{\pi} is the ratio of \code{mutations} by \code{mfn}, \eqn{\delta} the death probability and \eqn{\mathcal{L}(x)} is the Laplace transform of the log-normal distribution with mean \code{mfn} and coefficient of variation \code{cvfn}.
 
-  If the plating efficiency \code{plateff} is smaller than 1, then each mutant count \code{mc} is replaced by a binomial number with parameters \code{size=mc} and \code{prob=plateff}.
+  A plating efficiency \code{plateff} smaller than 1 is taken into account in the \code{dflan, pflan} and \code{qflan} functions only under \code{LD} model.
+  
+  If the plating efficiency \code{plateff} is smaller than 1 in the \code{flan} function, then each mutant count \code{mc} is replaced by a binomial number with parameters \code{size=mc} and \code{prob=plateff}.
 
 }
 

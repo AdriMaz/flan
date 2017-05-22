@@ -128,6 +128,7 @@ public:
 	FLAN_Clone* clone=NULL;
 	if(model.compare("H") == 0) clone=new FLAN_DiracClone(mFitness,mDeath);
   // else clone=new FLAN_ExponentialClone(mFitness,mDeath,args["integrands"]);
+	else if(model.compare("LDpef") == 0) clone=new FLAN_ExponentialClone(mFitness,mDeath,mPlateff);
 	else clone=new FLAN_ExponentialClone(mFitness,mDeath);
 
 	mClone=clone;

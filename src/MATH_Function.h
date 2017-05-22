@@ -79,6 +79,7 @@ public:
 struct MATH_Params {
   double rho;
   double delta;
+  double zeta;
   double k;
   MATH_Integration* ptMInt;
 

@@ -189,12 +189,6 @@ protected:
       mDeath=death;
     };
 
-//     FLAN_Clone(double rho,double death,double plateff){
-//       mFitness=rho;
-//       mDeath=death;
-//       mPlateff=plateff;
-//     };
-
 
     ~FLAN_Clone(){};
 
@@ -254,21 +248,20 @@ public:
 class FLAN_ExponentialClone : public FLAN_Clone {
 
   protected:
+    
+    double mPlateff;
 
   private:
 
     MATH_Integration* mIntegrator;
 
-    // void init(List fns) {
     void init() {
-//       std::cout<<"Call init() function in CloneExp constructor"<<std::endl;
       List info=Environment::base_namespace().get(".Machine");
       double flantol=info["double.eps"];
       flantol=sqrt(flantol);
       int flansubd=1000;
 
       if(!mIntegrator) delete mIntegrator;
-      // mIntegrator=new MATH_Integration(fns,flantol,flansubd);
       mIntegrator=new MATH_Integration(flantol,flansubd);
     }
 
@@ -279,22 +272,22 @@ class FLAN_ExponentialClone : public FLAN_Clone {
     };
 
     FLAN_ExponentialClone(List params):FLAN_Clone(params) {
-      // List fns=params["integrands"];
+      if(params.size() == 3) mPlateff=params["plateff"];
+      else mPlateff=1;
       init();
-      // std::cout<<"fitness ="<<mFitness<<std::endl;
-      // std::cout<<"death ="<<mDeath<<std::endl;
     };
-    // FLAN_ExponentialClone(double death):FLAN_Clone(death) {
-      // init(fns);
     FLAN_ExponentialClone(double death):FLAN_Clone(death) {
-    // FLAN_ExponentialClone(double rho,double death,List fns):FLAN_Clone(rho,death) {
+      mPlateff=1;
       init();
     };
     FLAN_ExponentialClone(double rho,double death):FLAN_Clone(rho,death) {
-//       	std::cout<<"Constructor of ExpClone"<<std::endl;
-// 	std::cout<<"fitness(clone) ="<<mFitness<<std::endl;
-// 	std::cout<<"death(clone) ="<<mDeath<<std::endl;
+      mPlateff=1;
+      init();
 
+    };
+    
+    FLAN_ExponentialClone(double rho,double death, double plateff):FLAN_Clone(rho,death) {
+      mPlateff=plateff;
       init();
 
     };

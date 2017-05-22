@@ -101,14 +101,19 @@ List FLAN_MutationModel::deduceProbability1DerivativeAlpha(int m,
     double s,ds_da;
     for (int k=1;k<=m;k++) {
         s=0;ds_da=0;
-        for (int i=0;i<=k;i++) {
-
+        for (int i=1;i<=k;i++) {
+// 	    std::cout<<"P["<<i<<"] ="<<P[i]<<std::endl;
+// 	    std::cout<<"Q["<<k-i<<"] ="<<Q[k-i]<<std::endl;
+	    
             s+=i*P[i]*Q[k-i];
 	    ds_da+=P[i]*Q[k-i];
 
         }
 	Q[k]=(mMutNumber/k)*s;
-        dQ_da[k]=ds_da-Q[k];
+// 	dQ_da[k]=ds_da-Q[k];
+        dQ_da[k]=ds_da+Q[k]*(P[0]-1);
+	
+// 	std::cout<<"dQ_da["<<k<<"] ="<<dQ_da[k]<<std::endl;
     }
     return List::create(_["Q"]=NumericVector(Q.begin(),Q.end()),
 			_["dQ_da"]=NumericVector(dQ_da.begin(),dQ_da.end())
@@ -158,15 +163,15 @@ List FLAN_MutationModel::deduceProbability1DerivativeRho(int m,
 
     for (int k=1;k<=m;k++) {
         s=0;ds_dr=0;
-        for (int i=0;i<=k;i++) {
-            s +=i*P[i]*Q[k-i];
+        for (int i=1;i<=k;i++) {
+            s+=i*P[i]*Q[k-i];
 	    ds_dr+=dP_dr[i]*Q[k-i];
 // 	    ds_dr+=i*(dP_dr[i]*Q[k-i]+P[i]*dQ_dr[k-i]);
 
         }
         Q[k] =(mMutNumber/k)*s;
 // 	dQ_dr[k]=(mMutNumber/k)*ds_dr;
-	dQ_dr[k]=mMutNumber*ds_dr;
+	dQ_dr[k]=mMutNumber*(ds_dr+dP_dr[0]*Q[k]);
 
 
     }
@@ -233,7 +238,7 @@ List FLAN_MutationModel::deduceProbability1DerivativesAlphaRho(int m,
 //     for (itQ = Q.begin()+1 ; itQ != Q.end() ; ++itQ, ++itdQa, ++itdQr, k++) {
         s=0;ds_da=0;ds_dr=0;
 // 	int i=1;
-        for (int i=0;i<=k;i++) {
+        for (int i=1;i<=k;i++) {
 // 	for (itP = P.begin()+1 ; i<=k ; ++itP, ++itdPr, i++){
 	  s +=i*P[i]*Q[k-i];
 	  ds_da+=P[i]*Q[k-i];
@@ -246,13 +251,8 @@ List FLAN_MutationModel::deduceProbability1DerivativesAlphaRho(int m,
 
         }
         Q[k]=(mMutNumber/k)*s;
-	dQ_da[k]=ds_da-Q[k];
-// 	dQ_da[k]=1./k*(s+mMutNumber*ds_da);
-	dQ_dr[k]=mMutNumber*ds_dr;
-// 	dQ_dr[k]=(mMutNumber/k)*s;
-// 	*itQ=(mMutNumber/k)*s;
-// 	*itdQa=ds_da-(*itQ);
-// 	*itdQr=mMutNumber*ds_dr;
+	dQ_da[k]=ds_da+Q[k]*(P[0]-1);
+	dQ_dr[k]=mMutNumber*(ds_dr+dP_dr[0]*Q[k]);
 
     }
     return List::create(_["Q"]=NumericVector(Q.begin(),Q.end()),

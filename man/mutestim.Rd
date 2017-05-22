@@ -24,7 +24,7 @@
   \item{fitness}{ fitness parameter: ratio of growth rates of normal and mutant cells. If \code{fitness} is \code{NULL} (default), then the fitness will be estimated. Otherwise, the given value will
 be used to estimate the mean mutation number \code{mutations}. }
   \item{death}{ death probability. Must be smaller than 0.5. By default 0. }
-  \item{plateff}{ plating efficiency parameter. Must be non-larger than 1. By default 1. Available only for GF method.}
+  \item{plateff}{ plating efficiency parameter. Must be non-larger than 1. By default 1. Available for \code{GF} method, and for \code{ML} method under \code{LD} model.}
   \item{model}{ statistical lifetime model as a character string: one of \code{LD} (default) for Luria-Delbrück model (exponential lifetimes), or \code{H} for Haldane model with (constant lifetimes). }
   \item{method}{ estimation method as a character string: one of \code{ML} (default), \code{P0}, or \code{GF}. See details. }
   \item{winsor}{ winsorization parameter: positive integer. Only used when \code{method} is \code{ML} or when \code{method} is \code{P0} and \code{fitness} is NULL. See details. }

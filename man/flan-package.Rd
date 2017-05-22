@@ -16,8 +16,8 @@
   \tabular{ll}{
     Package: \tab flan\cr
     Type: \tab Package\cr
-    Version: \tab 0.4\cr
-    Date: \tab 2017-23\cr
+    Version: \tab 0.5\cr
+    Date: \tab 2017-05-22\cr
     License: \tab GPL\cr
   }
 
@@ -39,7 +39,7 @@
 \references{
 
   A. Mazoyer, R. Drouilhet, S. Despréaux and B. Ycart: flan: An R Package for Inference on Mutation Models.
-HAL:<hal-01415996v2> (2016)
+HAL:<hal-01415996v3> (2017)
 
   B. Ycart and N. Veziris: Unbiased estimates of mutation rates under fluctuating final counts.
 PLoS one 9(7) e101434 (2014)
