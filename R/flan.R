@@ -671,10 +671,8 @@ qflan <- function(p,mutations=1.,fitness=1.,death=0.,plateff=1.,model=c("LD","H"
     stop("If 'model' is 'H', 'plateff' can not be < 1.")
   }
 
-
-
   m <- 100
-  P <- pflan(0:m,mutations,fitness,death,plateff,model,lower.tail)
+  P <- pflan(m=0:m,mutations=mutations,fitness=fitness,death=death,plateff=plateff,model=model,lower.tail=lower.tail)
   sapply(p,function(pp){
     if(pp == 1) k <- Inf
     if (lower.tail & pp <= P[1]) k <- 0
@@ -683,7 +681,7 @@ qflan <- function(p,mutations=1.,fitness=1.,death=0.,plateff=1.,model=c("LD","H"
       k <- if(lower.tail) max(which(P<pp)) else max(which(P>pp))          # quantile if in the actual table
       while (k>=m){                   # if p not yet in the table
 	m2 <- 2*m                       # double the table
-	P2 <- pflan(m:m2,mutations,fitness,death,model,lower.tail)      # truncated distribution function
+	P2 <- pflan(m=m:m2,mutations=mutations,fitness=fitness,death=death,plateff=plateff,model=model,lower.tail=lower.tail)      # truncated distribution function
 	if (lower.tail & pp <= P2[1]) k
 	if (!lower.tail & pp >= P2[1]) k
 	else {

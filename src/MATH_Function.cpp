@@ -24,7 +24,7 @@ else if(mName.compare("CLONE_P0_WD_WPEF") == 0){
   double rho = params->rho;
   double delta = params->delta;
   double zeta = params->zeta;
-  
+
   n0=delta*(1-x)-(1-zeta)*(delta-x*(1-delta));
   d0=1-delta-delta*x-(1-zeta)*(1-delta)*(1-x);
 
@@ -48,8 +48,8 @@ else if(mName.compare("CLONE_PK_WD_WPEF") == 0){
   n0=delta*(1-x)-(1-zeta)*(delta-x*(1-delta));
   n1=-zeta*(delta-x*(1-delta));
   d0=1-delta-delta*x-(1-zeta)*(1-delta)*(1-x);
-  d1=d1=-zeta*(1-delta)*(1-x);
-  
+  d1=-zeta*(1-delta)*(1-x);
+
   res=(n1*d0-n0*d1)/pow(d0,2.)*pow(x,rho-1);
   if(k > 1) res*=pow(-d1/d0,k-1);
 }
@@ -67,7 +67,7 @@ else if(mName.compare("CLONE_dP0_dr_WD_WPEF") == 0){
   double rho = params->rho;
   double delta = params->delta;
   double zeta = params->zeta;
-  
+
   n0=delta*(1-x)-(1-zeta)*(delta-x*(1-delta));
   d0=1-delta-delta*x-(1-zeta)*(1-delta)*(1-x);
 
@@ -87,12 +87,12 @@ else if(mName.compare("CLONE_dPK_dr_WD_WPEF") == 0){
   double delta = params->delta;
   double zeta = params->zeta;
   double k = params->k;
- 
+
   n0=delta*(1-x)-(1-zeta)*(delta-x*(1-delta));
   n1=-zeta*(delta-x*(1-delta));
   d0=1-delta-delta*x-(1-zeta)*(1-delta)*(1-x);
-  d1=d1=-zeta*(1-delta)*(1-x);
-  
+  d1=-zeta*(1-delta)*(1-x);
+
   res=(n1*d0-n0*d1)/pow(d0,2.)*pow(x,rho-1)*log(x);
   if(k > 1) res*=pow(-d1/d0,k-1);
 }
