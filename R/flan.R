@@ -326,10 +326,10 @@ flan.test <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                      # user
     if(missing(mutations0)) mutations0 <- 0
     if(with.prob & missing(mutprob0)) mutprob0 <- 0
 
-    if(length(fitness) > 1){
-      if(sum(fitness == fitness[1]) == length(fitness)) fitness <- fitness[1]
-      else stop("If you use a 'data.table', 'cvfn' can not have different values in a same class.")
-    }
+    # if(length(fitness) > 1){
+    #   if(sum(fitness == fitness[1]) == length(fitness)) fitness <- fitness[1]
+    #   else stop("If you use a 'data.table', 'cvfn' can not have different values in a same class.")
+    # }
 
     if(sum(death < 0 | death >= 0.5) != 0 | length(death) > 2) stop("'death' must be a vector with size <= 2 of positive and < 0.5 numbers.")
     if(sum(plateff > 1) != 0 | length(plateff) > 2) stop("'plateff' must be a vector with size <= 2 of positive and <= 1 numbers.")
