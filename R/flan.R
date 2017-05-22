@@ -662,11 +662,11 @@ qflan <- function(p,mutations=1.,fitness=1.,death=0.,plateff=1.,model=c("LD","H"
   }
   if(missing(model)){model="LD"}
   model <- match.arg(model)
-  
+
   if(plateff < 0 | plateff > 1| length(plateff) > 1){
     stop("'plateff' must be a single positive and <= 1 number.")
   }
-  
+
   if(model == "H" & plateff < 1){
     stop("If 'model' is 'H', 'plateff' can not be < 1.")
   }
@@ -720,11 +720,11 @@ pflan <- function(m,mutations=1.,fitness=1.,death=0.,plateff=1.,model=c("LD","H"
   }
   if(missing(model)){model="LD"}
   model <- match.arg(model)
-  
+
   if(plateff < 0 | plateff > 1| length(plateff) > 1){
     stop("'plateff' must be a single positive and <= 1 number.")
   }
-  
+
   if(model == "H" & plateff < 1){
     stop("If 'model' is 'H', 'plateff' can not be < 1.")
   }
@@ -774,14 +774,14 @@ dflan <- function(m,mutations=1.,fitness=1.,death=0.,plateff=1.,model=c("LD","H"
   if(death < 0 | death >= 0.5 | length(death) > 1){
     stop("'death' must be a single positive and < 0.5 number.")
   }
-  
+
   if(missing(model)){model="LD"}
   model <- match.arg(model)
-  
+
   if(plateff < 0 | plateff > 1| length(plateff) > 1){
     stop("'plateff' must be a single positive and <= 1 number.")
   }
-  
+
   if(model == "H" & plateff < 1){
     stop("If 'model' is 'H', 'plateff' can not be < 1.")
   }
@@ -1157,7 +1157,7 @@ MutationProbabilityFitnessMLOptimization <- function(mc,fn,death=0.,plateff=1.,m
 	      #//////////////////////////////////P0 method//////////////////////////////////#
 
 # Returns the P0 estimate of mean number of mutations for a sample of couple mc, given the death
-MutationsNumberP0Estimation <- function(mc,death=0.){
+MutationsNumberP0Estimation <- function(mc,death=0.,plateff=1.){
 # TODO: simulation study for P0 with plateff
 # Return the estimate of alpha for a sample mc
 # by p0-method under cell deaths with probability delta
@@ -1528,12 +1528,12 @@ dclone <- function(m,fitness=1.,death=0.,plateff=1.,model=c("LD","H")){
 
   if(missing(model)){model <- "LD"}
   model <- match.arg(model)
-  
-  
+
+
   if(plateff < 0 | plateff > 1| length(plateff) > 1){
     stop("'plateff' must be a single positive and <= 1 number.")
   }
-  
+
   if(model == "H" & plateff < 1){
     stop("If 'model' is 'H', 'plateff' can not be < 1.")
   }
@@ -1571,11 +1571,11 @@ dclone.dr <- function(m,fitness=1.,death=0.,plateff=1.,model=c("LD","H")){
 
   if(missing(model)){model <- "LD"}
   model <- match.arg(model)
-  
+
   if(plateff < 0 | plateff > 1| length(plateff) > 1){
     stop("'plateff' must be a single positive and <= 1 number.")
   }
-  
+
   if(model == "H" & plateff < 1){
     stop("If 'model' is 'H', 'plateff' can not be < 1.")
   }
@@ -1622,11 +1622,11 @@ dflan.grad <- function(m,mutations=1.,fitness=1.,death=0.,plateff=1.,model=c("LD
 
   if(missing(model)){model="LD"}
   model <- match.arg(model)
-  
+
   if(plateff < 0 | plateff > 1| length(plateff) > 1){
     stop("'plateff' must be a single positive and <= 1 number.")
   }
-  
+
   if(model == "H" & plateff < 1){
     stop("If 'model' is 'H', 'plateff' can not be < 1.")
   }
