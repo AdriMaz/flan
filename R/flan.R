@@ -52,6 +52,11 @@ mutestim <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                 # user's dat
     if(is.null(mc)){
       stop("'mc' is empty...")
     }
+    # if(!is.null(fn)){
+    #   if(!is.null(mfn) | !is.null(cvfn)){
+    #     warning("When 'fn' is non-empty, 'mfn' and 'cvfn' are ignored.")
+    #   }
+    # }
     if(sum(mc == 0) == length(mc)){
       warning("'mc' does not contain mutants count...")
       output <- list(mutations=0.,sd.mutations=0.,fitness=1.,sd.fitness=0)
@@ -207,6 +212,7 @@ flan.test <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                      # user
 	  if(!is.null(fn[[1]])){
 	    dname <- c(dname,deparse(substitute(fn)))
 	    with.prob <- TRUE
+      if(!is.null(mfn) | !is.null(cvfn)) warning("'fn' is non-empty: 'mfn' and 'cvfn' will be ignored.")
 	    mfn <- mean(fn)
 	    cvfn <- sd(fn)/mfn
 	  }
@@ -226,22 +232,30 @@ flan.test <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                      # user
 
 	  if(!is.null(fn[[1]])) {
 	    if(length(fn[[1]]) != length(mc[[1]])) stop("'fn[[1]]' must have the same length as 'mc[[1]]'.")
+      if(!is.null(mfn[1]) | !is.null(cvfn[1])) warning("'fn[[1]]' is non-empty: 'mfn[1]' and 'cvfn[1]' will be ignored.")
 
-	    if(is.null(fn[[2]])){
-	      warning("'fn[[2]]' is empty : 'fn[[1]]' is ignored.")
-	      fn <- list(NULL,NULL)
+      if(is.null(fn[[2]])){
+	      warning("'fn[[2]]' is empty : empirical informations of 'fn[[1]]' are considered for sample 2.")
+        mfn <- rep(mean(fn[[1]]), 2)
+        cvfn <- sd(fn[[1]])/mfn
+	      # fn <- list(NULL,NULL)
 	    } else {
 	      if(length(fn[[2]]) != length(mc[[2]])) stop("'fn[[2]]' must have the same length as 'mc[[2]]'.")
+        if(!is.null(mfn[2]) | !is.null(cvfn[2])) warning("'fn[[2]]' is non-empty: 'mfn[2]' and 'cvfn[2]' will be ignored.")
 
-	      dname <- c(dname,list(c(paste(deparse(substitute(fn)),"1",sep=""),paste(deparse(substitute(fn)),"2",sep=""))))
+        dname <- c(dname,list(c(paste(deparse(substitute(fn)),"1",sep=""),paste(deparse(substitute(fn)),"2",sep=""))))
 	      with.prob <- TRUE
 	      mfn <- unlist(lapply(fn,mean))
 	      cvfn <- unlist(lapply(fn,sd))/mfn
+
 	    }
 	  } else {
 	    if(!is.null(fn[[2]])) {
-	      warning("'fn[[1]]' is empty : 'fn[[2]]' is ignored.")
-	      fn <- list(NULL,NULL)
+        warning("'fn[[1]]' is empty : empirical informations of 'fn[[2]]' are considered for sample 1.")
+
+        if(!is.null(mfn[2]) | !is.null(cvfn[2])) warning("'fn[[2]]' is non-empty: 'mfn[2]' and 'cvfn[2]' will be ignored.")
+        mfn <- rep(mean(fn[[2]]), 2)
+        cvfn <- sd(fn[[2]])/mfn
 	    }
 	  }
 	} else {
@@ -304,6 +318,14 @@ flan.test <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                      # user
       else stop("If you use a 'data.table', 'plateff' can not have different values in a same class.")
     }
     if(plateff > 1) stop("'plateff' must be a positive and <= 1 number.")
+    if(plateff <= 1 & method == "P0"){
+      warning("'plateff' can not be taking into account for P0 method: 'plateff' is set to 1.")
+      plateff <- 1
+    }
+    if(model == "H" & plateff <= 1 & method == "ML"){
+      warning("'plateff' can not be taking into account for ML method when 'model' is 'H': 'plateff' is set to 1.")
+      plateff <- 1
+    }
   } else {
 
     if(!is.null(mfn)){
@@ -333,6 +355,14 @@ flan.test <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                      # user
 
     if(sum(death < 0 | death >= 0.5) != 0 | length(death) > 2) stop("'death' must be a vector with size <= 2 of positive and < 0.5 numbers.")
     if(sum(plateff > 1) != 0 | length(plateff) > 2) stop("'plateff' must be a vector with size <= 2 of positive and <= 1 numbers.")
+    if(sum(plateff <= 1) != 0 & model == "H" & method == "ML"){
+      warning("'plateff' can not be taking into account for ML method when 'model' is 'H': 'plateff' is set to 1.")
+      plateff <- 1
+    }
+    if(sum(plateff <= 1) != 0 & method == "P0"){
+      warning("'plateff' can not be taking into account for P0 method: 'plateff' is set to 1.")
+      plateff <- 1
+    }
   }
 
   if(length(mutations0) > 1) {
@@ -356,11 +386,14 @@ flan.test <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                      # user
     }
     if(mutprob0 < 0 | mutprob0 >= 1) stop("if given, 'mutprob0' must be a positive and <= 1 number.")
     with.prob <- TRUE
-    if(is.null(mfn)) mfn <- 1e9
-    if(is.null(cvfn)) cvfn <- 0
+    if(is.null(mfn))  mfn <- 1e9
+    if(is.null(cvfn))  cvfn <- 0
+
+
+
   } else {
     if(with.prob){
-      if(is.null(mfn)) mfn <- 1e9
+      if(is.null(mfn))  mfn <- 1e9
       if(is.null(cvfn)) cvfn <- 0
       if(nsamples == 1) mutprob0 <- mutations0/mfn
       else mutprob0 <- 0
@@ -459,8 +492,8 @@ flan.test <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                      # user
     colnames(parameter) <- names
   }
 
-  if(is.null(mfn)) mfn <- list(mfn)
-  if(is.null(cvfn)) cvfn <- list(cvfn)
+  if(is.null(mfn))  mfn <- list(mfn)
+  if(is.null(cvfn))  cvfn <- list(cvfn)
   if(is.null(fitness)) fitness <- list(fitness)
 
    # Estimates mean number of mutations alpha, given fitness parameter rho
@@ -668,7 +701,9 @@ qflan <- function(p,mutations=1.,fitness=1.,death=0.,plateff=1.,model=c("LD","H"
   }
 
   if(model == "H" & plateff < 1){
-    stop("If 'model' is 'H', 'plateff' can not be < 1.")
+    # stop("If 'model' is 'H', 'plateff' can not be < 1.")
+    warnings("Probabilities are not available when 'model' is 'H' and 'plateff' < 1. 'plateff' is set to 1")
+    plateff <- 1
   }
 
   m <- 100
@@ -724,7 +759,9 @@ pflan <- function(m,mutations=1.,fitness=1.,death=0.,plateff=1.,model=c("LD","H"
   }
 
   if(model == "H" & plateff < 1){
-    stop("If 'model' is 'H', 'plateff' can not be < 1.")
+    # stop("If 'model' is 'H', 'plateff' can not be < 1.")
+    warnings("Probabilities are not available when 'model' is 'H' and 'plateff' < 1. 'plateff' is set to 1")
+    plateff <- 1
   }
   if(model == "LD" & plateff < 1) model <- "LDpef"
 
@@ -781,7 +818,8 @@ dflan <- function(m,mutations=1.,fitness=1.,death=0.,plateff=1.,model=c("LD","H"
   }
 
   if(model == "H" & plateff < 1){
-    stop("If 'model' is 'H', 'plateff' can not be < 1.")
+    warnings("Probabilities are not available when 'model' is 'H' and 'plateff' < 1. 'plateff' is set to 1")
+    plateff <- 1
   }
   if(model == "LD" & plateff < 1) model <- "LDpef"
 
@@ -1533,7 +1571,9 @@ dclone <- function(m,fitness=1.,death=0.,plateff=1.,model=c("LD","H")){
   }
 
   if(model == "H" & plateff < 1){
-    stop("If 'model' is 'H', 'plateff' can not be < 1.")
+    # stop("If 'model' is 'H', 'plateff' can not be < 1.")
+    warnings("Probabilities are not available when 'model' is 'H' and 'plateff' < 1. 'plateff' is set to 1")
+    plateff <- 1
   }
 
   # if(model == "LD") {
@@ -1575,7 +1615,9 @@ dclone.dr <- function(m,fitness=1.,death=0.,plateff=1.,model=c("LD","H")){
   }
 
   if(model == "H" & plateff < 1){
-    stop("If 'model' is 'H', 'plateff' can not be < 1.")
+    # stop("If 'model' is 'H', 'plateff' can not be < 1.")
+    warnings("Probabilities are not available when 'model' is 'H' and 'plateff' < 1. 'plateff' is set to 1")
+    plateff <- 1
   }
   # if(model == "LD") {
   #   integrands <- list(CLONE_P0_WD=function(x,rho,delta) {(1-x)*x^(rho-1)/(1-delta*x)},
@@ -1626,7 +1668,9 @@ dflan.grad <- function(m,mutations=1.,fitness=1.,death=0.,plateff=1.,model=c("LD
   }
 
   if(model == "H" & plateff < 1){
-    stop("If 'model' is 'H', 'plateff' can not be < 1.")
+    # stop("If 'model' is 'H', 'plateff' can not be < 1.")
+    warnings("Probabilities are not available when 'model' is 'H' and 'plateff' < 1. 'plateff' is set to 1")
+    plateff <- 1
   }
   if(model == "LD" & plateff < 1) model <- "LDpef"
 
@@ -1780,27 +1824,37 @@ print.flantest <- function(x,...){
     if(length(x$null.value) == 1){
       if(!is.null(x$parameter)){
 	if(x$nsamples == 2){
-	  Nparam <- dim(x$param)[2]
+	  Nparam <- dim(x$parameter)[2]
 	  cat("Sample 1 parameters : ")
 	  for(i in 1:Nparam){
-	    out <- c(out,paste(colnames(x$parameter)[i], "=", format(signif(x$parameter[1,i],
+      if(colnames(x$parameter)[i] =="mfn"){
+	      out <- c(out,paste(colnames(x$parameter)[i], "=", format(x$parameter[1,i],
+	      scientific=TRUE,digit=5)))
+	    } else {
+	       out <- c(out,paste(colnames(x$parameter)[i], "=", format(signif(x$parameter[1,i],
 	      max(1, digits - 2)))))
+      }
 	  }
 	  cat(strwrap(paste(out, collapse=", ")), sep="\n")
 	  out <- character()
 	  cat("Sample 2 parameters : ")
 	  for(i in 1:Nparam){
-	    out <- c(out,paste(colnames(x$parameter)[i], "=", format(signif(x$parameter[2,i],
+      if(colnames(x$parameter)[i] =="mfn"){
+	      out <- c(out,paste(colnames(x$parameter)[i], "=", format(x$parameter[2,i],
+	      scientific=TRUE,digit=5)))
+	    } else {
+	       out <- c(out,paste(colnames(x$parameter)[i], "=", format(signif(x$parameter[2,i],
 	      max(1, digits - 2)))))
+      }
 	  }
 	} else {
 	  Nparam <- length(x$parameter)
 	  for(i in 1:Nparam){
-	    if(names(x$parameter[i])=="mfn"){
-	      out <- c(out,paste(names(x$parameter[i]), "=", format(x$parameter[i],
+	    if(names(x$parameter)[i] =="mfn"){
+	      out <- c(out,paste(names(x$parameter)[i], "=", format(x$parameter[i],
 	      scientific=TRUE,digit=5)))
 	    } else {
-	      out <- c(out,paste(names(x$parameter[i]), "=", format(signif(x$parameter[i],
+	      out <- c(out,paste(names(x$parameter)[i], "=", format(signif(x$parameter[i],
 	      max(1, digits - 2)))))
 	    }
 	  }
@@ -1849,10 +1903,15 @@ print.flantest <- function(x,...){
       if(!is.null(x$parameter)){
 	if(x$nsamples == 2){
 	  cat("Sample 1 parameters : ")
-	  Nparam <- dim(x$param)[2]
+	  Nparam <- dim(x$parameter)[2]
 	  for(i in 1:Nparam){
-	    out <- c(out,paste(colnames(x$parameter)[i], "=", format(signif(x$parameter[1,i],
+      if(colnames(x$parameter)[i] == "mfn"){
+	      out <- c(out,paste(colnames(x$parameter)[i], "=", format(x$parameter[1,i],
+	      scientific=TRUE,digit=5)))
+	    } else {
+	      out <- c(out,paste(colnames(x$parameter)[i], "=", format(signif(x$parameter[1,i],
 	      max(1, digits - 2)))))
+	    }
 	  }
 	  cat(strwrap(paste(out, collapse=", ")), sep="\n")
 	  out <- character()
@@ -1872,8 +1931,13 @@ print.flantest <- function(x,...){
 	  Nparam <- length(x$parameter)
 
 	  for(i in 1:Nparam){
-	    out <- c(out,paste(names(x$parameter[i]), "=", format(signif(x$parameter[i],
+      if(names(x$parameter)[i] == "mfn"){
+	      out <- c(out,paste(names(x$parameter)[i], "=", format(x$parameter[i],
+	      scientific=TRUE,digit=5)))
+	    } else {
+	      out <- c(out,paste(names(x$parameter)[i], "=", format(signif(x$parameter[i],
 	      max(1, digits - 2)))))
+	    }
 	  }
 	}
       }
