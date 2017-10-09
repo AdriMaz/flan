@@ -8,7 +8,7 @@
     # fn:  an optional (non-empty) numeric vector with same length as mc of final numbers of cells.
     # mfn:  mean final number of cells which. Ignored if fn is non-missing.
     # cvfn:  coefficient of variation of final number of cells. Ignored if fn is non-missing.
-    # fitness:  fitness parameter: ratio of growth rates of normal and mutant cells. If fitness is NULL (default) then the fitness will be estimated. Otherwise, the given value will be used to estimate the mean mutations number mutations
+    # fitness:  fitness parameter: ratio of growth rates of normal and mutant cells. If fitness is NULL (default) then the fitness will be estimated. Otherwise, the given value will be used to estimate the mean mutation number mutations
     # death:  death probability. Must be smaller than 0.5.
     # plateff: plating efficiency.
     # method:  estimation method as a character string: one of ML (default), P0, or GF.
@@ -147,7 +147,7 @@ mutestim <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                 # user's dat
       # GF method
       if(method == "GF") {
 	output <- MutationFitnessGFEstimation(mc=mc,mfn=mfn,cvfn=cvfn,death=death,plateff=plateff,model=model,init=FALSE)
-	if(!output$succeeds) warning(paste("Impossible to estimate 'fitness' with 'GF'-method: 'fitness' is set to default value 1 and only",if(!is.null(mfn)){"mutation probability"}else{"mutations number"},"is estimated.",sep=" "))
+	if(!output$succeeds) warning(paste("Impossible to estimate 'fitness' with 'GF'-method: 'fitness' is set to default value 1 and only",if(!is.null(mfn)){"mutation probability"}else{"mutation number"},"is estimated.",sep=" "))
 	output$succeeds <- NULL
       }
     } else {    # Else : compute estimate(s) of mean number of mutations, or mutation probability
@@ -198,6 +198,14 @@ flan.test <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                      # user
                {
 
   with.prob <- FALSE               # Boolean: if TRUE (if fn, mfn, or cvfn are given), mutprob is tested instead of mutations
+
+  if(missing(method)) method <- "ML"
+  if(missing(model)) model <- "LD"
+
+
+  method <- match.arg(method)
+  model <- match.arg(model)
+
 
   if(is.null(mc)){
     stop("'mc' is empty...")
@@ -427,12 +435,8 @@ flan.test <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                      # user
   np <- length(H0)                         # Number of tested values
 
   if(missing(alternative)) alternative <- rep("two.sided",np)
-  if(missing(method)) method <- "ML"
-  if(missing(model)) model <- "LD"
-
   alternative <- match.arg(alternative,several.ok=TRUE)
-  method <- match.arg(method)
-  model <- match.arg(model)
+
 
 
   if(nsamples == 1){
@@ -441,7 +445,7 @@ flan.test <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                      # user
     names <- character()
 
     if(np == 1){
-      names(H0) <- if(with.prob) "mutation probability" else "mutations number"
+      names(H0) <- if(with.prob) "mutation probability" else "mutation number"
       parameter <- c(fitness,death,plateff)
       names <- c("fitness","death","plateff")
       if(with.prob){
@@ -450,7 +454,7 @@ flan.test <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                      # user
       }
     }
     if(np == 2) {
-      names(H0) <- c(if(with.prob) "mutation probability" else "mutations number", "fitness")
+      names(H0) <- c(if(with.prob) "mutation probability" else "mutation number", "fitness")
       parameter <- c(death,plateff)
       names <- c("death","plateff")
       if(with.prob){
@@ -562,10 +566,10 @@ flan.test <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                      # user
   },alternative,Tstat)
 
     if(nsamples == 1){
-      names(ests) <- c(if(with.prob) "mutation probability" else "mutations number",if(np == 2)"fitness")
+      names(ests) <- c(if(with.prob) "mutation probability" else "mutation number",if(np == 2)"fitness")
     } else {
       if(np == 1) ests <- rbind(ests[1],ests[2])
-      colnames(ests) <- c(if(with.prob) "mutation probability" else "mutations number",if(np == 2)"fitness")
+      colnames(ests) <- c(if(with.prob) "mutation probability" else "mutation number",if(np == 2)"fitness")
     }
     # colnames(ests) <- names(H0)
     names(Tstat) <- names(H0)
