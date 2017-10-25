@@ -274,33 +274,33 @@ NumericVector FLAN_ExponentialClone::computeProbability(int m){
   std::vector<double> P(m+1);
 
   if(mPlateff < 1){
-    
+
     MATH_Params params;
     params.rho=mFitness;
     params.delta=mDeath;
     params.zeta=mPlateff;
     params.k=0.;
     mIntegrator->setFunction("CLONE_P0_WD_WPEF",&params);
-    
+
     //integrate the function in [0,1]
     double I;
     I=mIntegrator->computeIntegral(0.,1.);
 
     P[0]=I*mFitness;
-    
+
     if(m > 0){
-      
+
 //       mIntegrator->setFunctionName("CLONE_P1_WD_WPEF");
-//       
+//
 //       I=mIntegrator->computeIntegral(0.,1.);
-      
+
 //       P[1]=mFitness*I;
-      
+
       std::vector<double>::iterator it=P.begin()+1;
 //       double pkm1=P[1];
 //       int m1=m;
 //       if (m1>=m_max) m1=m_max;
-      
+
       for (int k=1;k<=m;k++,++it) {
 	params.k=k;
 	mIntegrator->setFunction("CLONE_PK_WD_WPEF",&params);
@@ -375,41 +375,41 @@ List FLAN_ExponentialClone::computeProbability1DerivativeRho(int m){
 //   double pk;
 
   if(mPlateff < 1){
-        
+
         MATH_Params params;
     params.rho=mFitness;
     params.delta=mDeath;
     params.zeta=mPlateff;
     params.k=0.;
     mIntegrator->setFunction("CLONE_P0_WD_WPEF",&params);
-    
+
     //integrate the function in [0,1]
     double I,Idr;
     I=mIntegrator->computeIntegral(0.,1.);
     mIntegrator->setFunctionName("CLONE_dP0_dr_WD_WPEF");
     Idr=mIntegrator->computeIntegral(0.,1.);
-    
-    
+
+
     dP_dr[0]=I+mFitness*Idr;
     P[0]=I*mFitness;
-    
-    
+
+
     if(m > 0){
-      
+
       std::vector<double>::iterator it=P.begin()+1;
       std::vector<double>::iterator itdP=dP_dr.begin()+1;
 //       double pkm1=P[1];
 //       int m1=m;
 //       if (m1>=m_max) m1=m_max;
-      
+
       for (int k=1;k<=m;k++,++it,++itdP) {
 	params.k=k;
 	mIntegrator->setFunction("CLONE_PK_WD_WPEF",&params);
 	I=mIntegrator->computeIntegral(0.,1.);
-	
+
 	mIntegrator->setFunctionName("CLONE_dPK_dr_WD_WPEF");
 	Idr=mIntegrator->computeIntegral(0.,1.);
-	
+
 	*itdP=I+mFitness*Idr;
 	*it=mFitness*I;
       }

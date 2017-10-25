@@ -47,12 +47,12 @@ public:
     } else if(mName.compare("gamma") == 0) {
       mParams.resize(2);
       mParams[0]=dist["shape"];mParams[1]=dist["scale"];
-    } else if(mName.compare("exp") == 0) {
-      mParams.resize(1);
-      mParams[0]=dist["rate"];
-    } else if(mName.compare("dirac") == 0) {
-      mParams.resize(1);
-      mParams[0]=dist["location"];
+    // } else if(mName.compare("exp") == 0) {
+    //   mParams.resize(1);
+    //   mParams[0]=dist["rate"];
+    // } else if(mName.compare("dirac") == 0) {
+    //   mParams.resize(1);
+    //   mParams[0]=dist["location"];
     }
   };
 
@@ -248,7 +248,7 @@ public:
 class FLAN_ExponentialClone : public FLAN_Clone {
 
   protected:
-    
+
     double mPlateff;
 
   private:
@@ -285,7 +285,7 @@ class FLAN_ExponentialClone : public FLAN_Clone {
       init();
 
     };
-    
+
     FLAN_ExponentialClone(double rho,double death, double plateff):FLAN_Clone(rho,death) {
       mPlateff=plateff;
       init();

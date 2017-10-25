@@ -10,13 +10,13 @@
 
 \usage{
 
-  flan.test(mc,fn=NULL,mfn=NULL,cvfn=NULL,
-               fitness=NULL,death=0.,plateff=1.,
-               model=c("LD","H"),
-               mutations0=1.,mutprob0=NULL,fitness0=1.,
-               conf.level=0.95,
-               alternative=c("two.sided","less","greater"),
-               method=c("ML","GF","P0"),winsor=1024
+  flan.test(mc, fn = NULL, mfn = NULL, cvfn = NULL,
+               fitness = NULL, death = 0., plateff = 1.,
+               model = c("LD", "H"),
+               mutations0 = 1., mutprob0 = NULL, fitness0 = 1.,
+               conf.level = 0.95,
+               alternative = c("two.sided", "less", "greater"),
+               method = c("ML", "GF", "P0"), winsor = 1024
                )
 }
 
@@ -51,7 +51,7 @@ be used to estimate the mean mutation number \code{mutations} }
 }
 
 \value{
-  Returns a list with class \code{"flantest"}. The structure of a \code{"flantest"} object, is similar to that of a \code{"htest"} object (see also  \code{\link{t.test}}).
+  Returns a list with class \code{"flantest"}. The structure of a \code{"flantest"} object, is similar to that of a \code{"htest"} object (see also \code{\link{t.test}}).
   The class \code{"flantest"} contains the following components :
     \item{Tstat}{ the value of the computed statistic(s). }
     \item{parameter}{ the values of \code{fitness} (if not tested), \code{death} and \code{plateff}. }
@@ -74,51 +74,51 @@ be used to estimate the mean mutation number \code{mutations} }
 # one sample test, without final numbers
 b <- unlist(boeal)
 # is the mean mutation number greater than 0.7, and the fitness greater than 0.8?
-flan.test(b,alternative="greater",mutations0=0.7,fitness0=0.8)
+flan.test(b, alternative = "greater", mutations0 = 0.7, fitness0 = 0.8)
 # is the mean mutation number less than 0.8, given the fitness?
-flan.test(b,alternative="less",mutations0=0.8,fitness=0.84)
+flan.test(b, alternative = "less", mutations0 = 0.8, fitness = 0.84)
 
 # one sample test, with final numbers
 d <- david[[11]]
-flan.test(d$mc,d$fn,alternative="less",mutprob0=2e-10,fitness0=2)
+flan.test(d$mc, d$fn, alternative = "less", mutprob0 = 2e-10, fitness0 = 2)
 
 # two-sample test: test equality of parameters
 b1 <- unlist(boeal[1:10])
 b2 <- unlist(boeal[11:20])
-flan.test(list(b1,b2))
+flan.test(list(b1, b2))
 
 # realistic random sample of size 100: mutation probability 1e-9,
 # mean final number 1e9, coefficient of variation on final numbers 0.3,
 # fitness 0.9, lognormal lifetimes, 5% mutant deaths
 \donttest{
-x <- rflan(100,mutprob=1e-9,mfn=1e9,cvfn=0.3,fitness=0.9,death=0.05)
+x <- rflan(100, mutprob = 1e-9, mfn = 1e9, cvfn = 0.3, fitness = 0.9, death = 0.05)
 
 # test on mutations and fitness, without final numbers
-flan.test(x$mc,mutations0=1,fitness0=0.9)
+flan.test(x$mc, mutations0 = 1, fitness0 = 0.9)
 
 # test on mutprob and fitness, with final numbers
-flan.test(x$mc,x$fn,mutprob0=1e-9,fitness0=0.9)
+flan.test(x$mc, x$fn, mutprob0 = 1e-9, fitness0 = 0.9)
 
 # given fitness
 
-flan.test(x$mc,x$fn,fitness=0.9,mutprob0=1e-9)
+flan.test(x$mc, x$fn, fitness = 0.9, mutprob0 = 1e-9)
 
 # take deaths into account
-flan.test(x$mc,x$fn,mutprob0=1e-9,fitness0=0.9,death=0.05)
+flan.test(x$mc, x$fn, mutprob0 = 1e-9, fitness0 = 0.9, death = 0.05)
 
 # change method
-flan.test(x$mc,x$fn,mutprob0=1e-9,fitness0=0.9,death=0.05,method="GF")
+flan.test(x$mc, x$fn, mutprob0 = 1e-9, fitness0 = 0.9, death = 0.05, method = "GF")
 
-flan.test(x$mc,x$fn,mutprob0=1e-9,fitness0=0.9,death=0.05,method="P0")
+flan.test(x$mc, x$fn, mutprob0 = 1e-9, fitness0 = 0.9, death = 0.05, method = "P0")
 # change model
-flan.test(x$mc,x$fn,mutprob0=1e-9,fitness0=0.9,model="H")
+flan.test(x$mc, x$fn, mutprob0 = 1e-9, fitness0 = 0.9, model = "H")
 
 # Two-sample test
-y <- rflan(100,mutprob=1e-9,mfn=1e9,cvfn=0.3,fitness=1.2,death=0.05)
-MC <- list(x$mc,y$mc)
-FN <- list(x$fn,y$fn)
+y <- rflan(100, mutprob = 1e-9, mfn = 1e9, cvfn = 0.3, fitness = 1.2, death = 0.05)
+MC <- list(x$mc, y$mc)
+FN <- list(x$fn, y$fn)
 #
-flan.test(mc=MC,fn=FN,fitness=c(0.9,1.1),death=0.05)
+flan.test(mc = MC, fn = FN, fitness = c(0.9, 1.1), death = 0.05)
 
 }
 }

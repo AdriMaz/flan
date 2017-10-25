@@ -43,18 +43,25 @@ using namespace Rcpp;
 
 List FLAN_Sim::computeSamplesMutantsFinalsNumber(int n)  {
 
-   
+
   RNGScope rngScope;
-  
+
   NumericVector mutantCount(n);
 
   if (mCvfn>0) {
-      double sdLog2=log(1.+mCvfn*mCvfn);
-      double sdLog=sqrt(sdLog2);
-      double meanLog=log(mMfn)-sdLog2/2;
-      
-      NumericVector finalCount=rlnorm(n,meanLog,sdLog);
+    NumericVector finalCount(n);
+      if(mDistfn.compare("lnorm") == 0){
+        double sdLog2=log(1.+mCvfn*mCvfn);
+        double sdLog=sqrt(sdLog2);
+        double meanLog=log(mMfn)-sdLog2/2;
 
+        finalCount=rlnorm(n,meanLog,sdLog);
+      } else if(mDistfn.compare("gamma") == 0){
+        double shape=1./(mCvfn*mCvfn);
+        double scale=mMfn/shape;
+
+        finalCount=rgamma(n,shape,scale);
+      }
       mutantCount=computeSampleMutantsNumber(n,finalCount);
       return List::create(_["mc"]=mutantCount,
 			  _["fn"]=finalCount);
@@ -65,7 +72,7 @@ List FLAN_Sim::computeSamplesMutantsFinalsNumber(int n)  {
       return List::create(_["mc"]=mutantCount,
 			  _["fn"]=R_NilValue);
   }
- 
+
 }
 
 
@@ -80,7 +87,7 @@ List FLAN_Sim::computeSamplesMutantsFinalsNumber(int n)  {
 
 
 NumericVector FLAN_Sim::computeSampleMutantsNumber(int n)  {
-  
+
     double s,sj;
     // set the size of the mutants
     NumericVector mutantCount=rpois(n,mMut);
@@ -113,7 +120,7 @@ NumericVector FLAN_Sim::computeSampleMutantsNumber(int n)  {
         } else
             *it=0;
     }
-    
+
     return mutantCount;
 }
 
@@ -149,7 +156,7 @@ NumericVector FLAN_Sim::computeSampleMutantsNumber(int n,
       lambda=mMut*(*itfn);
 
       mc=(int)(rpois(1,lambda)[0]);
-      
+
       if (mc>0) {
             //Poisson sum of Yule variables
             NumericVector sample=mClone->computeSample(mc);
@@ -172,7 +179,7 @@ NumericVector FLAN_Sim::computeSampleMutantsNumber(int n,
         } else
             *itmc=0;
     }
-    
+
     return NumericVector(mutantCount.begin(),mutantCount.end());
 
 }

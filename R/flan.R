@@ -1,4 +1,4 @@
-    ## --------------------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------------------------------------------------------
     ############################################## Estimations and tests functions ##############################################
     ## --------------------------------------------------------------------------------------------------------------------------
 
@@ -18,15 +18,15 @@
     #   - plating efficiency
     #   - fitness (if given)
     #   - death probability
-    #   - lifetimes distribution model : exponentialy distributed lifetime ("LD") or constant lifetime "H"
+    #   - lifetimes distribution model: exponentialy distributed lifetime ("LD") or constant lifetime "H"
     #   - sample of mutants counts
     #   - sample of finals counts (or a mean and coefficient of variation for finals counts)
-    # Three possible methods :
+    # Three possible methods:
     #   - p0-method ("P0")   (winsorize the mc sample if rho is estimated with the parameter winsor)
     #   - Generating function method ("GF")
     #   - Maximum of Likelihood method ("ML")  (winsorize the mc sample with the parameter winsor)
     #
-    # Returns :
+    # Returns:
     #   - Estimate of alpha (or pi) and rho if non given
     #   - Standard deviation of alpha, (or pi) and rho if non given
 
@@ -132,7 +132,7 @@ mutestim <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                 # user's dat
       warning("'plateff' can not be taking into account for ML method when 'model' is 'H': 'plateff' is set to 1.")
       plateff <- 1
     }
-    if(is.null(fitness)){   # If fitness is empty : compiute estimates of mean number of mutations (mutation probaility), fitness
+    if(is.null(fitness)){   # If fitness is empty: compiute estimates of mean number of mutations (mutation probaility), fitness
 
       # Maximum of Likelihood estimators
       if(method == "ML"){
@@ -150,7 +150,7 @@ mutestim <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                 # user's dat
 	if(!output$succeeds) warning(paste("Impossible to estimate 'fitness' with 'GF'-method: 'fitness' is set to default value 1 and only",if(!is.null(mfn)){"mutation probability"}else{"mutation number"},"is estimated.",sep=" "))
 	output$succeeds <- NULL
       }
-    } else {    # Else : compute estimate(s) of mean number of mutations, or mutation probability
+    } else {    # Else: compute estimate(s) of mean number of mutations, or mutation probability
 
       # Maximum of Likelihood estimator of mutations or mutprob
       if(method == "ML"){
@@ -174,7 +174,7 @@ mutestim <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                 # user's dat
 
     # One-sample or two-sample tests for mean number of mutations, fitness and mutation probability using mutestim estimates
     # The possible assumptions are the same as for the mutestim function.
-    # Arguments :
+    # Arguments:
     # Returns a "flantest" object, which contains:
     # Tstat:  the value of the computed statistic.
     # parameter:  the values of the parameter of the model: fitness(if not tested), death, mfn (if needed) and cvfn
@@ -197,373 +197,529 @@ flan.test <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                      # user
                method=c("ML","GF","P0"),winsor=1024)          # estimation method
                {
 
-  with.prob <- FALSE               # Boolean: if TRUE (if fn, mfn, or cvfn are given), mutprob is tested instead of mutations
+   with.prob <- FALSE               # Boolean: if TRUE (if fn, mfn, or cvfn are given), mutprob is tested instead of mutations
 
-  if(missing(method)) method <- "ML"
-  if(missing(model)) model <- "LD"
-
-
-  method <- match.arg(method)
-  model <- match.arg(model)
+   if(missing(method)) method <- "ML"
+   if(missing(model)) model <- "LD"
 
 
-  if(is.null(mc)){
-    stop("'mc' is empty...")
-  } else {
+   method <- match.arg(method)
+   model <- match.arg(model)
+
+
+   if(is.null(mc)){
+     stop("'mc' is empty...")
+   } else {
     if(is.list(mc)){
-      if(length(mc) == 1){
-	nsamples <- 1
-	dname <- list(deparse(substitute(mc)))
-	if(is.null(mc[[1]])) stop("'mc[[1]]' is empty...")
-	if(is.list(fn)){
-	  if(length(fn) != nsamples) stop("'mc' and 'fn' must have the same length.")
-	  if(!is.null(fn[[1]])){
-	    dname <- c(dname,deparse(substitute(fn)))
-	    with.prob <- TRUE
-      if(!is.null(mfn) | !is.null(cvfn)) warning("'fn' is non-empty: 'mfn' and 'cvfn' will be ignored.")
-	    mfn <- mean(fn)
-	    cvfn <- sd(fn)/mfn
-	  }
-	} else {
-	  if(!is.null(fn)) stop("'fn' must have the same type as 'mc'.")
-	  fn <- list(fn)
-	}
+    if(length(mc) == 1){
+      nsamples <- 1
+      dname <- list(deparse(substitute(mc)))
+      if(is.null(mc[[1]])) stop("'mc[[1]]' is empty...")
+      if(is.list(fn)){
+        if(length(fn) != nsamples) stop("'mc' and 'fn' must have the same length.")
+        if(!is.null(fn[[1]])){
+          dname <- c(dname,deparse(substitute(fn)))
+          with.prob <- TRUE
+        }
+      } else {
+          if(!is.null(fn)) stop("'fn' must have the same type as 'mc'.")
+          fn <- list(fn)
+        }
       }
       if(length(mc) == 2){
-	nsamples <- 2
-	dname <- list(c(paste(deparse(substitute(mc)),"1",sep=""),paste(deparse(substitute(mc)),"2",sep="")))
-	if(is.null(mc[[1]])) stop("'mc[[1]]' is empty...")
-	if(is.null(mc[[2]])) stop("'mc[[2]]' is empty...")
+        nsamples <- 2
+        dname <- list(c(paste(deparse(substitute(mc)),"1",sep=""),paste(deparse(substitute(mc)),"2",sep="")))
+        if(is.null(mc[[1]])) stop("'mc[[1]]' is empty...")
+        if(is.null(mc[[2]])) stop("'mc[[2]]' is empty...")
 
-	if(is.list(fn)){
-	  if(length(fn) != nsamples) stop("'fn' must have the same length as 'mc'.")
+        if(is.list(fn)){
+          if(length(fn) != nsamples) stop("'fn' must have the same length as 'mc'.")
 
-	  if(!is.null(fn[[1]])) {
-	    if(length(fn[[1]]) != length(mc[[1]])) stop("'fn[[1]]' must have the same length as 'mc[[1]]'.")
-      if(!is.null(mfn[1]) | !is.null(cvfn[1])) warning("'fn[[1]]' is non-empty: 'mfn[1]' and 'cvfn[1]' will be ignored.")
-
-      if(is.null(fn[[2]])){
-	      warning("'fn[[2]]' is empty : empirical informations of 'fn[[1]]' are considered for sample 2.")
-        mfn <- rep(mean(fn[[1]]), 2)
-        cvfn <- sd(fn[[1]])/mfn
-	      # fn <- list(NULL,NULL)
-	    } else {
-	      if(length(fn[[2]]) != length(mc[[2]])) stop("'fn[[2]]' must have the same length as 'mc[[2]]'.")
-        if(!is.null(mfn[2]) | !is.null(cvfn[2])) warning("'fn[[2]]' is non-empty: 'mfn[2]' and 'cvfn[2]' will be ignored.")
-
-        dname <- c(dname,list(c(paste(deparse(substitute(fn)),"1",sep=""),paste(deparse(substitute(fn)),"2",sep=""))))
-	      with.prob <- TRUE
-	      mfn <- unlist(lapply(fn,mean))
-	      cvfn <- unlist(lapply(fn,sd))/mfn
-
-	    }
-	  } else {
-	    if(!is.null(fn[[2]])) {
-        warning("'fn[[1]]' is empty : empirical informations of 'fn[[2]]' are considered for sample 1.")
-
-        if(!is.null(mfn[2]) | !is.null(cvfn[2])) warning("'fn[[2]]' is non-empty: 'mfn[2]' and 'cvfn[2]' will be ignored.")
-        mfn <- rep(mean(fn[[2]]), 2)
-        cvfn <- sd(fn[[2]])/mfn
-	    }
-	  }
-	} else {
-	  if(!is.null(fn)) stop("'fn' must have the same type as 'mc'.")
-	  fn <- list(fn,fn)
-	}
-      }
-    } else {
+          if(!is.null(fn[[1]])) {
+            with.prob <- TRUE
+            if(length(fn[[1]]) != length(mc[[1]])) stop("'fn[[1]]' must have the same length as 'mc[[1]]'.")
+            # if(!is.null(mfn[1]) | !is.null(cvfn[1])) {
+            #   if(abs(mean(fn[[1]])-mfn[1]) > 1e-6 & abs(sd(fn[[1]])/mean(fn[[1]])-cvfn[1]) > 1e-6) {
+            #     warning("'fn[[1]]' is non-empty: 'mfn[1]' and 'cvfn[1]' will be ignored.")
+            #     mfn[1] <- mean(fn[[1]])
+            #     cvfn[1] <- sd(fn[[1]])/mfn[1]
+            #   }
+            # }
+          #   if(is.null(fn[[2]])){
+          #     if(is.null(mfn[2]) & is.null(cvfn[2])){
+          #       warning("'fn[[2]]' is empty: empirical informations of 'fn[[1]]' are considered for sample 2.")
+          #       if(is.null(mfn[2])) mfn <- list(rep(mean(fn[[1]]), 2))
+          #       if(is.null(cvfn[2])) cvfn <- list(rep(sd(fn[[1]])/mfn[[1]]))
+          #     }
+          #   # fn <- list(NULL,NULL)
+          # }
+           if(!is.null(fn[[2]])) {
+              if(length(fn[[2]]) != length(mc[[2]])) stop("'fn[[2]]' must have the same length as 'mc[[2]]'.")
+              # if(!is.null(mfn[2]) | !is.null(cvfn[2])) {
+              #   if(abs(mean(fn[[2]])-mfn[2]) > 1e-6 & abs(sd(fn[[2]])/mean(fn[[2]])-cvfn[2]) > 1e-6) {
+              #     warning("'fn[[2]]' is non-empty: 'mfn[2]' and 'cvfn[2]' will be ignored.")
+              #     mfn[2] <- mean(fn[[2]])
+              #     cvfn[2] <- sd(fn[[2]])/mfn[2]
+              #   }
+              # }
+              dname <- c(dname,list(c(paste(deparse(substitute(fn)),"1",sep=""),paste(deparse(substitute(fn)),"2",sep=""))))
+              with.prob <- TRUE
+              # mfn <- unlist(lapply(fn,mean))
+              # cvfn <- unlist(lapply(fn,sd))/mfn
+            }
+          # } else {
+          #   # if(!is.null(fn[[2]])) {
+          #   #   if(is.null(mfn[1]) & is.null(cvfn[1])) {
+          #   #     if(is.null(mfn[1])) mfn <- rep(mean(fn[[2]]), 2)
+          #   #     if(is.null(cvfn[1])) cvfn <- sd(fn[[2]])/mfn
+          #   #     warning("'fn[[1]]' is empty: empirical informations of 'fn[[2]]' are considered for sample 1.")
+          #   #   }
+          #   #   # if(!is.null(mfn[2]) | !is.null(cvfn[2])) {
+          #   #   #   if(abs(mean(fn[[2]])-mfn[2]) > 1e-6 & abs(sd(fn[[2]])/mean(fn[[2]])-cvfn[2]) > 1e-6) {
+          #   #   #       warning("'fn[[2]]' is non-empty: 'mfn[2]' and 'cvfn[2]' will be ignored.")
+          #   #   #       mfn[2] <- mean(fn[[2]])
+          #   #   #       cvfn[2] <- sd(fn[[2]])/mfn[2]
+          #   #   #   }
+          #   #   # }
+          #   # }
+          } else {
+            if(!is.null(fn[[2]])) with.prob <- TRUE
+          }
+        } else {
+          if(!is.null(fn)) stop("'fn' must have the same type as 'mc'.")
+          fn <- list(fn,fn)
+        }
+        }
+      } else {
       nsamples <- 1
       dname <- list(deparse(substitute(mc)))
       if(!is.null(fn)){
-	if(is.list(fn)) stop("'fn' must have the same type as 'mc'.")
-	if(length(fn) != length(mc)) stop("'fn' must have the same length as 'mc'.")
-	dname <- c(dname,deparse(substitute(fn)))
-	with.prob <- TRUE
-	mfn <- mean(fn)
-	cvfn <- sd(fn)/mfn
+        if(is.list(fn)) stop("'fn' must have the same type as 'mc'.")
+        if(length(fn) != length(mc)) stop("'fn' must have the same length as 'mc'.")
+        dname <- c(dname,deparse(substitute(fn)))
+        with.prob <- TRUE
+        # if(!is.null(mfn) | !is.null(cvfn)){
+        #   if(abs(mean(fn)-mfn) > 1e-6 & abs(sd(fn)/mean(fn)-cvfn) > 1e-6) {
+        #     warning("'fn' is non-empty: 'mfn' and 'cvfn' will be ignored.")
+        #     mfn <- mean(fn)
+        #     cvfn <- sd(fn)/mfn
+        #   }
+        # }
       }
       mc <- list(mc)
       fn <- list(fn)
     }
-  }
-  if(nsamples == 1){
-    if(!is.null(mfn)){
-      if(length(mfn) > 1) {
-        if(sum(mfn == mfn[1]) == length(mfn)) mfn <- mfn[1]
-        else stop("If you use a 'data.table', 'mfn' can not have different values in a same class.")
+    if(nsamples == 1){
+      if(!is.null(mfn)){
+        if(!is.null(fn[[1]])){
+          warning("'fn' is non-empty: 'mfn' is ignored.")
+          mfn <- mean(fn[[1]])
+        } else {
+          if(length(mfn) > 1) {
+            if(is.list(mfn)) mfn <- unlist(mfn)
+            if(sum(mfn == mfn[1]) == length(mfn)) mfn <- mfn[1]
+            else stop("If you use a 'data.table', 'mfn' can not have different values in a same class.")
+          }
+          if(mfn < 0) stop("'mfn' must be empty or a positive number.")
+          with.prob <- TRUE
+        }
+        if(is.null(cvfn)) {
+          warning("'cvfn' is empty but 'mfn' is not: 'cvfn' is set to 0.")
+          cvfn <- if(!is.null(fn[[1]])) sd(fn[[1]])/mfn else 0
+        }
+      } else {
+        if(!is.null(fn[[1]])) mfn <- mean(fn[[1]])
       }
-      if(mfn < 0) stop("'mfn' must be empty or a positive number.")
-      if(is.null(cvfn)) cvfn <- 0
-      with.prob <- TRUE
-    }
-    if(!is.null(cvfn)){
-      if(length(cvfn) > 1) {
-        if(sum(cvfn == cvfn[1]) == length(cvfn)) cvfn <- cvfn[1]
-        else stop("If you use a 'data.table', 'cvfn' can not have different values in a same class.")
-      }
-      if(cvfn < 0) stop("'cvfn' must be empty or a positive number.")
-      if(is.null(mfn)) mfn <- 1e9
-      with.prob <- TRUE
-    }
-    if(!is.null(fitness)){
-      if(length(fitness) > 1){
-        if(sum(fitness == fitness[1]) == length(fitness)) fitness <- fitness[1]
-        else stop("If you use a 'data.table', 'fitness' can not have different values in a same class.")
-      }
-      if(fitness < 0) stop("'fitness' must be empty or a positive number.")
-      fitness0 <- NULL
-    }
-    if(with.prob & missing(mutprob0)) mutprob0 <- 1/mfn
+      if(!is.null(cvfn)){
+        if(!is.null(fn[[1]])){
+          warning("'fn' is non-empty: 'cvfn' is ignored.")
+          cvfn <- sd(fn[[1]])/mfn
+        } else {
+          if(length(cvfn) > 1) {
+            if(is.list(cvfn)) cvfn <- unlist(cvfn)
+            if(sum(cvfn == cvfn[1]) == length(cvfn)) cvfn <- cvfn[1]
+            else stop("If you use a 'data.table', 'cvfn' can not have different values in a same class.")
+            }
+            if(cvfn < 0) stop("'cvfn' must be empty or a positive number.")
+            if(is.null(mfn)) mfn <- if(!is.null(fn[[1]])) mean(fn[[1]]) else 1e9
+            with.prob <- TRUE
+          }
+        } else {
+          if(!is.null(fn[[1]])) cvfn <- sd(fn[[1]])/mfn
+        }
+        if(!is.null(fitness)){
+          if(is.list(fitness)) fitness <- unlist(fitness)
+          if(length(fitness) > 1){
+            if(sum(fitness == fitness[1]) == length(fitness)) fitness <- fitness[1]
+            else stop("If you use a 'data.table', 'fitness' can not have different values in a same class.")
+          }
+          if(fitness < 0) stop("'fitness' must be empty or a positive number.")
+          fitness0 <- NULL
+        }
+        if(with.prob & missing(mutprob0)) mutprob0 <- 1/mfn
 
-    if(length(death) > 1){
-      if(sum(death == death[1]) == length(death)) death <- death[1]
-      else stop("If you use a 'data.table', 'death' can not have different values in a same class.")
-    }
-    if(death >= 0.5) stop("'death' must be a positive and < 0.5 number.")
+        if(is.list(death)) death <- unlist(death)
+        if(length(death) > 1){
+          if(sum(death == death[1]) == length(death)) death <- death[1]
+          else stop("If you use a 'data.table', 'death' can not have different values in a same class.")
+        }
+        if(death >= 0.5) stop("'death' must be a positive and < 0.5 number.")
 
-    if(length(plateff) > 1){
-      if(sum(plateff == plateff[1]) == length(plateff)) plateff <- plateff[1]
-      else stop("If you use a 'data.table', 'plateff' can not have different values in a same class.")
-    }
-    if(plateff > 1) stop("'plateff' must be a positive and <= 1 number.")
-    if(plateff <= 1 & method == "P0"){
-      warning("'plateff' can not be taking into account for P0 method: 'plateff' is set to 1.")
-      plateff <- 1
-    }
-    if(model == "H" & plateff <= 1 & method == "ML"){
-      warning("'plateff' can not be taking into account for ML method when 'model' is 'H': 'plateff' is set to 1.")
-      plateff <- 1
-    }
-  } else {
-
-    if(!is.null(mfn)){
-      if(sum(mfn < 0) != 0 | length(mfn) > 2) stop("if given, 'mfn' must be a vector with size <= 2 of positive numbers.")
-      if(is.null(cvfn)) cvfn <- rep(0,length(mfn))
-      with.prob <- TRUE
-    }
-
-    if(!is.null(cvfn)){
-      if(sum(cvfn < 0) != 0 | length(cvfn) > 2) stop("if given, 'cvfn' must be a vector with size <= 2 of positive numbers.")
-      if(is.null(mfn)) mfn <- rep(1e9,length(cvfn))
-      with.prob <- TRUE
-    }
-    if(!is.null(fitness)){
-      if(sum(fitness < 0) != 0 | length(fitness) > 2) stop("if given, 'fitness' must be a vector with size <= 2 of positive numbers.")
-      fitness0 <- NULL
+        if(is.list(plateff)) plateff <- unlist(plateff)
+        if(length(plateff) > 1){
+          if(sum(plateff == plateff[1]) == length(plateff)) plateff <- plateff[1]
+          else stop("If you use a 'data.table', 'plateff' can not have different values in a same class.")
+        }
+        if(plateff > 1) stop("'plateff' must be a positive and <= 1 number.")
+        if(plateff < 1 & method == "P0"){
+          warning("'plateff' can not be taking into account for P0 method: 'plateff' is set to 1.")
+          plateff <- 1
+        }
+        if(model == "H" & plateff < 1 & method == "ML"){
+          warning("'plateff' can not be taking into account for ML method when 'model' is 'H': 'plateff' is set to 1.")
+          plateff <- 1
+          }
     } else {
-      if(missing(fitness0)) fitness0 <- 0
+      if(!is.null(mfn)){
+        if(!is.list(mfn)){
+          if(sum(mfn < 0) != 0 | length(mfn) > 2) stop("if given, 'mfn' must be a vector or a list with size <= 2 of positive numbers.")
+          if(length(mfn == 1)) mfn <- c(mfn,mfn)
+          mfn <- list(mfn[1], mfn[2])
+        }
+        if(sum(unlist(mfn) < 0) != 0 | length(mfn) > 2) stop("if given, 'mfn' must be a vector or a list with size <= 2 of positive numbers.")
+        if(!is.null(mfn[[1]]) & !is.null(fn[[1]])){
+          warning("'fn[[1]]' is non-empty: 'mfn[[1]]' is ignored.")
+          mfn[[1]] <- mean(fn[[1]])
+          # cvfn[[1]] <- sd(fn[[1]])/mfn[[1]]
+        }
+        if(!is.null(mfn[[2]]) & !is.null(fn[[2]])){
+          warning("'fn[[2]]' is non-empty: 'mfn[[2]]' is ignored.")
+          mfn[[2]] <- mean(fn[[2]])
+          # cvfn[[2]] <- sd(fn[[2]])/mfn[[2]]
+        }
+        if(is.null(mfn[[1]])) {
+          if(is.null(fn[[1]])){
+            if(!is.null(fn[[2]])){
+              warning("'fn[[1]]' is empty: 'mfn[[1]]' is set as mean of 'fn[[2]]'.")
+              mfn[[1]] <- mean(fn[[2]])
+            }
+          } else {
+            mfn[[1]] <- mean(fn[[1]])
+          }
+        } else {
+          if(is.null(cvfn[[1]])) {
+            warning("'cvfn[[1]]' is empty but 'mfn[[1]]' is not: 'cvfn[[1]]' is set to 0.")
+            cvfn[[1]] <- 0
+          }
+        }
+        if(is.null(mfn[[2]])) {
+          if(is.null(fn[[2]])){
+            if(!is.null(fn[[1]])){
+              warning("'fn[[2]]' is empty: 'mfn[[2]]' is set as mean of 'fn[[1]]'.")
+              mfn[[2]] <- mean(fn[[1]])
+            }
+          } else {
+            mfn[[2]] <- mean(fn[[2]])
+          }
+        } else {
+          if(is.null(cvfn[[2]])) {
+            warning("'cvfn[[2]]' is empty but 'mfn[[2]]' is not: 'cvfn[[2]]' is set to 0.")
+            cvfn[[2]] <- 0
+          }
+        }
+        with.prob <- TRUE
+      } else {
+        if(!is.null(fn[[1]])) mfn <- mean(fn[[1]])
+        if(!is.null(fn[[2]])) mfn <- c(mfn,mean(fn[[2]]))
+      }
+
+      if(!is.null(cvfn)){
+        if(!is.list(cvfn)){
+          if(sum(cvfn < 0) != 0 | length(cvfn) > 2) stop("if given, 'cvfn' must be a vector or a list with size <= 2 of positive numbers.")
+          if(length(cvfn) == 1) cvfn <- c(cvfn,cvfn)
+          cvfn <- list(cvfn[1], cvfn[2])
+        }
+        if(sum(unlist(cvfn) < 0) != 0 | length(cvfn) > 2) stop("if given, 'cvfn' must be a vector or a list with size <= 2 of positive numbers.")
+        if(!is.null(cvfn[[1]]) & !is.null(fn[[1]])){
+          warning("'fn[[1]]' is non-empty: 'cvfn[[1]]' is ignored.")
+          cvfn[[1]] <- sd(fn[[1]])/mean(fn[[1]])
+        }
+        if(!is.null(cvfn[[2]]) & !is.null(fn[[2]])){
+          warning("'fn[[2]]' is non-empty: 'cvfn[[2]]' is ignored.")
+          cvfn[[2]] <- sd(fn[[2]])/mean(fn[[2]])
+        }
+        if(is.null(cvfn[[1]])) {
+          if(is.null(fn[[1]])){
+            if(!is.null(fn[[2]])){
+              warning("'fn[[1]]' is empty: 'cvfn[[1]]' is set as coef. of variation of 'fn[[2]]'.")
+              cvfn[[1]] <- sd(fn[[2]])/mean(fn[[2]])
+            }
+          } else {
+            cvfn[[1]] <- sd(fn[[1]])/mean(fn[[1]])
+          }
+        }
+        if(is.null(cvfn[[2]])) {
+          if(is.null(fn[[2]])){
+            if(!is.null(fn[[1]])){
+              warning("'fn[[2]]' is empty: 'cvfn[[2]]' is set as coef. of variation of 'fn[[1]]'.")
+              cvfn[[2]] <- sd(fn[[1]])/mean(fn[[1]])
+            }
+          } else {
+            cvfn[[2]] <- sd(fn[[2]])/mean(fn[[2]])
+          }
+        }
+        with.prob <- TRUE
+      } else {
+        if(!is.null(fn[[1]])) cvfn <- sd(fn[[1]])/mean(fn[[1]])
+        if(!is.null(fn[[2]])) cvfn <- c(cvfn,sd(fn[[2]])/mean(fn[[2]]))
+      }
+
+      if(!is.null(fn[[1]])){
+        if(is.null(fn[[2]])){
+          if(is.null(mfn[2])) {
+            warning("'fn[[2]]' is empty: 'mfn[[2]]' is set as mean of 'fn[[1]]'.")
+            # mfn <- list(NULL, mean(fn[[1]]))
+            mfn <- rep(mean(fn[[1]]),2)
+          }
+          if(is.null(cvfn[2])) {
+            warning("'fn[[2]]' is empty: 'cvfn[[2]]' is set as coef. of variation of 'fn[[1]]'.")
+            # cvfn <- list(NULL, sd(fn[[1]])/mfn[[2]])
+            cvfn <- rep(sd(fn[[1]])/mean(fn[[1]]),2)
+          }
+        }
+      } else {
+        if(!is.null(fn[[2]])){
+          if(is.null(mfn[[1]])){
+            warning("'fn[[1]]' is empty: 'mfn[[1]]' is set as mean of 'fn[[2]]'.")
+            # mfn <- list(mean(fn[[2]]),NULL)
+            mfn <- rep(mean(fn[[2]]),2)
+          }
+          if(is.null(cvfn[1])) {
+            warning("'fn[[1]]' is empty: 'cvfn[[1]]' is set as coef. of variation of 'fn[[2]]'.")
+            # cvfn <- list(sd(fn[[2]])/mfn[[1]],NULL)
+            cvfn <- rep(sd(fn[[2]])/mean(fn[[2]]),2)
+          }
+        }
+      }
+
+      if(!is.null(fitness)){
+        if(sum(fitness < 0) != 0 | length(fitness) > 2) stop("if given, 'fitness' must be a vector with size <= 2 of positive numbers.")
+        fitness0 <- NULL
+      } else {
+        if(missing(fitness0)) fitness0 <- 0
+      }
+      if(missing(mutations0)) mutations0 <- 0
+      if(with.prob & missing(mutprob0)) mutprob0 <- 0
+
+      if(sum(death < 0 | death >= 0.5) != 0 | length(death) > 2) stop("'death' must be a vector with size <= 2 of positive and < 0.5 numbers.")
+      if(sum(plateff > 1) != 0 | length(plateff) > 2) stop("'plateff' must be a vector with size <= 2 of positive and <= 1 numbers.")
+      if(sum(plateff < 1) != 0 & model == "H" & method == "ML"){
+        warning("'plateff' can not be taking into account for ML method when 'model' is 'H': 'plateff' is set to 1.")
+        plateff <- 1
+      }
+      if(sum(plateff < 1) != 0 & method == "P0"){
+        warning("'plateff' can not be taking into account for P0 method: 'plateff' is set to 1.")
+        plateff <- 1
+      }
     }
-    if(missing(mutations0)) mutations0 <- 0
-    if(with.prob & missing(mutprob0)) mutprob0 <- 0
 
-    # if(length(fitness) > 1){
-    #   if(sum(fitness == fitness[1]) == length(fitness)) fitness <- fitness[1]
-    #   else stop("If you use a 'data.table', 'cvfn' can not have different values in a same class.")
-    # }
-
-    if(sum(death < 0 | death >= 0.5) != 0 | length(death) > 2) stop("'death' must be a vector with size <= 2 of positive and < 0.5 numbers.")
-    if(sum(plateff > 1) != 0 | length(plateff) > 2) stop("'plateff' must be a vector with size <= 2 of positive and <= 1 numbers.")
-    if(sum(plateff <= 1) != 0 & model == "H" & method == "ML"){
-      warning("'plateff' can not be taking into account for ML method when 'model' is 'H': 'plateff' is set to 1.")
-      plateff <- 1
+    if(length(mutations0) > 1) {
+      if(sum(mutations0 == mutations0[1]) == length(mutations0)) mutations0 <- mutations0[1]
+      else stop("If you use a 'data.table', 'mutations0' can not have different values in a same class.")
     }
-    if(sum(plateff <= 1) != 0 & method == "P0"){
-      warning("'plateff' can not be taking into account for P0 method: 'plateff' is set to 1.")
-      plateff <- 1
+    if(mutations0 < 0) stop("'mutations0' must be a positive number.")
+
+    if(!is.null(fitness0)){
+      if(length(fitness0) > 1) {
+        if(sum(fitness0 == fitness0[1]) == length(fitness0)) fitness0 <- fitness0[1]
+        else stop("If you use a 'data.table', 'fitness0' can not have different values in a same class.")
+      }
+      if(fitness0 < 0) stop("'fitness0' must be a positive number.")
     }
-  }
 
-  if(length(mutations0) > 1) {
-    if(sum(mutations0 == mutations0[1]) == length(mutations0)) mutations0 <- mutations0[1]
-    else stop("If you use a 'data.table', 'mutations0' can not have different values in a same class.")
-  }
-  if(mutations0 < 0) stop("'mutations0' must be a positive number.")
-
-  if(!is.null(fitness0)){
-    if(length(fitness0) > 1) {
-      if(sum(fitness0 == fitness0[1]) == length(fitness0)) fitness0 <- fitness0[1]
-      else stop("If you use a 'data.table', 'fitness0' can not have different values in a same class.")
-    }
-    if(fitness0 < 0) stop("'fitness0' must be a positive number.")
-  }
-
-  if(!is.null(mutprob0)){
-    if(length(mutprob0) > 1) {
-      if(sum(mutprob0 == mutprob0[1]) == length(mutprob0)) mutprob0 <- mutprob0[1]
-      else stop("If you use a 'data.table', 'mutprob0' can not have different values in a same class.")
-    }
-    if(mutprob0 < 0 | mutprob0 >= 1) stop("if given, 'mutprob0' must be a positive and <= 1 number.")
-    with.prob <- TRUE
-    if(is.null(mfn))  mfn <- 1e9
-    if(is.null(cvfn))  cvfn <- 0
-
-
-
-  } else {
-    if(with.prob){
+    if(!is.null(mutprob0)){
+      if(length(mutprob0) > 1) {
+        if(sum(mutprob0 == mutprob0[1]) == length(mutprob0)) mutprob0 <- mutprob0[1]
+        else stop("If you use a 'data.table', 'mutprob0' can not have different values in a same class.")
+      }
+      if(mutprob0 < 0 | mutprob0 >= 1) stop("if given, 'mutprob0' must be a positive and <= 1 number.")
+      with.prob <- TRUE
       if(is.null(mfn))  mfn <- 1e9
-      if(is.null(cvfn)) cvfn <- 0
-      if(nsamples == 1) mutprob0 <- mutations0/mfn
-      else mutprob0 <- 0
-    }
-  }
-
-
-# }
-  # Default values if two-samples test
-  # if(nsamples == 2){
-  #   if(with.prob) {
-  #     if(missing(mutprob0)) mutprob0 <- 0
-  #   }
-  # }
-
-  if(length(conf.level) > 1) {
-    if(sum(conf.level == conf.level[1]) == length(conf.level)) conf.level <- conf.level[1]
-    else stop("If you use a 'data.table', 'conf.level' can not have different values in a same class.")
-  }
-  if(conf.level > 1 | conf.level < 0) stop("'conf.level' must be a positive and <= 1 numbers.")
-
-  if(length(winsor) > 1) {
-    if(sum(winsor == winsor[1]) == length(winsor)) winsor <- winsor[1]
-    else stop("If you use a 'data.table', 'winsor' can not have different values in a same class.")
-  }
-  if(winsor < 0 | trunc(winsor) != winsor) stop("'winsor' must be a single positive integer.")
-
-
-  H0 <- c(if(with.prob) mutprob0 else mutations0,fitness0)     # Vector of null hypothesises
-
-  np <- length(H0)                         # Number of tested values
-
-  if(missing(alternative)) alternative <- rep("two.sided",np)
-  alternative <- match.arg(alternative,several.ok=TRUE)
-
-
-
-  if(nsamples == 1){
-
-    parameter <- NULL
-    names <- character()
-
-    if(np == 1){
-      names(H0) <- if(with.prob) "mutation probability" else "mutation number"
-      parameter <- c(fitness,death,plateff)
-      names <- c("fitness","death","plateff")
-      if(with.prob){
-        parameter <- c(parameter,mfn,cvfn)
-        names <- c(names,"mfn","cvfn")
-      }
-    }
-    if(np == 2) {
-      names(H0) <- c(if(with.prob) "mutation probability" else "mutation number", "fitness")
-      parameter <- c(death,plateff)
-      names <- c("death","plateff")
-      if(with.prob){
-        parameter <- c(parameter,mfn,cvfn)
-	      names <- c(names,"mfn","cvfn")
-      }
-    }
-    names(parameter) <- names
-  }
-  if(nsamples == 2){
-    if(np == 1 & length(fitness) == 1) fitness <- c(fitness,fitness)
-    if(length(death) == 1) death <- c(death,death)
-    if(length(plateff) == 1) plateff <- c(plateff,plateff)
-    if(length(mfn) == 1) mfn <- c(mfn,mfn)
-    if(length(cvfn) == 1) cvfn <- c(cvfn,cvfn)
-
-    parameter <- NULL
-    names <- character()
-
-
-    if(np == 1){
-      names(H0) <- if(with.prob) "mutprob difference" else "mutations difference"
-      parameter <- cbind(fitness,death,plateff)
-      names <- c("fitness","death","plateff")
-      if(with.prob) {
-        parameter <- cbind(parameter,mfn,cvfn)
-	      names <- c(names,"mfn","cvfn")
-      }
-    }
-    if(np == 2){
-      names(H0) <- c(if(with.prob) "mutprob difference" else "mutations difference","fitness difference")
-      parameter <- cbind(death,plateff)
-      names <- c("death","plateff")
-      if(with.prob){
-	parameter <- cbind(parameter,mfn,cvfn)
-	names <- c(names,"mfn","cvfn")
-      }
-    }
-    colnames(parameter) <- names
-  }
-
-  if(is.null(mfn))  mfn <- list(mfn)
-  if(is.null(cvfn))  cvfn <- list(cvfn)
-  if(is.null(fitness)) fitness <- list(fitness)
-
-   # Estimates mean number of mutations alpha, given fitness parameter rho
-  ests <- mapply(function(x,y,m,c,f,d,z){
-            mutestim(mc=x,fn=y,
-                     mfn=m,cvfn=c,
-                     fitness=f,death=d,plateff=z,
-                     model=model,
-                     method=method,winsor=winsor)
-  },mc,fn,mfn,cvfn,fitness,death,plateff)
-
-
-  if(np == 1){   # If only mutations (or mutprob) is tested
-    if(length(alternative) > 1) alternative <- alternative[1]
-    if(nsamples == 2){    # If Two-sample test
-      Tstat <- unlist(ests[1,])    # Extract the estimate to compute statistic of the test
-      sds <- unlist(ests[2,])      # Standard deviation of the estimate
-      ests <- Tstat                # Keep the estimate
-      Tstat <- -diff(Tstat)      # Statistic of the test is build with difference of estimates
-      sds <- sqrt(sum(sds^2))    # Standard deviation of the difference between estimates
+      if(is.null(cvfn))  cvfn <- 0
     } else {
-      Tstat <- unlist(ests[1,1])    # Extract the estimate to compute statistic of the test
-      sds <- unlist(ests[2,1])      # Standard deviation of the estimate
-      ests <- Tstat                # Keep the estimate
-    }
-  } else if(np == 2){    # If fitness is also tested
-    if(length(alternative) == 1) alternative <- rep(alternative,2)
-    if(length(alternative) > 2) alternative <- alternative[c(1,2)]
-    if(nsamples == 2){               # If Two-sample test
-      Tstat <- rbind(unlist(ests[1,]),unlist(ests[3,]))   # Extract estimates to compute statistic of the test
-      sds <- rbind(unlist(ests[2,]),unlist(ests[4,]))     # Standard deviation of the estimates
-      ests <- t(Tstat)                                      # Keep the estimates
-      Tstat <- -apply(Tstat,1,diff)                     # Statistic of the test is build with difference of estimates
-      sds <- apply(sds,1,function(s){sqrt(sum(s^2))})   # Standard deviation of the difference between estimates
-    } else {
-      Tstat <- c(unlist(ests[1,]),unlist(ests[3,]))   # Extract estimates to compute statistic of the test
-      sds <- c(unlist(ests[2,]),unlist(ests[4,]))     # Standard deviation of the estimates
-      ests <- Tstat                  # Keep the estimates
-    }
-
-  }
-
-  cint <- mapply(function(e,s,alt){
-    if(alt == "less"){                                        # Confidence interval(s) of the test
-      c(-Inf,e+s*qnorm(conf.level))                           # with respect to the confidence level
-    } else if(alt == "greater"){                              # and the alternative
-      c(e-s*qnorm(conf.level),Inf)
-    } else if(alt == "two.sided"){
-      res <- e+s*c(-1,1)*qnorm((1+conf.level)/2)
-      if(nsamples == 1 & res[1] < 0) res[1] <- 0
-      res
-    }
-  },Tstat,sds,alternative)
-  if(nsamples == 1) cint[1,cint[1,] < 0] <-0
-
-  Tstat <- (Tstat-H0)/sds                                      # Statistic(s) of the test
-
-  pval <- mapply(function(alt,tstat){
-      if(alt == "less"){                                        # p-value(s) of the test
-         pnorm(tstat)                                            # with respect to the alternative
-      } else if(alt == "greater"){
-	       pnorm(tstat,lower.tail=FALSE)
-      } else if(alt == "two.sided"){
-	       2*pnorm(-abs(tstat))
+      if(with.prob){
+        if(is.null(mfn))  mfn <- 1e9
+        if(is.null(cvfn)) cvfn <- 0
+        if(nsamples == 1) mutprob0 <- mutations0/mfn
+        else mutprob0 <- 0
       }
-  },alternative,Tstat)
+    }
+
+    if(length(conf.level) > 1) {
+      if(sum(conf.level == conf.level[1]) == length(conf.level)) conf.level <- conf.level[1]
+      else stop("If you use a 'data.table', 'conf.level' can not have different values in a same class.")
+    }
+    if(conf.level > 1 | conf.level < 0) stop("'conf.level' must be a positive and <= 1 numbers.")
+
+    if(length(winsor) > 1) {
+      if(sum(winsor == winsor[1]) == length(winsor)) winsor <- winsor[1]
+      else stop("If you use a 'data.table', 'winsor' can not have different values in a same class.")
+    }
+    if(winsor < 0 | trunc(winsor) != winsor) stop("'winsor' must be a single positive integer.")
+
+
+    H0 <- c(if(with.prob) mutprob0 else mutations0,fitness0)     # Vector of null hypothesises
+
+    np <- length(H0)                         # Number of tested values
+
+    if(missing(alternative)) alternative <- rep("two.sided",np)
+    alternative <- match.arg(alternative,several.ok=TRUE)
+
+
+
+    if(nsamples == 1){
+
+      parameter <- NULL
+      names <- character()
+
+      if(np == 1){
+        names(H0) <- if(with.prob) "mutation probability" else "mutation number"
+        parameter <- c(fitness,death,plateff)
+        names <- c("fitness","death","plateff")
+        if(with.prob){
+          if(is.list(mfn)) mfn <- unlist(mfn)
+          if(is.list(cvfn)) cvfn <- unlist(cvfn)
+          parameter <- c(parameter,mfn,cvfn)
+          names <- c(names,"mfn","cvfn")
+        }
+      }
+        if(np == 2) {
+        names(H0) <- c(if(with.prob) "mutation probability" else "mutation number", "fitness")
+        parameter <- c(death,plateff)
+        names <- c("death","plateff")
+        if(with.prob){
+          if(is.list(mfn)) mfn <- unlist(mfn)
+          if(is.list(cvfn)) cvfn <- unlist(cvfn)
+          parameter <- c(parameter,mfn,cvfn)
+          names <- c(names,"mfn","cvfn")
+        }
+      }
+      names(parameter) <- names
+    }
+    if(nsamples == 2){
+      if(np == 1 & length(fitness) == 1) fitness <- c(fitness,fitness)
+      if(length(death) == 1) death <- c(death,death)
+      if(length(plateff) == 1) plateff <- c(plateff,plateff)
+      # if(length(mfn) == 1) mfn <- c(mfn,mfn)
+      # if(length(cvfn) == 1) cvfn <- c(cvfn,cvfn)
+
+      parameter <- NULL
+      names <- character()
+
+
+      if(np == 1){
+        names(H0) <- if(with.prob) "mutprob difference" else "mutations difference"
+        parameter <- cbind(fitness,death,plateff)
+        names <- c("fitness","death","plateff")
+        if(with.prob) {
+          if(is.list(mfn)) mfn <- unlist(mfn)
+          if(is.list(cvfn)) cvfn <- unlist(cvfn)
+          parameter <- cbind(parameter,mfn,cvfn)
+          names <- c(names,"mfn","cvfn")
+        }
+      }
+      if(np == 2){
+        names(H0) <- c(if(with.prob) "mutprob difference" else "mutations difference","fitness difference")
+        parameter <- cbind(death,plateff)
+        names <- c("death","plateff")
+        if(with.prob){
+          if(is.list(mfn)) mfn <- unlist(mfn)
+          if(is.list(cvfn)) cvfn <- unlist(cvfn)
+          parameter <- cbind(parameter,mfn,cvfn)
+          names <- c(names,"mfn","cvfn")
+        }
+      }
+      colnames(parameter) <- names
+    }
+
+    if(is.null(mfn))  mfn <- list(mfn)
+    if(is.null(cvfn))  cvfn <- list(cvfn)
+    if(is.null(fitness)) fitness <- list(fitness)
+
+    # cat("length(mc) =",length(mc),"\n")
+    # cat("length(fn) =",length(fn),"\n")
+    # cat("mfn =",mfn,"\n")
+    # cat("mode(cvfn) =",mode(cvfn),"\n")
+    # cat("length(mfn) =",length(mfn),"\n")
+    # cat("length(cvfn) =",length(cvfn),"\n")
+    # cat("mfn = ", mfn[[1]],",",mfn[[2]],"\n")
+    # cat("cvfn = ", cvfn[[1]],",",cvfn[[2]],"\n")
+
+  # Estimates mean number of mutations alpha, given fitness parameter rho
+    ests <- mapply(
+            function(x,y,m,c,f,d,z){
+                    mutestim(mc=x,fn=y,
+                            mfn=m,cvfn=c,
+                            fitness=f,death=d,plateff=z,
+                            model=model,
+                            method=method,winsor=winsor)
+            },mc,fn,mfn,cvfn,fitness,death,plateff)
+
+    if(np == 1){   # If only mutations (or mutprob) is tested
+      if(length(alternative) > 1) alternative <- alternative[1]
+      if(nsamples == 2){    # If Two-sample test
+        Tstat <- unlist(ests[1,])    # Extract the estimate to compute statistic of the test
+        sds <- unlist(ests[2,])      # Standard deviation of the estimate
+        ests <- Tstat                # Keep the estimate
+        Tstat <- -diff(Tstat)      # Statistic of the test is build with difference of estimates
+        sds <- sqrt(sum(sds^2))    # Standard deviation of the difference between estimates
+      } else {
+        Tstat <- unlist(ests[1,1])    # Extract the estimate to compute statistic of the test
+        sds <- unlist(ests[2,1])      # Standard deviation of the estimate
+        ests <- Tstat                # Keep the estimate
+      }
+    } else if(np == 2){    # If fitness is also tested
+      if(length(alternative) == 1) alternative <- rep(alternative,2)
+      if(length(alternative) > 2) alternative <- alternative[c(1,2)]
+      if(nsamples == 2){               # If Two-sample test
+        Tstat <- rbind(unlist(ests[1,]),unlist(ests[3,]))   # Extract estimates to compute statistic of the test
+        sds <- rbind(unlist(ests[2,]),unlist(ests[4,]))     # Standard deviation of the estimates
+        ests <- t(Tstat)                                      # Keep the estimates
+        Tstat <- -apply(Tstat,1,diff)                     # Statistic of the test is build with difference of estimates
+        sds <- apply(sds,1,function(s){sqrt(sum(s^2))})   # Standard deviation of the difference between estimates
+      } else {
+        Tstat <- c(unlist(ests[1,]),unlist(ests[3,]))   # Extract estimates to compute statistic of the test
+        sds <- c(unlist(ests[2,]),unlist(ests[4,]))     # Standard deviation of the estimates
+        ests <- Tstat                  # Keep the estimates
+      }
+    }
+
+    cint <- mapply(
+            function(e,s,alt){
+              if(alt == "less"){                                        # Confidence interval(s) of the test
+                c(-Inf,e+s*qnorm(conf.level))                           # with respect to the confidence level
+              } else if(alt == "greater"){                              # and the alternative
+                c(e-s*qnorm(conf.level),Inf)
+              } else if(alt == "two.sided"){
+                res <- e+s*c(-1,1)*qnorm((1+conf.level)/2)
+                if(nsamples == 1 & res[1] < 0) res[1] <- 0
+                res
+              }
+            },Tstat,sds,alternative)
+    if(nsamples == 1) cint[1,cint[1,] < 0] <-0
+
+    Tstat <- (Tstat-H0)/sds                                      # Statistic(s) of the test
+
+    pval <- mapply(
+            function(alt,tstat){
+              if(alt == "less"){                                        # p-value(s) of the test
+                pnorm(tstat)                                            # with respect to the alternative
+              } else if(alt == "greater"){
+                pnorm(tstat,lower.tail=FALSE)
+              } else if(alt == "two.sided"){
+                2*pnorm(-abs(tstat))
+              }
+            },alternative,Tstat)
 
     if(nsamples == 1){
       names(ests) <- c(if(with.prob) "mutation probability" else "mutation number",if(np == 2)"fitness")
@@ -577,38 +733,39 @@ flan.test <- function(mc,fn=NULL,mfn=NULL,cvfn=NULL,                      # user
     colnames(cint) <- names(H0)
     rownames(cint) <- c("bInf","bSup")
     attr(cint,"conf.level") <- conf.level
-
+  }
   # Build object with 'flantest' class
-
   flantest(Tstat=Tstat,estimate=ests,parameter=parameter,conf.int=cint,p.value=pval,
   null.value=H0,alternative=alternative,data.name=dname,model=model,method=method,nsamples=nsamples)
-
 }
+
+
 
     ## --------------------------------------------------------------------------------------------------------------
     ############################ Density, distribution function, quantile function and random #######################
     ################################## generation for the mutants counts ############################################
     ## --------------------------------------------------------------------------------------------------------------
 
-    # There are two cases :
-    #  - If alpha is given, then returns a sample mcs of mutants counts with parameters :
-    #   * mutations : mean number of mutation of mutation
-    #   * fitness : fitness parameter
-    #   * death : probability of death
-    #   * dist : lifetimes distribution
+    # There are two cases:
+    #  - If alpha is given, then returns a sample mcs of mutants counts with parameters:
+    #   * mutations: mean number of mutation of mutation
+    #   * fitness: fitness parameter
+    #   * death: probability of death
+    #   * dist: lifetimes distribution
     #
     #  - If alpha is not given, then compute first a sample fn of final counts with a Log-Normal distribution with mean mfn and
-    #    coefficient of variation cvfn. Then compute a sample mcs of mutants counts, where the ith count has the following parameters :
-    #   * mutprob*fni : mean number of mutation
+    #    coefficient of variation cvfn. Then compute a sample mcs of mutants counts, where the ith count has the following parameters:
+    #   * mutprob*fni: mean number of mutation
     #                      (where fni is the corresponding of final count, and pi the probability of mutation)
-    #   * fitness : fitness parameter
-    #   * death : probability of death
-    #   *dist : lifetimes distribution
+    #   * fitness: fitness parameter
+    #   * death: probability of death
+    #   *dist: lifetimes distribution
     #
     #   Returns the two samples mcs and fn
     #
 rflan <- function(n,mutations=1.,mutprob=NULL,fitness=1.,death=0.,plateff=1.,
         dist=list(name="lnorm",meanlog=-0.3795851,sdlog=0.3016223),
+        distfn=NULL,
         mfn=1.e9,cvfn=0) {
 
     if(n <= 0) stop("'n' must be a positive integer.")
@@ -623,26 +780,44 @@ rflan <- function(n,mutations=1.,mutprob=NULL,fitness=1.,death=0.,plateff=1.,
 
     if(cvfn < 0 | length(cvfn) > 1) stop("'cvfn' must be a single positive number")
 
-    if(!is.list(dist)) stop("'dist' must be a list of a character chain followed by its arguments")
+    if(!is.list(dist)){
+      if(dist == "exp") {
+        dist <- list("exp")
+      } else if(dist == "dirac") {
+        dist <- list("dirac")
+      } else stop("'dist' must be a list of a character chain followed by its arguments if required")
+    }
 
 
     names(dist)[1] <- "name"
-    if(dist$name == "exp"){
-      names(dist)[2] <- "rate"
-    } else if(dist$name == "dirac"){
-      names(dist)[2] <- "location"
-    } else if(dist$name == "lnorm"){
+    # if(dist$name == "exp"){
+    #   names(dist)[2] <- "rate"
+    # } else if(dist$name == "dirac"){
+    #   names(dist)[2] <- "location"
+    # } else
+    if(dist$name == "lnorm"){
       names(dist)[2] <- "meanlog"
       names(dist)[3] <- "sdlog"
     } else if(dist$name == "gamma"){
       names(dist)[2] <- "shape"
       names(dist)[3] <- "scale"
-    } else stop("'dist[[1]]' must be a character chain among 'exp', 'dirac', 'lnorm', 'gamma'")
+    } else if(dist$name != "exp" & dist$name != "dirac") stop("'dist[[1]]' must be a character chain among 'exp', 'dirac', 'lnorm', 'gamma'.")
+
+    if(cvfn > 0){
+      if(!is.null(distfn)){
+       if(distfn != "lnorm" & distfn != "gamma") stop("'distfn' must be a character chain among 'lnorm', 'gamma'.")
+     } else distfn <- "lnorm"
+    } else {
+      if(!is.null(distfn)) {
+        warning("'cvfn' is zero: 'distfn' is ignored.")
+      }
+      distfn <- "null"
+    }
 
 
     if(death < 0 | death >= 0.5 | length(death) > 1) stop("'death' must be a single positive and < 0.5 number ")
 
-    if(plateff < 0 |plateff > 1 | length(plateff) > 1) stop("'plateff' must be a single positive and <= 1 number.")
+    if(plateff < 0 | plateff > 1 | length(plateff) > 1) stop("'plateff' must be a single positive and <= 1 number.")
 
     if(!is.null(mutprob)){
       if(mutprob < 0 | mutprob > 1 | length(mutprob) > 1) stop("'mutprob' must be a single positive and <= 1 number")
@@ -657,6 +832,7 @@ rflan <- function(n,mutations=1.,mutprob=NULL,fitness=1.,death=0.,plateff=1.,
       fitness=fitness,
       death=death,
       dist=dist,
+      distfn=distfn,
       mfn=mfn,
       cvfn=cvfn
       ))
@@ -678,10 +854,10 @@ rflan <- function(n,mutations=1.,mutprob=NULL,fitness=1.,death=0.,plateff=1.,
 }
 
   # Quantile function of the mutants count with parameter
-  #   mutations : mean number of mutations
-  #   fitness : fitness parameter
-  #   death : death probability
-  #   model : lifetimes distribution model : exponentialy distributed lifetimes ("LD") or constant lifetimes ("H")
+  #   mutations: mean number of mutations
+  #   fitness: fitness parameter
+  #   death: death probability
+  #   model: lifetimes distribution model: exponentialy distributed lifetimes ("LD") or constant lifetimes ("H")
 
 qflan <- function(p,mutations=1.,fitness=1.,death=0.,plateff=1.,model=c("LD","H"),lower.tail=TRUE){
 
@@ -706,7 +882,7 @@ qflan <- function(p,mutations=1.,fitness=1.,death=0.,plateff=1.,model=c("LD","H"
 
   if(model == "H" & plateff < 1){
     # stop("If 'model' is 'H', 'plateff' can not be < 1.")
-    warnings("Probabilities are not available when 'model' is 'H' and 'plateff' < 1. 'plateff' is set to 1")
+    warning("Probabilities are not available when 'model' is 'H' and 'plateff' < 1. 'plateff' is set to 1")
     plateff <- 1
   }
 
@@ -735,10 +911,10 @@ qflan <- function(p,mutations=1.,fitness=1.,death=0.,plateff=1.,model=c("LD","H"
 }
 
   # Distribution function of the mutants count with parameter
-  #   mutations : mean number of mutations
-  #   fitness : fitness parameter
-  #   death : death probability
-  #   model : lifetimes distribution model : exponentialy distributed lifetimes ("LD") or constant lifetimes ("H")
+  #   mutations: mean number of mutations
+  #   fitness: fitness parameter
+  #   death: death probability
+  #   model: lifetimes distribution model: exponentialy distributed lifetimes ("LD") or constant lifetimes ("H")
 
 
 pflan <- function(m,mutations=1.,fitness=1.,death=0.,plateff=1.,model=c("LD","H"),lower.tail=TRUE){
@@ -764,17 +940,11 @@ pflan <- function(m,mutations=1.,fitness=1.,death=0.,plateff=1.,model=c("LD","H"
 
   if(model == "H" & plateff < 1){
     # stop("If 'model' is 'H', 'plateff' can not be < 1.")
-    warnings("Probabilities are not available when 'model' is 'H' and 'plateff' < 1. 'plateff' is set to 1")
+    warning("Probabilities are not available when 'model' is 'H' and 'plateff' < 1. 'plateff' is set to 1")
     plateff <- 1
   }
   if(model == "LD" & plateff < 1) model <- "LDpef"
 
-
-# if(model=="LD") {
-#     integrands <- list(CLONE_P0_WD=function(x,rho,delta) {(1-x)*x^(rho-1)/(1-delta*x)},
-# 		       CLONE_PK_WD=function(x,rho,delta,k) {x^rho*(1-x)^(k-1)/(1-x*delta)^(k+1)}
-# 		       )
-#   } else integrands <- NULL
 
   flan.mutmodel <- new(FlanMutMod,list(
     mutations=mutations,
@@ -793,10 +963,10 @@ pflan <- function(m,mutations=1.,fitness=1.,death=0.,plateff=1.,model=c("LD","H"
 
 
   # Density function of the mutants count with parameter
-  #   mutations : mean number of mutations
-  #   fitness : fitness parameter
-  #   death : death probability
-  #   model : lifetimes distribution model : exponentialy distributed lifetimes ("LD") or constant lifetimes ("H")
+  #   mutations: mean number of mutations
+  #   fitness: fitness parameter
+  #   death: death probability
+  #   model: lifetimes distribution model: exponentialy distributed lifetimes ("LD") or constant lifetimes ("H")
 
 
 dflan <- function(m,mutations=1.,fitness=1.,death=0.,plateff=1.,model=c("LD","H")){
@@ -822,7 +992,7 @@ dflan <- function(m,mutations=1.,fitness=1.,death=0.,plateff=1.,model=c("LD","H"
   }
 
   if(model == "H" & plateff < 1){
-    warnings("Probabilities are not available when 'model' is 'H' and 'plateff' < 1. 'plateff' is set to 1")
+    warning("Probabilities are not available when 'model' is 'H' and 'plateff' < 1. 'plateff' is set to 1")
     plateff <- 1
   }
   if(model == "LD" & plateff < 1) model <- "LDpef"
@@ -860,12 +1030,10 @@ adjust.rate <- function(dist,fitness=1.,death=0.){
   m <- 2*(1-death)			# mean offspring number
   switch(dist[[1]],
     dirac={                              # Dirac distribution
-	adist$location <- log(m)/fitness      # new location parameter
-	return(adist)
+      adist <- list(name = "dirac", location = log(m)/fitness) # new location parameter
 	  },                              # end Dirac distribution
     exp={                                # Exponential distribution
-	adist$rate <- fitness/(m-1)
-	return(adist)
+    	adist <- list(name = "exp", rate = fitness/(m-1))
 	  },
     gamma={				# Gamma distribution
       a <- dist$shape			# according to the shape parameter
@@ -1576,7 +1744,7 @@ dclone <- function(m,fitness=1.,death=0.,plateff=1.,model=c("LD","H")){
 
   if(model == "H" & plateff < 1){
     # stop("If 'model' is 'H', 'plateff' can not be < 1.")
-    warnings("Probabilities are not available when 'model' is 'H' and 'plateff' < 1. 'plateff' is set to 1")
+    warning("Probabilities are not available when 'model' is 'H' and 'plateff' < 1. 'plateff' is set to 1")
     plateff <- 1
   }
 
@@ -1620,7 +1788,7 @@ dclone.dr <- function(m,fitness=1.,death=0.,plateff=1.,model=c("LD","H")){
 
   if(model == "H" & plateff < 1){
     # stop("If 'model' is 'H', 'plateff' can not be < 1.")
-    warnings("Probabilities are not available when 'model' is 'H' and 'plateff' < 1. 'plateff' is set to 1")
+    warning("Probabilities are not available when 'model' is 'H' and 'plateff' < 1. 'plateff' is set to 1")
     plateff <- 1
   }
   # if(model == "LD") {
@@ -1673,7 +1841,7 @@ dflan.grad <- function(m,mutations=1.,fitness=1.,death=0.,plateff=1.,model=c("LD
 
   if(model == "H" & plateff < 1){
     # stop("If 'model' is 'H', 'plateff' can not be < 1.")
-    warnings("Probabilities are not available when 'model' is 'H' and 'plateff' < 1. 'plateff' is set to 1")
+    warning("Probabilities are not available when 'model' is 'H' and 'plateff' < 1. 'plateff' is set to 1")
     plateff <- 1
   }
   if(model == "LD" & plateff < 1) model <- "LDpef"
@@ -1797,7 +1965,7 @@ print.flantest <- function(x,...){
     cat(strwrap(paste("One sample ",x$method,"-test"," (",x$model," model)",sep=""), prefix=prefix), sep="\n")
   }
   cat("\n")
-  cat("------------------------------------- Data -----------------------------------\n")
+  cat("--------------------------------- Data -------------------------------\n")
 
   if(x$nsamples == 2){
     if(length(x$data.name) == 1){
@@ -1829,10 +1997,12 @@ print.flantest <- function(x,...){
       if(!is.null(x$parameter)){
 	if(x$nsamples == 2){
 	  Nparam <- dim(x$parameter)[2]
-	  cat("Sample 1 parameters : ")
+	  cat("Sample 1 parameters: ")
 	  for(i in 1:Nparam){
-      if(colnames(x$parameter)[i] =="mfn"){
-	      out <- c(out,paste(colnames(x$parameter)[i], "=", format(x$parameter[1,i],
+      if(colnames(x$parameter)[i] == "mfn"){
+        cat(strwrap(paste(out, collapse=", ")), sep="\n")
+        cat("                     ")
+	      out <- c(paste(colnames(x$parameter)[i], "=", format(x$parameter[1,i],
 	      scientific=TRUE,digit=5)))
 	    } else {
 	       out <- c(out,paste(colnames(x$parameter)[i], "=", format(signif(x$parameter[1,i],
@@ -1841,10 +2011,12 @@ print.flantest <- function(x,...){
 	  }
 	  cat(strwrap(paste(out, collapse=", ")), sep="\n")
 	  out <- character()
-	  cat("Sample 2 parameters : ")
+	  cat("Sample 2 parameters: ")
 	  for(i in 1:Nparam){
       if(colnames(x$parameter)[i] =="mfn"){
-	      out <- c(out,paste(colnames(x$parameter)[i], "=", format(x$parameter[2,i],
+        cat(strwrap(paste(out, collapse=", ")), sep="\n")
+        cat("                     ")
+	      out <- c(paste(colnames(x$parameter)[i], "=", format(x$parameter[2,i],
 	      scientific=TRUE,digit=5)))
 	    } else {
 	       out <- c(out,paste(colnames(x$parameter)[i], "=", format(signif(x$parameter[2,i],
@@ -1853,9 +2025,12 @@ print.flantest <- function(x,...){
 	  }
 	} else {
 	  Nparam <- length(x$parameter)
+    cat("Sample parameters: ")
 	  for(i in 1:Nparam){
 	    if(names(x$parameter)[i] =="mfn"){
-	      out <- c(out,paste(names(x$parameter)[i], "=", format(x$parameter[i],
+        cat(strwrap(paste(out, collapse=", ")), sep="\n")
+        cat("                   ")
+	      out <- c(paste(names(x$parameter)[i], "=", format(x$parameter[i],
 	      scientific=TRUE,digit=5)))
 	    } else {
 	      out <- c(out,paste(names(x$parameter)[i], "=", format(signif(x$parameter[i],
@@ -1865,7 +2040,7 @@ print.flantest <- function(x,...){
 	}
       }
       cat(strwrap(paste(out, collapse=", ")), sep="\n")
-      cat("---------------------------------- Statistics --------------------------------\n")
+      cat("------------------------------ Statistics ----------------------------\n")
       if(!is.null(x$Tstat)){
 	cat("Tstat =", format(signif(x$Tstat,
 	  max(1, digits - 2))),"\n")
@@ -1892,13 +2067,13 @@ print.flantest <- function(x,...){
       }
       if (!is.null(x$estimate)) {
 	if(x$nsamples == 1){
-	  cat("Sample estimates : \n")
+	  cat("Sample estimates: \n")
 	  print(x$estimate)
 	}
 	if(x$nsamples == 2){
-	  cat("Sample 1 estimates : \n")
+	  cat("Sample 1 estimates: \n")
 	  print(x$estimate[1,])
-	  cat("Sample 2 estimates : \n")
+	  cat("Sample 2 estimates: \n")
 	  print(x$estimate[2,])
 	}
       }
@@ -1906,11 +2081,13 @@ print.flantest <- function(x,...){
 
       if(!is.null(x$parameter)){
 	if(x$nsamples == 2){
-	  cat("Sample 1 parameters : ")
+	  cat("Sample 1 parameters: ")
 	  Nparam <- dim(x$parameter)[2]
 	  for(i in 1:Nparam){
       if(colnames(x$parameter)[i] == "mfn"){
-	      out <- c(out,paste(colnames(x$parameter)[i], "=", format(x$parameter[1,i],
+        cat(strwrap(paste(out, collapse=", ")), sep="\n")
+        cat("                     ")
+	      out <- c(paste(colnames(x$parameter)[i], "=", format(x$parameter[1,i],
 	      scientific=TRUE,digit=5)))
 	    } else {
 	      out <- c(out,paste(colnames(x$parameter)[i], "=", format(signif(x$parameter[1,i],
@@ -1919,10 +2096,12 @@ print.flantest <- function(x,...){
 	  }
 	  cat(strwrap(paste(out, collapse=", ")), sep="\n")
 	  out <- character()
-	  cat("Sample 2 parameters : ")
+	  cat("Sample 2 parameters: ")
 	  for(i in 1:Nparam){
 	    if(colnames(x$parameter)[i] == "mfn"){
-	      out <- c(out,paste(colnames(x$parameter)[i], "=", format(x$parameter[2,i],
+        cat(strwrap(paste(out, collapse=", ")), sep="\n")
+        cat("                     ")
+	      out <- c(paste(colnames(x$parameter)[i], "=", format(x$parameter[2,i],
 	      scientific=TRUE,digit=5)))
 	    } else {
 	      out <- c(out,paste(colnames(x$parameter)[i], "=", format(signif(x$parameter[2,i],
@@ -1931,12 +2110,13 @@ print.flantest <- function(x,...){
 	  }
 	}
 	if(x$nsamples == 1){
-	  cat("Sample parameters : ")
+	  cat("Sample parameters: ")
 	  Nparam <- length(x$parameter)
-
 	  for(i in 1:Nparam){
       if(names(x$parameter)[i] == "mfn"){
-	      out <- c(out,paste(names(x$parameter)[i], "=", format(x$parameter[i],
+        cat(strwrap(paste(out, collapse=", ")), sep="\n")
+        cat("                   ")
+	      out <- c(paste(names(x$parameter)[i], "=", format(x$parameter[i],
 	      scientific=TRUE,digit=5)))
 	    } else {
 	      out <- c(out,paste(names(x$parameter)[i], "=", format(signif(x$parameter[i],
@@ -1946,7 +2126,7 @@ print.flantest <- function(x,...){
 	}
       }
       cat(strwrap(paste(out, collapse=", ")), sep="\n")
-      cat("---------------------------------- Statistics --------------------------------\n")
+      cat("------------------------------ Statistics ----------------------------\n")
       if(!is.null(x$Tstat)){
 	cat("Tstat = (",format(signif(x$Tstat[1],
 	  max(1, digits - 2)))," , ",format(signif(x$Tstat[2],
@@ -1983,13 +2163,13 @@ print.flantest <- function(x,...){
       }
       if (!is.null(x$estimate)) {
 	if(x$nsamples == 1){
-	  cat("Sample estimates : \n")
+	  cat("Sample estimates: \n")
 	  print(x$estimate)
 	}
 	if(x$nsamples == 2){
-	  cat("Sample 1 estimates : \n")
+	  cat("Sample 1 estimates: \n")
 	  print(x$estimate[1,])
-	  cat("Sample 2 estimates : \n")
+	  cat("Sample 2 estimates: \n")
 	  print(x$estimate[2,])
 	}
       }
@@ -2017,19 +2197,26 @@ draw.clone <- function(t,mutprob=1.e-2,fitness=1.,death=0.,
   #          draw.clone(t=3,mutprob=0.1,fitness=2,dist=dexp,death=0.2)
   #
 
-
+    if(!is.list(dist)){
+      if(dist == "exp") {
+        dist <- list("exp")
+      } else if(dist == "dirac") {
+        dist <- list("dirac")
+      } else stop("'dist' must be a list of a character chain followed by its arguments if required")
+    }
     names(dist)[1] <- "name"
-    if(dist$name == "exp"){
-      names(dist)[2] <- "rate"
-    } else if(dist$name == "dirac"){
-      names(dist)[2] <- "location"
-    } else if(dist$name == "lnorm"){
+    # if(dist$name == "exp"){
+    #   names(dist)[2] <- "rate"
+    # } else if(dist$name == "dirac"){
+    #   names(dist)[2] <- "location"
+    # } else
+    if(dist$name == "lnorm"){
       names(dist)[2] <- "meanlog"
       names(dist)[3] <- "sdlog"
     } else if(dist$name == "gamma"){
       names(dist)[2] <- "shape"
       names(dist)[3] <- "scale"
-    } else stop("'dist[[1]]' must be a character chain among 'exp', 'dirac', 'lnorm', 'gamma'")
+    } else if(dist$name != "exp" | dist$name != "dirac") stop("'dist[[1]]' must be a character chain among 'exp', 'dirac', 'lnorm', 'gamma'")
 
 
 		    # initialization

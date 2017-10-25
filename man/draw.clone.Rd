@@ -29,7 +29,9 @@
 
   This function does not provide a representation of a realistic realization of a mutation model (mutation probability too high, time of end of experiment to small).
 
-  The argument \code{dist} is a list beginning with the distribution name followed by its parameters, and must be one the 4 following distributions: "dirac"(location), "exp"(rate), "lnorm"(meanlog, sdlog), "gamma"(shape, scale).
+  The argument \code{dist} is a list beginning with the distribution name followed by its parameters, and must be one the 4 following distributions: "dirac", "exp", "lnorm"(meanlog, sdlog), "gamma"(shape, scale).
+  Note that the parameters related to the "dirac" and "exp" cases are directly computed with inputs \code{fitness} and \code{death}.
+
 
 }
 

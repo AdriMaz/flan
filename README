@@ -1,4 +1,4 @@
-Windows users need to follow these steps:
+To install `flan` from GithUb,  Windows users need to follow these steps:
 
 1- Make sure that there are no spaces in the path of R. For example, "C:/Program Files/R" can not be used;
 

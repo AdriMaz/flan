@@ -13,12 +13,13 @@
 }
 
 \usage{
-  dflan(m,mutations=1.,fitness=1.,death=0.,plateff=1.,model=c("LD","H"))
-  pflan(m,mutations=1.,fitness=1.,death=0.,plateff=1.,model=c("LD","H"),lower.tail=TRUE)
-  qflan(p,mutations=1.,fitness=1.,death=0.,plateff=1.,model=c("LD","H"),lower.tail=TRUE)
-  rflan(n,mutations=1.,mutprob=NULL,fitness=1.,death=0.,plateff=1.,
-        dist=list(name="lnorm",meanlog=-0.3795851,sdlog=0.3016223),
-        mfn=1e9,cvfn=0)
+  dflan(m, mutations = 1., fitness = 1., death = 0., plateff = 1., model = c("LD", "H"))
+  pflan(m, mutations = 1., fitness = 1., death = 0., plateff = 1., model = c("LD", "H"), lower.tail = TRUE)
+  qflan(p, mutations = 1., fitness = 1., death = 0., plateff = 1., model = c("LD", "H"), lower.tail = TRUE)
+  rflan(n, mutations = 1., mutprob = NULL, fitness = 1., death = 0., plateff = 1.,
+        dist = list(name = "lnorm", meanlog = -0.3795851, sdlog = 0.3016223),
+        distfn = NULL,
+        mfn = 1e9, cvfn = 0)
 }
 
 \arguments{
@@ -32,6 +33,7 @@
   \item{plateff}{ plating efficiency parameter: numeric number between 0 and 1. By default 1. See Details. }
   \item{dist}{ lifetime distribution for mutant cells. See Details. }
   \item{model}{ statistical lifetime model. Must be one of "LD" (default) for Luria-Delbrück model (exponential lifetimes), or "H" for Haldane model (constant lifetimes). }
+  \item{distfn}{ final number of cells distribution. Must be one of "lnorm" (default if \code{cvfn} is positive) or "gamma". }
   \item{mfn}{ mean final number of cells: numeric positive. }
   \item{cvfn}{ coefficient of variation of final numbers of cells: numeric, default 0. If non-zero and if \code{mutprob} is empty, compute the sample with \code{mutprob} = \code{mutations}/\code{mfn}}
   \item{lower.tail}{ logical: if TRUE (default), probabilities are P[X <= x] otherwise, P[X > m]. }
@@ -39,19 +41,16 @@
 
 
 \details{
-  The argument \code{dist} is a list beginning with the distribution name followed by its parameters, and must be one the 4 following distributions: "dirac"(location), "exp"(rate), "lnorm"(meanlog, sdlog), "gamma"(shape, scale).
+  The argument \code{dist} is a list beginning with the distribution name followed by its parameters, and must be one the 4 following distributions: "dirac", "exp", "lnorm"(meanlog, sdlog), "gamma"(shape, scale).
+  Note that the parameters related to the "dirac" and "exp" cases are directly computed with inputs \code{fitness} and \code{death}.
 
-  If \code{cvfn} is positive, the final numbers of cells are generated with the log-normal distribution with mean \code{mfn} and coefficient of variation \code{cvfn}.
+  If \code{mutprob} is non-empty and if \code{cvfn} is zero, the sample of mutants is computed with \code{mutations} as the product of \code{mutprob} by \code{mfn}.
+  If \code{cvfn} is positive, the final numbers of cells are generated with the log-normal (if \code{distfn} is "lnorm" or empty) or the gamma (if \code{distfn} is "gamma") distribution with mean \code{mfn} and coefficient of variation \code{cvfn}.
+  The sample of mutants is then generated conditionally to the sample of final numbers of cells.
 
-  If \code{mutprob} is non-empty if \code{cvfn} is zero, the sample is computed with \code{mutations} as the product of \code{mutprob} by \code{mfn}. If \code{cvfn} is non-zero, the sample is computed with \code{mutations} as
+  A plating efficiency \code{plateff} smaller than 1 can be taken into account in the \code{dflan, pflan} and \code{qflan} functions only under \code{LD} model.
 
-  \deqn{\alpha = \mathcal{L}\left[\pi\left(1-\frac{\delta}{1-\delta}\right)\right]}
-
-  whith \eqn{\pi} is the ratio of \code{mutations} by \code{mfn}, \eqn{\delta} the death probability and \eqn{\mathcal{L}(x)} is the Laplace transform of the log-normal distribution with mean \code{mfn} and coefficient of variation \code{cvfn}.
-
-  A plating efficiency \code{plateff} smaller than 1 is taken into account in the \code{dflan, pflan} and \code{qflan} functions only under \code{LD} model.
-  
-  If the plating efficiency \code{plateff} is smaller than 1 in the \code{flan} function, then each mutant count \code{mc} is replaced by a binomial number with parameters \code{size=mc} and \code{prob=plateff}.
+  If the plating efficiency \code{plateff} is smaller than 1 in the \code{flan} function, then each mutant count \code{mc} is replaced by a binomial number with parameters \code{size = mc} and \code{prob = plateff}.
 
 }
 
@@ -77,38 +76,46 @@
 # Luria-Delbrück model, mean number of mutations 1, fitness parameter 1
 dflan(0:10)
 pflan(0:10)
-qflan(c(0.95,0.99))
+qflan(c(0.95, 0.99))
 
 # Luria-Delbrück model, mean number of mutations 2, fitness parameter 0.5
-qflan(c(0.95,0.99),mutations=2,fitness=0.5)
+qflan(c(0.95, 0.99), mutations = 2, fitness = 0.5)
 \donttest{
-qflan(c(0.05,0.01),mutations=2,fitness=0.5,lower.tail=FALSE)
+qflan(c(0.05, 0.01), mutations = 2, fitness = 0.5, lower.tail = FALSE)
 
 # Haldane model, mean number of mutations 2, fitness parameter 0.5
-qflan(c(0.95,0.99),mutations=2,fitness=0.5,model="H")
+qflan(c(0.95, 0.99), mutations = 2, fitness = 0.5, model = "H")
 }
 #---------------------- random samples ----------------------------------
 # lognormal lifetime distribution, lognormal final numbers
-X <- rflan(100,cvfn=0.3)
+X <- rflan(100, cvfn = 0.3)
+X$mc              # mutant counts
+X$fn              # final numbers
+
+# lognormal lifetime distribution, gamma final numbers
+X <- rflan(100, distfn = "gamma", cvfn = 0.3)
 X$mc              # mutant counts
 X$fn              # final numbers
 
 # mean number of mutations 2, fitness parameter 0.5 (realistic model, but slow)
 \donttest{
-rflan(1000,mutations=2,fitness=0.5)$mc
+# lognormal lifetimes
+rflan(1000, mutations = 2, fitness = 0.5)$mc
+# gamma lifetimes
+rflan(1000, mutations = 2, fitness = 0.5, dist = list(name = "gamma", shape = 10, scale = 0.05))$mc
 }
 # exponential lifetimes (Luria-Delbrück model, fast)
-rflan(1000,mutations=2,fitness=0.5,dist=list(name="exp",rate=1))$mc
+rflan(1000, mutations = 2, fitness = 0.5, dist = list("exp"))$mc
 
 # constant lifetimes (Haldane model, fast)
-rflan(1000,mutations=2,fitness=0.5,dist=list(name="dirac",location=1))$mc
+rflan(1000, mutations = 2, fitness = 0.5, dist = "dirac")$mc
 
 # specifying mutation probability and mean final number
 \donttest{
-rflan(1000,mutprob=2e-9,mfn=2e9,fitness=0.5,dist=list(name="dirac",location=1))$mc
+rflan(1000, mutprob = 2e-9, mfn = 2e9, fitness = 0.5, dist = list("dirac"))$mc
 
 
 # positive cell death probability
-rflan(1000,mutprob=2e-9,mfn=2e9,death=0.1,fitness=0.5,dist=list(name="dirac",location=1))$mc
+rflan(1000, mutprob = 2e-9, mfn = 2e9, death = 0.1, fitness = 0.5, dist = list("exp"))$mc
 }
 }

@@ -53,6 +53,9 @@ public:
       if(!mDist) delete mDist;
       mDist=new FLAN_Dist(dist);          // Lifetime Distribution
 
+      std::string distfn=args["distfn"]; // Final Count Distribution
+      mDistfn=distfn;
+      // std::cout<<"mDistfn :"<<mDistfn<<std::endl;
 
       mMfn=as<double>(args["mfn"]);
       mCvfn=as<double>(args["cvfn"]);
@@ -80,6 +83,7 @@ private:
   double mDeath;
   FLAN_SimClone *mClone;
   FLAN_Dist *mDist;
+  std::string mDistfn;
   double mMfn;
   double mCvfn;
 
