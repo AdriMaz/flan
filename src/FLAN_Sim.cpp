@@ -183,3 +183,157 @@ NumericVector FLAN_Sim::computeSampleMutantsNumber(int n,
     return NumericVector(mutantCount.begin(),mutantCount.end());
 
 }
+
+
+/* Class for simulation of inhomogeneous models */
+
+List FLAN_SimInhomogeneous::computeSamplesMutantsFinalsNumber(int n)  {
+
+
+  RNGScope rngScope;
+
+  NumericVector mutantCount(n);
+
+  if (mCvfn>0) {
+      double sdLog2=log(1.+mCvfn*mCvfn);
+      double sdLog=sqrt(sdLog2);
+      double meanLog=log(mMfn)-sdLog2/2;
+
+      NumericVector finalCount=rlnorm(n,meanLog,sdLog);
+
+      mutantCount=computeSampleMutantsNumber(n,finalCount);
+      return List::create(_["mc"]=mutantCount,
+			  _["fn"]=finalCount);
+
+
+  } else {
+      mutantCount=computeSampleMutantsNumber(n);
+      return List::create(_["mc"]=mutantCount,
+			  _["fn"]=R_NilValue);
+  }
+
+}
+
+
+
+    /* Generates a sample of size n of mutant counts
+     * n: sample size
+     * alpha: mean number of mutations
+     * rho: fitness parameter
+     * death: probability of death
+     */
+
+
+
+NumericVector FLAN_SimInhomogeneous::computeSampleMutantsNumber(int n)  {
+
+    NumericVector mutantCount=rpois(n,mMut);
+    int mc;
+    NumericVector sample;
+    double sumS;
+    double tp;
+    double s;
+    double muInf=as<double>((*mMU)(0.,R_PosInf));
+//     double f0=as<double>((*mF)(0.));
+//     double fn=as<double>((*mF)(R_PosInf));
+    double power=mFitness*(1-2*mDeath);
+
+    for (NumericVector::iterator itmc = mutantCount.begin(); itmc != mutantCount.end(); ++itmc) {
+        // simulate a poisson number of mutations
+
+      mc=(int)(*itmc);
+
+      if (mc>0) {
+	// simulate a NHPP with expectation the derivative of mF
+// 	sample.resize(mc);
+	sample=runif(mc,0.,1.);
+	sumS=0;
+	for (NumericVector::iterator itS = sample.begin(); itS != sample.end(); ++itS) {
+	  tp=(*itS);
+// 	  std::cout<<"U ="<<tp<<std::endl;
+// 	  tp=pow(tp*(pow(fn/f0,power)-1)+1,1./power)*f0;
+	  tp*=(exp(power*muInf)-1);
+	  tp++;
+	  tp=log(tp);
+	  tp/=power;
+
+// 	  std::cout<<"Après transfo 1 ="<<tp<<std::endl;
+
+// 	  else s=as<double>((*mFinv)(tp));
+// 	  if(tp > muInf) sumS++;
+// 	    s=-1;
+
+// 	  else {
+	    s=as<double>((*mMUinv0)(tp));
+
+	    tp=mClone->computeSample(1,s)[0];
+
+	    sumS+=tp;
+// 	  }
+	}
+	*itmc=sumS;
+      } else *itmc=0;
+    }
+
+    return mutantCount;
+}
+
+
+NumericVector FLAN_SimInhomogeneous::computeSampleMutantsNumber(int n,
+					  NumericVector& finalCount)  {
+
+
+    std::vector <double> mutantCount(n);
+    int mc;
+    double mut;
+    NumericVector sample;
+    double sumS;
+    // NumericVector TP;
+    double tp;
+    double s;
+    double muInf=as<double>((*mMU)(0.,R_PosInf));
+//     double f0=as<double>((*mF)(0.));
+//     double fn=as<double>((*mF)(R_PosInf));
+//     std::cout<<"f0 ="<<f0<<std::endl;
+//     std::cout<<"fn ="<<fn<<std::endl;
+    double power=mFitness*(1-2*mDeath);
+
+    NumericVector::iterator itfn=finalCount.begin();
+    for (std::vector <double>::iterator itmc = mutantCount.begin();
+	  itmc != mutantCount.end(); ++itmc, ++itfn) {
+        // simulate a poisson number
+
+      mut=mMut*(*itfn);
+      mc=(int)(rpois(1,mut)[0]);
+
+      if (mc>0) {
+	// simulate a NHPP with exptation the derivative of mF
+	sample=runif(mc,0.,1.);
+	sumS=0;
+	for (NumericVector::iterator itS = sample.begin(); itS != sample.end(); ++itS) {
+	  tp=(*itS);
+// 	  tp=pow(tp*(pow(fn/f0,power)-1)+1,1./power)*f0;
+	  tp*=(exp(power*muInf)-1);
+	  tp++;
+	  tp=log(tp);
+	  tp/=power;
+// 	  if(tp < 0) s=0;
+// 	  else s=as<double>((*mFinv)(tp));
+// 	  else
+	  s=as<double>((*mMUinv0)(tp));
+// 	  else {
+// 	    tpf=(*mFinv)(tp);
+// 	    s=as<double>(tpf);
+// 	  }
+
+	  tp=mClone->computeSample(1,s)[0];
+// 	  std::cout<<"Clone size ="<<tp<<std::endl;
+	  sumS+=tp;
+	}
+	*itmc=sumS;
+      } else *itmc=0;
+
+    }
+
+    return NumericVector(mutantCount.begin(),mutantCount.end());
+}

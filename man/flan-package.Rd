@@ -38,8 +38,11 @@
 
 \references{
 
+  A. Mazoyer: Time inhomogeneous mutation models with birth-date dependence
+  B. Math. Biol. (2017)
+
   A. Mazoyer, R. Drouilhet, S. Despréaux and B. Ycart: flan: An R Package for Inference on Mutation Models.
-R Journal 9(1) (2017)
+  R Journal 9(1) (2017)
 
   B. Ycart and N. Veziris: Unbiased estimates of mutation rates under fluctuating final counts.
 PLoS one 9(7) e101434 (2014)

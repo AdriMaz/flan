@@ -29,6 +29,9 @@
 using namespace Rcpp ;
 
 
+
+/* Simulation class */
+
 class FLAN_Sim {
 public:
 
@@ -110,6 +113,112 @@ private:
     NumericVector computeSampleMutantsNumber(int n,
 				    NumericVector& finalCount) ;
 public:
+    /* Generates a sample of size n of couples (mutant count ; final count)
+     * The final counts are sampled with the log-normal
+     * distribution with coefficient of variation cvfn and mean mfn.
+     *
+     * n: number of experiments
+     * mfn: mean of final counts
+     * Cfn: variation number of final counts
+     * alphapi: mean number of mutations probability of mutation (depends of cvfn)
+     * rho: fitness parameter
+     * death: probability of death
+     */
+    List computeSamplesMutantsFinalsNumber(int n)  ;
+
+};
+
+
+/* Simulation class for inhomoegenous models */
+
+class FLAN_SimInhomogeneous {
+
+private:
+
+  double mMut;
+  double mFitness;
+  double mDeath;
+  FLAN_SimInhomogeneousClone *mClone;
+  Function* mMU;
+  Function* mMUinv0;
+  double mMfn;
+  double mCvfn;
+
+    // --------------------------------------------------------------------------------------------------------------
+    //////////////////////////////////////////// Samples computation ////////////////////////////////////////////////
+    // --------------------------------------------------------------------------------------------------------------
+    /* Generates a sample of size n of mutant counts
+     * n: sample size
+     * alpha: mean number of mutations
+     * rho: fitness parameter
+     * death: probability of death
+     */
+
+    NumericVector computeSampleMutantsNumber(int n) ;
+
+    /* Generates a sample of size n of mutant counts, given a sample of final counts.
+     *
+     * n: number of experiments
+     * pi: mutation probability
+     * rho: fitness parameter
+     * death: probability of death
+     * finalCount:
+     */
+    NumericVector computeSampleMutantsNumber(int n,
+				    NumericVector& finalCount) ;
+
+public:
+
+    /*! \brief  create an object */
+
+    FLAN_SimInhomogeneous(){
+      if(!mMU) delete mMU;
+      mMU=NULL;
+      if(!mMUinv0) delete mMUinv0;
+      mMUinv0=NULL;
+      if(!mClone) delete mClone;
+      mClone=NULL;
+    };
+
+    FLAN_SimInhomogeneous(List args){
+
+      mMut=as<double>(args["mutations"]);
+      mFitness=as<double>(args["fitness"]);
+      mDeath=as<double>(args["death"]);
+
+      List muih=args["muih"];
+      if(!mMU) delete mMU;
+      if(!mMUinv0) delete mMUinv0;
+
+      mMU=new Function("identity");
+      mMUinv0=new Function("identity");
+
+//       std::cout<<"Read fih"<<std::endl;
+      *mMU=muih["mu"];
+      *mMUinv0=muih["muinv0"];
+                // Lifetime Distribution
+
+
+      mMfn=as<double>(args["mfn"]);
+      mCvfn=as<double>(args["cvfn"]);
+
+      if(!mClone) delete mClone;
+//       std::cout<<"Call constructor of IhClone"<<std::endl;
+      mClone=new FLAN_SimInhomogeneousClone(mFitness,mDeath,mMU);
+
+    };
+
+    // DESTRUCTORS
+
+    /*! \brief  destroy an object.
+     */
+    ~FLAN_SimInhomogeneous(){
+      if(!mMU) delete mMU;
+      if(!mMUinv0) delete mMUinv0;
+      if(!mClone) delete mClone;
+    };
+
+
     /* Generates a sample of size n of couples (mutant count ; final count)
      * The final counts are sampled with the log-normal
      * distribution with coefficient of variation cvfn and mean mfn.

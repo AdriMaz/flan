@@ -12,7 +12,7 @@
 
   flan.test(mc, fn = NULL, mfn = NULL, cvfn = NULL,
                fitness = NULL, death = 0., plateff = 1.,
-               model = c("LD", "H"),
+               model = c("LD", "H", "I"), muinf = +Inf,
                mutations0 = 1., mutprob0 = NULL, fitness0 = 1.,
                conf.level = 0.95,
                alternative = c("two.sided", "less", "greater"),
@@ -29,7 +29,8 @@
 be used to estimate the mean mutation number \code{mutations} }
   \item{death}{ death probability. Must be smaller than 0.5. By default 0. }
   \item{plateff}{ plating efficiency parameter. Must be non-larger than 1. By default 1. Available for \code{GF} method, and for \code{ML} method under \code{LD} model.}
-  \item{model}{ statistical lifetime model as a character string: one of \code{LD} (default) for Luria-Delbrück model with exponential lifetimes, or \code{H} for Haldane model with constant lifetimes. }
+  \item{model}{ statistical lifetime model. Must be one of "LD" (default) for Luria-Delbrück model (exponential lifetimes), "H" for Haldane model (constant lifetimes), or "I" for Inhomogeneous model }
+  \item{muinf}{ parameter used only if \code{model} is \code{I}. See details. }
   \item{mutations0}{ null hypothesis value for parameter mutations. See details. }
   \item{mutprob0}{ null hypothesis value for parameter mutprob. See details. }
   \item{fitness0}{ null hypothesis value for parameter fitness. See details. }
@@ -43,6 +44,9 @@ be used to estimate the mean mutation number \code{mutations} }
   \code{flan.test} tests the values of parameters \code{mutations}, \code{mutprob}, or \code{fitness}, with \code{mutations0} \code{mutprob0}, \code{fitness0} as null hypotheses.
 
   If \code{fn} or \code{mfn} are given, mutprob is tested, otherwise, \code{mutations} is tested. If \code{fitness} is given, it is not tested.
+
+  \code{muinf} corresponds to the cumulative division rate on the interval [0 ; +Inf).
+  If \code{model} is \code{I}, \code{muinf} has to be finite, else \code{model} is set to "LD".
 
   \code{alternative} may be a two dimensional vector specifying the alternatives for the two parameters to be tested.
 

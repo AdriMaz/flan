@@ -239,6 +239,56 @@ int FLAN_SimClone::splitTimes(double t) {
     return cloneSize;
 }
 
+
+/*//////////////////////////////////////////////////////////////////////////////////////////////
+  * FLAN_SimInhomogeneousClone class for samples of inhomogeneous lifetimes
+  */
+
+const double FLAN_SimInhomogeneousClone::DEATH_EPS_SIM=1.e-4;
+
+NumericVector FLAN_SimInhomogeneousClone::computeSample(int n,double s) {
+
+
+  NumericVector sample(n);
+  double p;
+
+  //double fs=as<double>((*mF)(s));
+  //double fn=as<double>((*mF)(R_PosInf));
+  double mu=as<double>((*mMU)(s,R_PosInf));
+  double geoD,beD;
+  double up;
+//   p=pow(fs/fn,(1-2*mDeath));
+  p=exp(-mu*(1-2*mDeath));
+
+    if (mDeath<DEATH_EPS_SIM) {
+//         for (int k=0;k<n;k++) {
+      for(NumericVector::iterator it = sample.begin();it != sample.end(); ++it) {
+	  geoD=rgeom(1,p)[0];
+	  if(geoD>=0) *it=geoD+1;
+	  else if (geoD<0 || geoD!=geoD) *it=-1.e-5;
+	}
+    } else {
+      for(NumericVector::iterator it = sample.begin();it != sample.end(); ++it) {
+
+	up=(1-2*mDeath)/(1-mDeath*(1+p));
+
+	beD=rbinom(1,1,up)[0];
+
+	if (beD==1){
+
+	  geoD=rgeom(1,p*up)[0];
+
+	  if(geoD>=0) *it=geoD+1;
+	  else if (geoD<0 || geoD!=geoD) *it=-1.e-5;
+	} else *it=0;
+      }
+    }
+
+  return sample;
+}
+
+
+
 /*//////////////////////////////////////////////////////////////////////////////////////////////
   * FLAN_Clone class for the distribution of a clone size
   */
@@ -865,3 +915,367 @@ double FLAN_DiracClone::computeGeneratingFunction1DerivativeRho(double z) {
 //
 //
 //
+
+
+
+/*//////////////////////////////////////////////////////////////////////////////////////////////
+  * FLAN_Clone class when the model is supposed to be inhomogeneous
+  */
+  NumericVector FLAN_InhomogeneousClone::computeProbability(int m){
+
+    std::vector<double> P(m+1);
+    std::vector<double>::iterator it;
+    int k=1;
+
+    double emuinf=exp(-mMuinf);
+
+    if(mPlateff < 1){
+
+      MATH_Params params;
+      params.rho=mFitness;
+      params.delta=mDeath;
+      params.zeta=mPlateff;
+      params.k=0.;
+      mIntegrator->setFunction("CLONE_P0_WD_WPEF",&params);
+
+      double I;
+      double cste=mFitness/(1-pow(emuinf,mFitness));
+      I=mIntegrator->computeIntegral(emuinf,1.);
+
+      P[0]=I*cste;
+
+      if(m > 0){
+        std::vector<double>::iterator it=P.begin()+1;
+        for (int k=1;k<=m;k++,++it) {
+        	params.k=k;
+        	mIntegrator->setFunction("CLONE_PK_WD_WPEF",&params);
+        	I=mIntegrator->computeIntegral(emuinf,1.);
+        	*it=cste*I;
+        }
+      }
+    } else {
+      if(mDeath<DEATH_EPS_DIST){
+        P[0]=0;
+        if (m > 0){
+          double cste=mFitness/(1-pow(emuinf,mFitness));
+          for(it=P.begin()+1 ; it!= P.end() ; ++it,k++) *it=cste*R::beta(mFitness+1,k)*R::pbeta(emuinf,mFitness+1,k,0,0);
+        }
+      } else {
+        emuinf=pow(emuinf,1-2*mDeath);
+        double d1=mDeath/(1-mDeath);
+        int m_max=1000;
+        double cste=mFitness/(1-pow(emuinf,mFitness));
+
+        MATH_Params params;
+        params.rho=mFitness;
+        params.delta=d1;
+        params.k=0.;
+        mIntegrator->setFunction("CLONE_P0_WD",&params);
+        //integrate the function in [mEmuinf,1]
+        double I;
+        // m=0 probability
+        I=mIntegrator->computeIntegral(emuinf,1.);
+        P[0]=I*d1*cste;
+
+        if(m > 0){
+
+          double d2=(1.-2.*mDeath)/(1-mDeath);
+          d2*=d2;
+          //m>0 probability
+    //       int m1=m;
+          if (m>=m_max) {
+    	for(it=P.begin()+1 ; k<=m_max ; ++it,k++)  {
+    	  params.k=k;
+    	  mIntegrator->setFunction("CLONE_PK_WD",&params);
+    	  I=mIntegrator->computeIntegral(emuinf,1.);
+    	  *it=I*d2*cste;
+    	}
+
+    	// equivalent computation
+    	double a=pow(d2,(1.-mFitness)/2.)*R::gammafn(mFitness+1);
+            for (k=m_max+1 ; k<=m ; k++,++it) {
+    	  *it=a*pow((double)(k),-mFitness-1);
+    	  params.k=k;
+    	  mIntegrator->setFunction("CLONE_PK_WD",&params);
+    	  I=mIntegrator->computeIntegral(0.,emuinf);
+    	  (*it)-=d2*I;
+    	  (*it)*=cste;
+    	}
+          } else {
+    	for(it=P.begin()+1 ; it!=P.end() ; ++it,k++)  {
+    	  params.k=k;
+    	  mIntegrator->setFunction("CLONE_PK_WD",&params);
+    	  I=mIntegrator->computeIntegral(emuinf,1.);
+    	  *it=I*d2*cste;
+    	}
+
+          }
+        }
+     }
+   }
+  return NumericVector(P.begin(),P.end());
+
+}
+
+
+
+  List FLAN_InhomogeneousClone::computeProbability1DerivativeRho(int m){
+
+    std::vector<double> P(m+1);
+    std::vector<double> dP_dr(m+1);
+    std::vector<double>::iterator itP;
+    std::vector<double>::iterator itdP=dP_dr.begin()+1 ;
+  //   double pk;
+    double emuinf=exp(-mMuinf);
+    double enuinf=pow(emuinf,mFitness);
+    double cste1,cste2,tp;
+  //   double cste2=1./mFitness+log(mEmuinf)*enuinf/(1-enuinf);
+    double I,Idr;
+    int k=1;
+
+    if(mPlateff < 1){
+
+      MATH_Params params;
+      params.rho=mFitness;
+      params.delta=mDeath;
+      params.zeta=mPlateff;
+      params.k=0.;
+      mIntegrator->setFunction("CLONE_P0_WD_WPEF",&params);
+
+      //integrate the function in [0,1]
+      cste1=mFitness/(1-enuinf);
+      cste2=-mMuinf*enuinf/(1-enuinf);
+      I=mIntegrator->computeIntegral(emuinf,1.);
+      mIntegrator->setFunctionName("CLONE_dP0_dr_WD_WPEF");
+      Idr=mIntegrator->computeIntegral(emuinf,1.);
+
+      P[0]=I*cste1;
+      dP_dr[0]=cste2*P[0]+cste1*(I/mFitness+Idr);
+
+      if(m > 0){
+        std::vector<double>::iterator it=P.begin()+1;
+        std::vector<double>::iterator itdP=dP_dr.begin()+1;
+
+        for (int k=1;k<=m;k++,++it,++itdP) {
+        	params.k=k;
+        	mIntegrator->setFunction("CLONE_PK_WD_WPEF",&params);
+        	I=mIntegrator->computeIntegral(emuinf,1.);
+
+        	mIntegrator->setFunctionName("CLONE_dPK_dr_WD_WPEF");
+        	Idr=mIntegrator->computeIntegral(emuinf,1.);
+
+          tp=cste1*I;
+          *it=tp;
+        	*itdP=cste2*tp+cste1*(I/mFitness+Idr);
+        }
+      }
+    } else {
+      if(mDeath<DEATH_EPS_DIST){
+
+        P[0]=0;
+        dP_dr[0]=0;
+        if(m == 0) return List::create(_["P"]=P[0],_["dP_dr"]=dP_dr[0]);
+        cste1=mFitness/(1-enuinf);
+        cste2=1./mFitness-mMuinf*enuinf/(1-enuinf);
+    //     int k=1;
+
+    //     double I;
+        double dg=R::digamma(mFitness+1);
+        double bk;
+
+        MATH_Params params;
+
+        params.rho=mFitness;
+        params.delta=0;
+
+        for(itP=P.begin()+1 ; itP!= P.end(); ++itP,++itdP,k++){
+          params.k=k;
+    //       *itP=mFitness*R::beta(mFitness+1,k);
+    //       *itdP=(*itP)*(1/mFitness+dg-R::digamma(mFitness+k+1));
+    //       mIntegrator->setFunctionName("CLONE_PK");
+    //       I=mIntegrator->integralFunction(mEmuinf,1.,mFitness,0,k);
+    //       *itP=cste1*I;
+          bk=R::beta(mFitness+1,k);
+          *itP=cste1*bk*R::pbeta(emuinf,mFitness+1,k,0,0);
+
+          mIntegrator->setFunction("CLONE_PK_dr",&params);
+          I=mIntegrator->computeIntegral(0.,emuinf);
+          *itdP=(*itP)*cste2+cste1*(bk*(dg-R::digamma(mFitness+k+1))-I);
+          //       *itdP=(*itP)*cste2+cste1*I;
+        }
+      } else {
+
+        emuinf=pow(emuinf,1-2*mDeath);
+        enuinf=pow(enuinf,1-2*mDeath);
+        cste1=mFitness/(1-enuinf);
+        cste2=1./mFitness-(1-2*mDeath)*mMuinf*enuinf/(1-enuinf);
+        double d1=mDeath/(1-mDeath);
+    //     double enuinf=pow(mEmuinf,mFitness);
+    //     double cste1=mFitness/(1-enuinf);
+    //     double cste2=1./mFitness+log(mEmuinf)*enuinf/(1-enuinf);
+
+    //     double I;
+        MATH_Params params;
+
+        params.rho=mFitness;
+        params.delta=d1;
+        params.k=0;
+        int m_max=1000;
+        // set the function type
+        mIntegrator->setFunction("CLONE_P0_WD",&params);
+        I=mIntegrator->computeIntegral(emuinf,1.);
+        P[0]=I*d1*cste1;
+
+        mIntegrator->setFunctionName("CLONE_dP0_dr_WD");
+        //integrate the function in [0,1]
+        // m=0 probability
+        I=mIntegrator->computeIntegral(emuinf,1.);
+        dP_dr[0]=I*d1*cste1+P[0]*cste2;
+
+        if (m==0) return List::create(_["P"]=P[0],_["dP_dr"]=dP_dr[0]);
+
+
+        double d2=(1.-2.*mDeath)/(1-mDeath);
+        d2*=d2;
+        //m>0 probability
+    //     int m1=m;
+    //     if (m1>=m_max) m1=m_max;
+    //     std::vector<double>::iterator itP=P.begin()+1 ;
+    //     int k=1;
+    //     for (int k=1;k<=m1;k++,++itP,++itdP) {
+        if(m>=m_max){
+          for(itP=P.begin()+1 ; k<=m_max; ++itP,++itdP,k++){
+    	  params.k=k;
+    	  mIntegrator->setFunction("CLONE_PK_WD",&params);
+    	  I=mIntegrator->computeIntegral(emuinf,1.);
+    	  *itP=I*d2*cste1;
+
+    	  mIntegrator->setFunctionName("CLONE_dPK_dr_WD");
+    	  I=mIntegrator->computeIntegral(emuinf,1.);
+    	  *itdP=(*itP)*cste2+I*d2*cste1;
+          }
+
+          // equivalent computation
+          double gfn=R::gammafn(mFitness+1);
+          double dg=R::digamma(mFitness+1);
+          double a=pow(d2,(1-mFitness)/2.)*gfn;
+          // double b=a*mFitness;
+          double c=dg-0.5*log(d2);
+          // double kpr;
+          double kd;
+          double d;
+          for(k=m_max+1 ; k<=m ; k++, ++itP,++itdP){
+            kd=(double)(k);
+            d=a*pow(kd,-mFitness-1);
+    	params.k=k;
+    	mIntegrator->setFunction("CLONE_PK_WD",&params);
+    	I=mIntegrator->computeIntegral(0.,emuinf);
+    	*itP=cste1*(d-d2*I);
+
+    	mIntegrator->setFunctionName("CLONE_dPK_dr_WD");
+    	I=mIntegrator->computeIntegral(0.,emuinf);
+
+      *itdP=(*itP)*cste2;
+    	(*itdP)+=cste1*(d*(c-log(kd))-d2*I);
+          }
+        } else {
+          for(itP=P.begin()+1 ; itP!= P.end(); ++itP,++itdP,k++){
+    	  params.k=k;
+    	  mIntegrator->setFunction("CLONE_PK_WD",&params);
+    	  I=mIntegrator->computeIntegral(emuinf,1.);
+    	  *itP=I*d2*cste1;
+
+    	  mIntegrator->setFunctionName("CLONE_dPK_dr_WD");
+    	  I=mIntegrator->computeIntegral(emuinf,1.);
+    	  *itdP=(*itP)*cste2+I*d2*cste1;
+          }
+        }
+      }
+    }
+    return List::create(_["P"]=NumericVector(P.begin(),P.end()),
+  		      _["dP_dr"]=NumericVector(dP_dr.begin(),dP_dr.end()));
+
+  }
+
+
+  std::vector<double> FLAN_InhomogeneousClone::computeGeneratingFunction2(double rho,std::vector<double> Z){
+
+    double eps =1e-8;
+
+    std::vector<double> H(Z.size());
+    std::vector<double>::iterator itH=H.begin();
+
+    for (std::vector<double>::iterator itZ = Z.begin() ; itZ != Z.end() ; ++itZ, ++itH){
+      if(fabs(*itZ) <= eps) *itH=0.;
+      else if(fabs(1-(*itZ)) <= eps) *itH=1.;
+      else {
+        double dstar,zstar,I,enuinf,emuinf;
+        emuinf=exp(-(1-2*mDeath)*mMuinf);
+        enuinf=pow(emuinf,rho);
+        dstar=mDeath/(1-mDeath);
+        zstar=((*itZ)-dstar)/(1-(*itZ));
+
+
+        MATH_Params params;
+        params.rho=rho;
+        params.delta=zstar;
+  //       params.k=0;
+
+
+        mIntegrator->setFunction("CLONE_PGF",&params);
+        I=mIntegrator->computeIntegral(emuinf,1.);
+  //       std::cout<<"I ="<<I<<std::endl;
+
+        *itH=dstar+I*zstar*(1-dstar)*rho/(1-enuinf);
+
+
+      }
+    }
+
+    return H;
+
+  }
+
+
+  double FLAN_InhomogeneousClone::computeGeneratingFunction1DerivativeRho(double z){
+
+    double eps =1.e-8;
+
+    if(fabs(z) <= eps) return 0.;
+    else if(fabs(1.-z) <= eps) return 0.;
+    else {
+      double dstar,zstar,I1,I2,h,enuinf,emuinf;
+
+  //     std::cout<<"rho ="<<mFitness<<std::endl;
+  //     std::cout<<"delta ="<<mDeath<<std::endl;
+  //     std::cout<<"muinf ="<<mMuinf<<std::endl;
+  //       enuinf=pow(mEmuinf,rho);
+      emuinf=exp(-(1.-2.*mDeath)*mMuinf);
+      enuinf=pow(emuinf,mFitness);
+      dstar=mDeath/(1-mDeath);
+      zstar=(z-dstar)/(1-z);
+  //     cste=(1-2*mDeath)*mMuinf*enuinf/(1-enuinf);
+
+      MATH_Params params;
+      params.rho=mFitness;
+      params.delta=zstar;
+  //     params.k=0;
+
+      mIntegrator->setFunction("CLONE_PGF",&params);
+      I1=mIntegrator->computeIntegral(emuinf,1.);
+  //     std::cout<<"I1 ="<<I1<<std::endl;
+
+
+      mIntegrator->setFunctionName("CLONE_dPGF_dr");
+      I2=mIntegrator->computeIntegral(emuinf,1.);
+
+  //     std::cout<<"I2 ="<<I2<<std::endl;
+
+  //     h=zstar*(1-dstar)/(1-enuinf)*(mFitness*(I2-cste*I1)+I1);
+      h=zstar*(1.-dstar)/(1.-enuinf)*(mFitness*I2+I1*(1.-mFitness*(1.-2.*mDeath)*mMuinf*enuinf/(1.-enuinf)));
+
+  //     std::cout<<"dh.dr ="<<h<<std::endl;
+      return h;
+    }
+
+  }

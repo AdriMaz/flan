@@ -40,6 +40,8 @@ protected:
     double mDeath;         // Death probability
     double mPlateff;       // Plating efficiency
 
+    double mMuinf;       // Plating efficiency
+
 //     bool mLT;              // logical: if TRUE probabilities are P[X <= x]
 			   //   otherwise, P[X > x]
 
@@ -88,79 +90,76 @@ public:
     FLAN_MutationModel(List args){
 
       if(args.size()==3){
-	mMutNumber=as<double>(args["mutations"]);
-	mFitness=as<double>(args["fitness"]);
-	mDeath=as<double>(args["death"]);
-
-// 	mLT=as<bool>(args["lt"]);
-
-      } else if(args.size()==4){
-// 	std::cout<<"Constructor of MutModel"<<std::endl;
-	mMutNumber=as<double>(args["mutations"]);
-// 	std::cout<<"mutations ="<<mMutNumber<<std::endl;
-
-	mFitness=as<double>(args["fitness"]);
-// 	std::cout<<"fitness ="<<mFitness<<std::endl;
-
-	mDeath=as<double>(args["death"]);
-// 	std::cout<<"death ="<<mDeath<<std::endl;
-
-	
-	std::string model=args["model"];
-	
-	FLAN_Clone* clone=NULL;
-	if(model.compare("H") == 0) clone=new FLAN_DiracClone(mFitness,mDeath);
-  // else clone=new FLAN_ExponentialClone(mFitness,mDeath,args["integrands"]);
-	else clone=new FLAN_ExponentialClone(mFitness,mDeath);
-	
-	mClone=clone;
-
-// 	mLT=as<bool>(args["lt"]);
+      	mMutNumber=as<double>(args["mutations"]);
+      	mFitness=as<double>(args["fitness"]);
+      	mDeath=as<double>(args["death"]);
 
       } else if(args.size()==5){
-	mMutNumber=as<double>(args["mutations"]);
-	mFitness=as<double>(args["fitness"]);
-	mDeath=as<double>(args["death"]);
-	mPlateff=as<double>(args["plateff"]);
+	     mMutNumber=as<double>(args["mutations"]);
+	     mFitness=as<double>(args["fitness"]);
+	     mDeath=as<double>(args["death"]);
 
-	std::string model=args["model"];
+       mMuinf=as<double>(args["muinf"]);
 
-	FLAN_Clone* clone=NULL;
-	if(model.compare("H") == 0) clone=new FLAN_DiracClone(mFitness,mDeath);
-  // else clone=new FLAN_ExponentialClone(mFitness,mDeath,args["integrands"]);
-	else if(model.compare("LDpef") == 0) clone=new FLAN_ExponentialClone(mFitness,mDeath,mPlateff);
-	else clone=new FLAN_ExponentialClone(mFitness,mDeath);
+    	std::string model=args["model"];
 
-	mClone=clone;
+    	FLAN_Clone* clone=NULL;
+    	if(model.compare("H") == 0) clone=new FLAN_DiracClone(mFitness,mDeath);
+      // else clone=new FLAN_ExponentialClone(mFitness,mDeath,args["integrands"]);
+    	else if(model.compare("LD") == 0) clone=new FLAN_ExponentialClone(mFitness,mDeath);
+      else clone=new FLAN_InhomogeneousClone(mFitness,mDeath,mMuinf);
+
+    	mClone=clone;
 
 // 	mLT=as<bool>(args["lt"]);
 
+      } else if(args.size()==6){
+      	mMutNumber=as<double>(args["mutations"]);
+      	mFitness=as<double>(args["fitness"]);
+      	mDeath=as<double>(args["death"]);
+      	mPlateff=as<double>(args["plateff"]);
 
-      } else if (args.size()==8){
+        mMuinf=as<double>(args["muinf"]);
 
-	mSample=args["mc"];
-	if(!Rf_isNull(args["mfn"])){
-	  mMfn=as<double>(args["mfn"]);
-	  mCvfn=as<double>(args["cvfn"]);
-	} else {
-	  mMfn=-1;
-	  mCvfn=-1;
-	}
+      	std::string model=args["model"];
 
-	mFitness=as<double>(args["fitness"]);
-	mDeath=as<double>(args["death"]);
-	mPlateff=as<double>(args["plateff"]);
+      	FLAN_Clone* clone=NULL;
+      	if(model.compare("H") == 0) clone=new FLAN_DiracClone(mFitness,mDeath);
+        // else clone=new FLAN_ExponentialClone(mFitness,mDeath,args["integrands"]);
+      	else if(model.compare("LDpef") == 0) clone=new FLAN_ExponentialClone(mFitness,mDeath,mPlateff);
+      	else if(model.compare("LD") == 0) clone=new FLAN_ExponentialClone(mFitness,mDeath);
+        else if(model.compare("Ipef") == 0) clone=new FLAN_InhomogeneousClone(mFitness,mDeath,mPlateff,mMuinf);
+        else clone=new FLAN_InhomogeneousClone(mFitness,mDeath,mMuinf);
 
-	std::string model=args["model"];
+      	mClone=clone;
 
-	FLAN_Clone* clone=NULL;
-	if(model.compare("H") == 0)clone=new FLAN_DiracClone(mFitness,mDeath);
-    // else clone=new FLAN_ExponentialClone(mFitness,mDeath,args["integrands"]);
-	else clone=new FLAN_ExponentialClone(mFitness,mDeath);
+      } else if (args.size()==9){
 
-	mClone=clone;
+      	mSample=args["mc"];
+      	if(!Rf_isNull(args["mfn"])){
+      	  mMfn=as<double>(args["mfn"]);
+      	  mCvfn=as<double>(args["cvfn"]);
+      	} else {
+      	  mMfn=-1;
+      	  mCvfn=-1;
+      	}
 
-	mScale=as<double>(args["scale"]);
+      	mFitness=as<double>(args["fitness"]);
+      	mDeath=as<double>(args["death"]);
+      	mPlateff=as<double>(args["plateff"]);
+
+        mMuinf=as<double>(args["muinf"]);
+
+      	std::string model=args["model"];
+
+    	FLAN_Clone* clone=NULL;
+    	if(model.compare("H") == 0)clone=new FLAN_DiracClone(mFitness,mDeath);
+      else if(model.compare("LD") == 0) clone=new FLAN_ExponentialClone(mFitness,mDeath);
+      else clone=new FLAN_InhomogeneousClone(mFitness,mDeath,mMuinf);
+
+    	mClone=clone;
+
+    	mScale=as<double>(args["scale"]);
 
       }
 

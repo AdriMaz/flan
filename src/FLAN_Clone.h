@@ -147,6 +147,79 @@ public:
 
 };
 
+/*//////////////////////////////////////////////////////////////////////////////////////////////
+  * FLAN_SimInhomogeneousClone class for samples of inhomogeneous lifetimes
+  */
+
+class FLAN_SimInhomogeneousClone {
+
+private:
+
+    double mFitness;
+    double mDeath;
+
+    Function* mMU;
+
+protected:
+  static const double DEATH_EPS_SIM;     // Threshold for death
+
+public:
+    FLAN_SimInhomogeneousClone(){
+
+      if(!mMU) delete mMU;
+
+      mMU=NULL;
+
+    };
+
+    ~FLAN_SimInhomogeneousClone(){
+
+      if(!mMU) delete mMU;
+
+      mMU=NULL;
+
+    };
+
+
+    FLAN_SimInhomogeneousClone(double rho,double death, List muih){
+
+      mFitness=rho;
+      mDeath=death;
+
+      if(!mMU) delete mMU;
+
+      // allocations
+      mMU=new Function("identity");
+
+      *mMU=muih["mu"];
+
+
+    };
+
+    FLAN_SimInhomogeneousClone(double rho,double death, Function* muih){
+
+      mFitness=rho;
+      mDeath=death;
+
+      if(!mMU) delete mMU;
+
+      // allocations
+      mMU=new Function("identity");
+
+      mMU=muih;
+
+
+    };
+
+    // -----------------------
+    // Sample computation
+    // ------------------------
+
+    NumericVector computeSample(int n,double s);
+
+};
+
+
 
   /*//////////////////////////////////////////////////////////////////////////////////////////////
   * FLAN_Clone class for the distribution of a clone size
@@ -272,7 +345,7 @@ class FLAN_ExponentialClone : public FLAN_Clone {
     };
 
     FLAN_ExponentialClone(List params):FLAN_Clone(params) {
-      if(params.size() == 3) mPlateff=params["plateff"];
+      if(params.size() == 3) mPlateff=as<double>(params["plateff"]);
       else mPlateff=1;
       init();
     };
@@ -347,6 +420,75 @@ public:
     std::vector<double> computeGeneratingFunction2(double rho,std::vector<double> Z);
 
     double computeGeneratingFunction1DerivativeRho(double z)  ;
+
+};
+
+
+/*//////////////////////////////////////////////////////////////////////////////////////////////
+  * FLAN_Clone class when the model is supposed to be inhomogeneous
+  */
+
+class FLAN_InhomogeneousClone : public FLAN_Clone {
+
+protected:
+
+  double mPlateff;
+private:
+
+  MATH_Integration* mIntegrator;
+  double mMuinf;
+
+  void init() {
+    List info=Environment::base_namespace().get(".Machine");
+    double flantol=info["double.eps"];
+    flantol=sqrt(flantol);
+    int flansubd=1000;
+
+    if(!mIntegrator) delete mIntegrator;
+    mIntegrator=new MATH_Integration(flantol,flansubd);
+  }
+
+public:
+
+  FLAN_InhomogeneousClone():FLAN_Clone(){
+    if(!mIntegrator) delete mIntegrator;
+    mIntegrator=NULL;
+  };
+
+  FLAN_InhomogeneousClone(List params):FLAN_Clone(params) {
+    if(params.size() == 4) mPlateff=as<double>(params["plateff"]);
+    mMuinf=as<double>(params["muinf"]);
+    init();
+  };
+
+  FLAN_InhomogeneousClone(double death,double muinf):FLAN_Clone(death) {
+    init();
+    mMuinf=muinf;
+  };
+
+  FLAN_InhomogeneousClone(double rho,double death,double muinf):FLAN_Clone(rho,death) {
+    init();
+    mMuinf=muinf;
+  };
+
+  FLAN_InhomogeneousClone(double rho,double death,double plateff,double muinf):FLAN_Clone(rho,death) {
+    init();
+    mPlateff=plateff;
+    mMuinf=muinf;
+  };
+
+
+  ~FLAN_InhomogeneousClone(){
+    if(!mIntegrator) delete mIntegrator;
+  };
+
+  NumericVector computeProbability(int m);
+
+  List computeProbability1DerivativeRho(int m) ;
+
+  std::vector<double> computeGeneratingFunction2(double rho,std::vector<double> Z);
+
+  double computeGeneratingFunction1DerivativeRho(double z)  ;
 
 };
 #endif
