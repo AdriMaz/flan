@@ -83,8 +83,8 @@ Elect. J. Statist., 6:1251-1272 (2012)
 
 # realistic random sample of size 100: mutation probability 1e-9,
 # mean final number 1e9, coefficient of variation on final numbers 0.3,
-# fitness 0.9, lognormal lifetimes, 5% mutant deaths
-x <- rflan(100, mutprob = 1e-9, mfn = 1e9, cvfn = 0.3, fitness = 0.9, death = 0.05)
+# fitness 0.9, lognormal lifetimes, 5% mutant deaths, plating efficiency 80%
+x <- rflan(100, mutprob = 1e-9, mfn = 1e9, cvfn = 0.3, fitness = 0.9, death = 0.05, plateff = 0.8)
 
 # maximum likelihood estimates with mean final number
 meanfn <- mutestim(x$mc, mfn = 1e9)
@@ -102,14 +102,14 @@ P0method <- mutestim(x$mc, x$fn, method = "P0")
 # take deaths into account
 withdeaths <- mutestim(x$mc, x$fn, death = 0.05, method = "GF")
 
-# compare results
-rbind(meanfn, withfn, Hmodel, GFmethod, P0method, withdeaths)
+# with plateff
+withpef <- mutestim(x$mc, x$fn, death = 0.05, plateff = 0.8, method = "GF")
 
-# use known value of fitness
-mutestim(x$mc, x$fn, fitness = 0.9)
+# compare results
+rbind(meanfn, withfn, Hmodel, GFmethod, P0method, withdeaths, withpef)
 
 # extreme example
-x <- rflan(10000, mutations = 50, fitness = 0.5, dist = list(name = "exp", rate = 1))$mc
+x <- rflan(10000, mutations = 50, fitness = 0.5, dist = "exp")$mc
 summary(x)
 mutestim(x, method = "GF")
 mutestim(x)

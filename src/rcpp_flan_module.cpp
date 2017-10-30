@@ -40,7 +40,7 @@ RCPP_MODULE(flan_module) {
 
 
   class_<FLAN_ExponentialClone>("FlanExpClone")
-  .constructor<double>()
+  .constructor<List>()
 	.method("dclone",&FLAN_ExponentialClone::computeProbability,"compute probability")
   // .method("integral",&FLAN_ExponentialClone::testIntegral,"compute integrale")
 	.method("dclonedr",&FLAN_ExponentialClone::computeProbability1DerivativeRho,"compute probability")
@@ -48,7 +48,7 @@ RCPP_MODULE(flan_module) {
   ;
 
   class_<FLAN_DiracClone>("FlanDirClone")
-  .constructor<double>()
+  .constructor<List>()
 	.method("dclone",&FLAN_DiracClone::computeProbability,"compute probability")
 	.method("dclonedr",&FLAN_DiracClone::computeProbability1DerivativeRho,"compute probability")
 	.method("pgf2",&FLAN_DiracClone::computeGeneratingFunction2,"compute generating function for several z")
@@ -56,7 +56,7 @@ RCPP_MODULE(flan_module) {
 
 
   class_<FLAN_InhomogeneousClone>("FlanInhClone")
-	.constructor<double,double>()
+  .constructor<List>()
 	.method("dclone",&FLAN_InhomogeneousClone::computeProbability,"compute probability")
 	.method("dclonedr",&FLAN_InhomogeneousClone::computeProbability1DerivativeRho,"compute probability")
 // 	.method("pgf",&FLAN_InhomogeneousClone::computeGeneratingFunction,"compute generating function for several z")

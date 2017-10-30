@@ -13,13 +13,16 @@
 }
 
 \usage{
-  dflan(m, mutations = 1., fitness = 1., death = 0., plateff = 1., model = c("LD", "H", "I"), muinf = +Inf)
-  pflan(m, mutations = 1., fitness = 1., death = 0., plateff = 1., model = c("LD", "H", "I"), muinf = +Inf, lower.tail = TRUE)
-  qflan(p, mutations = 1., fitness = 1., death = 0., plateff = 1., model = c("LD", "H", "I"), muinf = +Inf, lower.tail = TRUE)
+  dflan(m, mutations = 1., fitness = 1., death = 0., plateff = 1.,
+        model = c("LD", "H", "I"), muinf = +Inf)
+  pflan(m, mutations = 1., fitness = 1., death = 0., plateff = 1.,
+        model = c("LD", "H", "I"), muinf = +Inf, lower.tail = TRUE)
+  qflan(p, mutations = 1., fitness = 1., death = 0., plateff = 1.,
+        model = c("LD", "H", "I"), muinf = +Inf, lower.tail = TRUE)
   rflan(n, mutations = 1., mutprob = NULL, fitness = 1., death = 0., plateff = 1.,
         dist = list(name = "lnorm", meanlog = -0.3795851, sdlog = 0.3016223),
         distfn = NULL,
-        mfn = 1e9, cvfn = 0;
+        mfn = 1e9, cvfn = 0,
         muih = list(mu = NULL, muinv0 = NULL),
         ...)
 }

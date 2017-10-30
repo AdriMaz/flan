@@ -17,7 +17,7 @@
     Package: \tab flan\cr
     Type: \tab Package\cr
     Version: \tab 0.6\cr
-    Date: \tab 2017-10-25\cr
+  Date: \tab 2017-10-30\cr
     License: \tab GPL\cr
   }
 

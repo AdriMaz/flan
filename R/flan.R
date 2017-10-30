@@ -1748,9 +1748,9 @@ FitnessGFEstimation <- function(mc, death = 0., plateff = 1., model = c("LD", "H
   y <- log(g1)/log(g2)                   # get ratio of logs
 
   # if(model == "LD") clone = new(FlanExpClone, list(death = death, integrands = list(CLONE_PGF = function(x, rho, delta) {x^rho/(1+x*delta)})))
-  if(model == "LD") clone=new(FlanExpClone,death=death)
-  else if(model == "H") clone=new(FlanDirClone,death=death)
-  else clone=new(FlanInhClone,death=death,muinf=muinf)
+  if(model == "LD") clone = new(FlanExpClone, list(death = death))
+  else if(model == "H") clone = new(FlanDirClone, list(death = death))
+  else clone=new(FlanInhClone, list(death = death, muinf = muinf))
 
   if(plateff < 1) {
     ump <- 1-plateff
@@ -2366,7 +2366,7 @@ draw.clone <- function(t, mutprob = 1.e-2, fitness = 1., death = 0.,
     } else if(dist$name == "gamma"){
       names(dist)[2] <- "shape"
       names(dist)[3] <- "scale"
-    } else if(dist$name != "exp" | dist$name != "dirac") stop("'dist[[1]]' must be a character chain among 'exp', 'dirac', 'lnorm', 'gamma'")
+    } else if(dist$name != "exp" & dist$name != "dirac") stop("'dist[[1]]' must be a character chain among 'exp', 'dirac', 'lnorm', 'gamma'")
 
 
 		    # initialization
