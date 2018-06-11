@@ -1,6 +1,6 @@
 Package: flan
-Version: 0.6
-Date: 2017-10-30
+Version: 0.7
+Date: 2018-06-11
 Type: Package
 Title: FLuctuation ANalysis on Mutation Models
 Authors@R: c(person("Adrien","Mazoyer", role =c("aut","cre"),email="Adrien.Mazoyer@univ-grenoble-alpes.fr"),

@@ -923,6 +923,7 @@ double FLAN_DiracClone::computeGeneratingFunction1DerivativeRho(double z) {
   */
   NumericVector FLAN_InhomogeneousClone::computeProbability(int m){
 
+    // std::cout<<"HERE"<<std::endl;
     std::vector<double> P(m+1);
     std::vector<double>::iterator it;
     int k=1;
@@ -930,7 +931,7 @@ double FLAN_DiracClone::computeGeneratingFunction1DerivativeRho(double z) {
     double emuinf=exp(-mMuinf);
 
     if(mPlateff < 1){
-
+      // std::cout<<"PEF"<<std::endl;
       MATH_Params params;
       params.rho=mFitness;
       params.delta=mDeath;
@@ -954,13 +955,19 @@ double FLAN_DiracClone::computeGeneratingFunction1DerivativeRho(double z) {
         }
       }
     } else {
+      // std::cout<<"NOPEF"<<std::endl;
       if(mDeath<DEATH_EPS_DIST){
+        // std::cout<<"NODEATH"<<std::endl;
         P[0]=0;
         if (m > 0){
           double cste=mFitness/(1-pow(emuinf,mFitness));
-          for(it=P.begin()+1 ; it!= P.end() ; ++it,k++) *it=cste*R::beta(mFitness+1,k)*R::pbeta(emuinf,mFitness+1,k,0,0);
+          for(it=P.begin()+1 ; it!= P.end() ; ++it, k++) {
+            // std::cout<<"k = "<<k<<std::endl;
+            *it=cste*R::beta(mFitness+1,k)*(1-R::pbeta(emuinf,mFitness+1,k,1,0));
+          }
         }
       } else {
+        // std::cout<<"DEATH"<<std::endl;
         emuinf=pow(emuinf,1-2*mDeath);
         double d1=mDeath/(1-mDeath);
         int m_max=1000;
@@ -1096,7 +1103,7 @@ double FLAN_DiracClone::computeGeneratingFunction1DerivativeRho(double z) {
     //       I=mIntegrator->integralFunction(mEmuinf,1.,mFitness,0,k);
     //       *itP=cste1*I;
           bk=R::beta(mFitness+1,k);
-          *itP=cste1*bk*R::pbeta(emuinf,mFitness+1,k,0,0);
+            *itP=cste1*bk*(1-R::pbeta(emuinf,mFitness+1,k,1,0));
 
           mIntegrator->setFunction("CLONE_PK_dr",&params);
           I=mIntegrator->computeIntegral(0.,emuinf);

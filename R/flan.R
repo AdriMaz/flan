@@ -1021,7 +1021,7 @@ pflan <- function(m, mutations = 1., fitness = 1., death = 0., plateff = 1., mod
       warning("'muinf' is infinite, 'model' is set to 'LD'.")
       model <- "LD"
     }
-    if(plateff < 1) model <- "Ipef"
+    # if(plateff < 1) model <- "Ipef"
   } else {
     if(is.finite(muinf)) {
       warning(paste("if 'model' is '",model,"' 'muinf' is ignored.",sep=""))
@@ -1034,7 +1034,7 @@ pflan <- function(m, mutations = 1., fitness = 1., death = 0., plateff = 1., mod
     warning("Probabilities are not available when 'model' is 'H' and 'plateff' < 1. 'plateff' is set to 1")
     plateff <- 1
   }
-  if(model == "LD" & plateff < 1) model <- "LDpef"
+  # if(model == "LD" & plateff < 1) model <- "LDpef"
 
 
   flan.mutmodel <- new(FlanMutMod, list(
@@ -1044,7 +1044,8 @@ pflan <- function(m, mutations = 1., fitness = 1., death = 0., plateff = 1., mod
     plateff = plateff,
     # integrands = integrands,
     model = model,
-    muinf = muinf
+    muinf = muinf,
+    mc = NULL, mfn = NULL, cvfn = NULL, scale = NULL
   ))
 
   M <- max(m)
@@ -1088,7 +1089,7 @@ dflan <- function(m, mutations = 1., fitness = 1., death = 0., plateff = 1., mod
       warning("'muinf' is infinite, 'model' is set to 'LD'.")
       model <- "LD"
     }
-    if(plateff < 1) model <- "Ipef"
+    # if(plateff < 1) model <- "Ipef"
   } else {
     if(is.finite(muinf)) {
       warning(paste("if 'model' is '",model,"' 'muinf' is ignored.",sep=""))
@@ -1099,7 +1100,7 @@ dflan <- function(m, mutations = 1., fitness = 1., death = 0., plateff = 1., mod
     warning("Probabilities are not available when 'model' is 'H' and 'plateff' < 1. 'plateff' is set to 1")
     plateff <- 1
   }
-  if(model == "LD" & plateff < 1) model <- "LDpef"
+  # if(model == "LD" & plateff < 1) model <- "LDpef"
 
 
   flan.mutmodel <- new(FlanMutMod, list(
@@ -1109,7 +1110,8 @@ dflan <- function(m, mutations = 1., fitness = 1., death = 0., plateff = 1., mod
     plateff = plateff,
     # integrands = integrands,
     model = model,
-    muinf = muinf
+    muinf = muinf,
+    mc = NULL, mfn = NULL, cvfn = NULL, scale = NULL
   ))
 
   M <- max(m)
@@ -1233,7 +1235,8 @@ MutationMLOptimization <- function(mc, mfn = NULL, cvfn = NULL, fitness = 1., de
 		death = death,
 		# integrands = integrands,
 		model = model,
-    muinf = muinf
+    muinf = muinf,
+    plateff = NULL, mc = NULL, mfn = NULL, cvfn = NULL, scale = NULL
 	      ))
       pm.est <- Mutmodel$unbias.mutprob(sda, z4, mfn, cvfn)
     } else pm.est <- list(mutprob = a.est/mfn, sd.mutprob = sda/mfn)
@@ -1377,7 +1380,8 @@ MutationFitnessMLOptimization <- function(mc, mfn = NULL, cvfn = NULL, death = 0
 		death = death,
 		# integrands = integrands,
 		model = model,
-    muinf = muinf
+    muinf = muinf,
+    plateff = NULL, mc = NULL, mfn = NULL, cvfn = NULL, scale = NULL
 	      ))
       pm.est <- Mutmodel$unbias.mutprob(sda, z4, mfn, cvfn)
     } else pm.est <- list(mutprob = a.est/mfn, sd.mutprob = sda/mfn)
@@ -1722,7 +1726,8 @@ MutationGFEstimation <- function(mc, mfn = NULL, cvfn = NULL, fitness = 1., deat
     # integrands = integrands,
     model = model,
     muinf = muinf,
-    scale = b
+    scale = b,
+    mutations = NULL
   ))
 
   Mutmodel$MutationGFEstimation(init)
@@ -1748,9 +1753,9 @@ FitnessGFEstimation <- function(mc, death = 0., plateff = 1., model = c("LD", "H
   y <- log(g1)/log(g2)                   # get ratio of logs
 
   # if(model == "LD") clone = new(FlanExpClone, list(death = death, integrands = list(CLONE_PGF = function(x, rho, delta) {x^rho/(1+x*delta)})))
-  if(model == "LD") clone = new(FlanExpClone, list(death = death))
-  else if(model == "H") clone = new(FlanDirClone, list(death = death))
-  else clone=new(FlanInhClone, list(death = death, muinf = muinf))
+  if(model == "LD") clone = new(FlanExpClone, list(death = death, fitness = NULL, plateff = NULL))
+  else if(model == "H") clone = new(FlanDirClone, list(death = death, fitness = NULL))
+  else clone=new(FlanInhClone, list(fitness = NULL, death = death, muinf = muinf, plateff = NULL))
 
   if(plateff < 1) {
     ump <- 1-plateff
@@ -1806,7 +1811,8 @@ MutationFitnessGFEstimation <- function(mc, mfn = NULL, cvfn = NULL, death = 0.,
   		  death = death,
   		  plateff = plateff,
   		  model = model,
-        muinf = muinf
+        muinf = muinf,
+        mc = NULL, mfn = NULL, cvfn = NULL, scale = NULL
   		))
       Cov <- Mutmodel$CovGFEstimation(z1, z2, z3)
       sd <- sqrt(Cov/length(mc))
@@ -1876,11 +1882,13 @@ dclone <- function(m, fitness = 1., death = 0., plateff = 1., model = c("LD", "H
     # clone <- new(FlanExpClone, list(fitness = fitness, death = death, integrands = integrands))
   # }
   if(model == "LD") {
-    if(plateff < 1) clone <- new(FlanExpClone, list(fitness = fitness, death = death, plateff = plateff))
-    else clone <- new(FlanExpClone, list(fitness = fitness, death = death))
+    # if(plateff < 1)
+    clone <- new(FlanExpClone, list(fitness = fitness, death = death, plateff = plateff))
+    # else clone <- new(FlanExpClone, list(fitness = fitness, death = death))
   } else if(model == "I") {
-    if(plateff < 1) clone <- new(FlanInhClone, list(fitness = fitness, death = death, plateff = plateff, muinf = muinf))
-    else clone <- new(FlanInhClone, list(fitness = fitness, death = death, muinf = muinf))
+    # if(plateff < 1)
+    clone <- new(FlanInhClone, list(fitness = fitness, death = death, plateff = plateff, muinf = muinf))
+    # else clone <- new(FlanInhClone, list(fitness = fitness, death = death, muinf = muinf))
   } else clone <- new(FlanDirClone, list(fitness = fitness, death = death))
 
 
@@ -1933,11 +1941,13 @@ dclone.dr <- function(m, fitness = 1., death = 0., plateff = 1., model = c("LD",
     # clone <- new(FlanExpClone, list(fitness = fitness, death = death, integrands = integrands))
   # }
   if(model == "LD") {
-    if(plateff < 1) clone <- new(FlanExpClone, list(fitness = fitness, death = death, plateff = plateff))
-    else clone <- new(FlanExpClone, list(fitness = fitness, death = death))
+    # if(plateff < 1)
+    clone <- new(FlanExpClone, list(fitness = fitness, death = death, plateff = plateff))
+    # else clone <- new(FlanExpClone, list(fitness = fitness, death = death))
   } else if(model == "I") {
-    if(plateff < 1) clone <- new(FlanInhClone, list(fitness = fitness, death = death, plateff = plateff, muinf = muinf))
-    else clone <- new(FlanInhClone, list(fitness = fitness, death = death, muinf = muinf))
+    # if(plateff < 1)
+    clone <- new(FlanInhClone, list(fitness = fitness, death = death, plateff = plateff, muinf = muinf))
+    # else clone <- new(FlanInhClone, list(fitness = fitness, death = death, muinf = muinf))
   } else clone <- new(FlanDirClone, list(fitness = fitness, death = death))
 
 
@@ -1981,7 +1991,7 @@ dflan.grad <- function(m, mutations = 1., fitness = 1., death = 0., plateff = 1.
       warning("'muinf' is infinite, 'model' is set to 'LD'.")
       model <- "LD"
     }
-    if(plateff < 1) model <- "Ipef"
+    # if(plateff < 1) model <- "Ipef"
   } else {
     if(is.finite(muinf)) {
       warning(paste("if 'model' is '",model,"' 'muinf' is ignored.",sep=""))
@@ -1993,7 +2003,7 @@ dflan.grad <- function(m, mutations = 1., fitness = 1., death = 0., plateff = 1.
     warning("Probabilities are not available when 'model' is 'H' and 'plateff' < 1. 'plateff' is set to 1")
     plateff <- 1
   }
-  if(model == "LD" & plateff < 1) model <- "LDpef"
+  # if(model == "LD" & plateff < 1) model <- "LDpef"
 
 #   if(model == "LD") {
 #     integrands <- list(CLONE_P0_WD = function(x, rho, delta) {(1-x)*x^(rho-1)/(1-delta*x)},
@@ -2010,7 +2020,8 @@ dflan.grad <- function(m, mutations = 1., fitness = 1., death = 0., plateff = 1.
     plateff = plateff,
     # integrands = integrands,
     model = model,
-    muinf = muinf
+    muinf = muinf,
+    mc = NULL, mfn = NULL, cvfn = NULL, scale = NULL
   ))
 
   M <- max(m)
@@ -2050,7 +2061,8 @@ deduce.dflan <- function(m, mutations = 1., fitness = 1., death = 0., clone){
   flan.mutmodel <- new(FlanMutMod, list(
     mutations = mutations,
     fitness = fitness,
-    death = death
+    death = death,
+    model = "N", plateff = NULL, muinf = NULL, mc = NULL, mfn = NULL, cvfn = NULL, scale = NULL
   ))
 
   output <- flan.mutmodel$deduce.dflan(M, clone)
@@ -2083,7 +2095,8 @@ deduce.dflanda <- function(m, mutations = 1., fitness = 1., death = 0., clone){
   flan.mutmodel <- new(FlanMutMod, list(
     mutations = mutations,
     fitness = fitness,
-    death = death
+    death = death,
+    model = "N", plateff = NULL, muinf = NULL, mc = NULL, mfn = NULL, cvfn = NULL, scale = NULL
   ))
 
   output <- flan.mutmodel$deduce.dflanda(M, clone)

@@ -243,11 +243,12 @@ protected:
 
     FLAN_Clone(List params){
 
-      mDeath=as<double>(params["death"]);
+      // mDeath=as<double>(params["death"]);
 
-      if(params.size() >= 2) {
-	mFitness=as<double>(params["fitness"]);
-      }
+      // if(params.size() >= 2) {
+      if(!Rf_isNull(params["death"]))  mDeath=as<double>(params["death"]);
+	    if(!Rf_isNull(params["fitness"]))  mFitness=as<double>(params["fitness"]);
+      // }
       // std::cout<<"Fitness ="<<mFitness<<std::endl;
       // std::cout<<"Death ="<<mDeath<<std::endl;
     };
@@ -345,8 +346,9 @@ class FLAN_ExponentialClone : public FLAN_Clone {
     };
 
     FLAN_ExponentialClone(List params):FLAN_Clone(params) {
-      if(params.size() == 3) mPlateff=as<double>(params["plateff"]);
-      else mPlateff=1;
+      // if(params.size() == 3) mPlateff=as<double>(params["plateff"]);
+      // else mPlateff=1;
+      if(!Rf_isNull(params["plateff"]))  mPlateff=as<double>(params["plateff"]);
       init();
     };
     FLAN_ExponentialClone(double death):FLAN_Clone(death) {
@@ -456,8 +458,9 @@ public:
   };
 
   FLAN_InhomogeneousClone(List params):FLAN_Clone(params) {
-    if(params.size() == 4) mPlateff=as<double>(params["plateff"]);
-    mMuinf=as<double>(params["muinf"]);
+    // if(params.size() == 4) mPlateff=as<double>(params["plateff"]);
+    if(!Rf_isNull(params["plateff"]))  mPlateff=as<double>(params["plateff"]);
+    if(!Rf_isNull(params["muinf"]))  mMuinf=as<double>(params["muinf"]);
     init();
   };
 
