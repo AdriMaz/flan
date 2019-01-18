@@ -62,6 +62,10 @@ be used to estimate the mean mutation number \code{mutations}. }
 }
 
 \references{
+
+  A. Mazoyer: Fluctuation analysis on mutation models with birth-date dependence.
+  Math. Biosci 303(9): 83-100 (2018)
+
   B. Ycart and N. Veziris: Unbiased estimates of mutation rates under fluctuating final counts.
 PLoS one 9(7) e101434 (2014)
 
@@ -109,7 +113,7 @@ withpef <- mutestim(x$mc, x$fn, death = 0.05, plateff = 0.8, method = "GF")
 rbind(meanfn, withfn, Hmodel, GFmethod, P0method, withdeaths, withpef)
 
 # extreme example
-x <- rflan(10000, mutations = 50, fitness = 0.5, dist = "exp")$mc
+x <- rflan(1000, mutations = 50, fitness = 0.5, dist = "exp")$mc
 summary(x)
 mutestim(x, method = "GF")
 mutestim(x)

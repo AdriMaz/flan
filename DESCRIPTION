@@ -1,9 +1,9 @@
 Package: flan
 Version: 0.7
-Date: 2018-06-11
+Date: 2019-01-18
 Type: Package
 Title: FLuctuation ANalysis on Mutation Models
-Authors@R: c(person("Adrien","Mazoyer", role =c("aut","cre"),email="Adrien.Mazoyer@univ-grenoble-alpes.fr"),
+Authors@R: c(person("Adrien","Mazoyer", role =c("aut","cre"),email="mazoyer.adrien@courrier.uqam.ca"),
              person("Remy", "Drouilhet", role = "aut"),
              person("Stephane", "Despreaux", role = "aut"),
              person("Bernard", "Ycart", role = "aut"))
@@ -11,7 +11,7 @@ Author: Adrien Mazoyer [aut, cre],
 	Remy Drouilhet [aut],
 	Stephane Despreaux [aut],
 	Bernard Ycart [aut]
-Maintainer: Adrien Mazoyer <Adrien.Mazoyer@univ-grenoble-alpes.fr>
+Maintainer: Adrien Mazoyer <mazoyer.adrien@courrier.uqam.ca>
 Description: Tools for fluctuations analysis of mutant cells counts.
 License: GPL
 URL: https://www.r-project.org, https://github.com/AdriMaz/flan
