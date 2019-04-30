@@ -56,6 +56,11 @@ public:
     }
   };
 
+  FLAN_Dist(std::string name, std::vector<double> params) {
+    mName=name;
+    mParams=params;
+  }
+
   ~FLAN_Dist(){};
 
   std::string getDistName() {

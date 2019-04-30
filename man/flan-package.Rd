@@ -16,8 +16,8 @@
   \tabular{ll}{
     Package: \tab flan\cr
     Type: \tab Package\cr
-    Version: \tab 0.6\cr
-  Date: \tab 2017-10-30\cr
+    Version: \tab 0.7\cr
+  Date: \tab 2019-04-30\cr
     License: \tab GPL\cr
   }
 
@@ -33,10 +33,13 @@
 \author{
   Adrien Mazoyer, Rémy Drouilhet, Stéphane Despréaux, and Bernard Ycart
 
-  Maintainer: Adrien Mazoyer  <adrien.mazoyer@univ-grenoble-alpes.fr>
+  Maintainer: Adrien Mazoyer <mazoyer.adrien@courrier.uqam.ca>
 }
 
 \references{
+
+  A. Mazoyer: Fluctuation analysis on mutation models with birth-date dependence
+  Math. Biosci. (2018)
 
   A. Mazoyer: Time inhomogeneous mutation models with birth-date dependence
   B. Math. Biol. (2017)
