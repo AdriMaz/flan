@@ -84,8 +84,8 @@ private:
   double mMut;
   double mFitness;
   double mDeath;
-  FLAN_SimClone *mClone;
-  FLAN_Dist *mDist;
+  FLAN_SimClone *mClone=NULL;
+  FLAN_Dist *mDist=NULL;
   std::string mDistfn;
   double mMfn;
   double mCvfn;
@@ -138,9 +138,9 @@ private:
   double mMut;
   double mFitness;
   double mDeath;
-  FLAN_SimInhomogeneousClone *mClone;
-  Function* mMU;
-  Function* mMUinv0;
+  FLAN_SimInhomogeneousClone *mClone=NULL;
+  Function* mMU=NULL;
+  Function* mMUinv0=NULL;
   double mMfn;
   double mCvfn;
 

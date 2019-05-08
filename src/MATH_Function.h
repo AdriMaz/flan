@@ -27,7 +27,7 @@ private:
   // Function* mIntegrate=NULL;
 
   // Function* mIntegrand=NULL;
-  MATH_Params* mParams;
+  MATH_Params* mParams=NULL;
   std::string mName;
 
   // List mFcts;

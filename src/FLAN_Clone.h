@@ -84,8 +84,8 @@ private:
 
     double mFitness;
     double mDeath;
-    FLAN_Dist *mDist;   // Lifetime distribution
-    FLAN_Dist *mDistN;  // Lifetime distribution for normal cells (drawing function)
+    FLAN_Dist *mDist=NULL;   // Lifetime distribution
+    FLAN_Dist *mDistN=NULL;  // Lifetime distribution for normal cells (drawing function)
 
 protected:
   static const double DEATH_EPS_SIM;     // Threshold for death
@@ -163,7 +163,7 @@ private:
     double mFitness;
     double mDeath;
 
-    Function* mMU;
+    Function* mMU=NULL;
 
 protected:
   static const double DEATH_EPS_SIM;     // Threshold for death
@@ -332,7 +332,7 @@ class FLAN_ExponentialClone : public FLAN_Clone {
 
   private:
 
-    MATH_Integration* mIntegrator;
+    MATH_Integration* mIntegrator=NULL;
 
     void init() {
       List info=Environment::base_namespace().get(".Machine");
@@ -442,7 +442,7 @@ protected:
   double mPlateff;
 private:
 
-  MATH_Integration* mIntegrator;
+  MATH_Integration* mIntegrator=NULL;
   double mMuinf;
 
   void init() {

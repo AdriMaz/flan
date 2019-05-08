@@ -31,7 +31,7 @@ class FLAN_MutationModel {
 
 private:
 
-    FLAN_Clone* mClone;    // Clone object
+    FLAN_Clone* mClone=NULL;    // Clone object
 
 protected:
 
