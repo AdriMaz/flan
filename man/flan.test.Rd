@@ -16,7 +16,7 @@
                mutations0 = 1., mutprob0 = NULL, fitness0 = 1.,
                conf.level = 0.95,
                alternative = c("two.sided", "less", "greater"),
-               method = c("ML", "GF", "P0"), winsor = 1024
+               method = c("ML", "GF", "P0"), winsor = 2000
                )
 }
 

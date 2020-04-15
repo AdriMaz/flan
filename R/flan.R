@@ -33,7 +33,7 @@
 mutestim <- function(mc, fn = NULL, mfn = NULL, cvfn = NULL,                 # user's data
                   fitness = NULL, death = 0., plateff = 1.,                # user's parameters
                   model = c("LD", "H", "I"), muinf = +Inf,                       # clone growth model
-                  method = c("ML", "GF", "P0"), winsor = 1024) # estimation method
+                  method = c("ML", "GF", "P0"), winsor = 2000) # estimation method
                   {
 
     if(missing(method)){method <- "ML"}
@@ -200,7 +200,7 @@ flan.test <- function(mc, fn = NULL, mfn = NULL, cvfn = NULL,                   
                mutations0 = 1., mutprob0 = NULL, fitness0 = 1.,       # null hypotheses
                conf.level = 0.95,                              # confidence level
                alternative = c("two.sided", "less", "greater"),  # alternative
-               method = c("ML", "GF", "P0"), winsor = 1024)          # estimation method
+               method = c("ML", "GF", "P0"), winsor = 2000)          # estimation method
                {
 
    with.prob <- FALSE               # Boolean: if TRUE (if fn, mfn, or cvfn are given), mutprob is tested instead of mutations
@@ -1178,7 +1178,7 @@ adjust.rate <- function(dist, fitness = 1., death = 0.){
 # Returns the ML estimate of mean number of mutation for a sample mc, given the fitness and death
 # If mfn or cvfn are non-empty, returns the estimate of mutation probability instead of the mean number, after decreasing the bias
 # induced if cvfn > 0
-MutationMLOptimization <- function(mc, mfn = NULL, cvfn = NULL, fitness = 1., death = 0., plateff = 1., model = c("LD", "H", "I"), muinf = +Inf, winsor = 1024){
+MutationMLOptimization <- function(mc, mfn = NULL, cvfn = NULL, fitness = 1., death = 0., plateff = 1., model = c("LD", "H", "I"), muinf = +Inf, winsor = 2000){
 
   if(missing(model)) model <- "LD"
   model <- match.arg(model)
@@ -1214,7 +1214,8 @@ MutationMLOptimization <- function(mc, mfn = NULL, cvfn = NULL, fitness = 1., de
   lower = 0.1*a.est
   upper = 10*a.est
 
-  a.est <- lbfgsb3(prm = a.est, fn = ll, gr = dll, lower = lower, upper = upper, control = list(trace = 0, iprint = -1))$prm
+  # a.est <- lbfgsb3c(par = a.est, fn = ll, gr = dll, lower = lower, upper = upper, control = list(trace = -1))$par
+  a.est <- optim(par = a.est, fn = ll, gr = dll, method="L-BFGS-B", lower = lower, upper = upper, control = list(trace = 0))$par
 
   dldd <- deduce.dflanda(m = mc, mutations = a.est, fitness = fitness, death = death, clone = dC)
 
@@ -1247,7 +1248,7 @@ MutationMLOptimization <- function(mc, mfn = NULL, cvfn = NULL, fitness = 1., de
 }
 
 # Returns the ML estimate of mutation probability for a sample of couple (mc, fn), given the fitness and death
-MutationProbabilityMLOptimization <- function(mc, fn, fitness = 1., death = 0., plateff = 1., model = c("LD", "H", "I"), muinf = +Inf, winsor = 1024){
+MutationProbabilityMLOptimization <- function(mc, fn, fitness = 1., death = 0., plateff = 1., model = c("LD", "H", "I"), muinf = +Inf, winsor = 2000){
 
   if(missing(model)) model <- "LD"
   model <- match.arg(model)
@@ -1290,7 +1291,8 @@ MutationProbabilityMLOptimization <- function(mc, fn, fitness = 1., death = 0., 
   lower = 0.1*pm.est
   upper = 10*pm.est
 
-  pm.est <- lbfgsb3(prm = pm.est, fn = ll, gr = dll, lower = lower, upper = upper, control = list(trace = 0, iprint = -1))$prm/mfn
+  # pm.est <- lbfgsb3(par = pm.est, fn = ll, gr = dll, lower = lower, upper = upper, control = list(trace = -1))$par/mfn
+  pm.est <- optim(par = pm.est, fn = ll, gr = dll, method="L-BFGS-B", lower = lower, upper = upper, control = list(trace = 0))$par/mfn
 
   dldd <- mapply(function(x, y){
 	    deduce.dflanda(m = x, mutations = pm.est*y, fitness = fitness, death = death, clone = dC)
@@ -1307,7 +1309,7 @@ MutationProbabilityMLOptimization <- function(mc, fn, fitness = 1., death = 0., 
 # Returns the ML estimates of mean number of mutation and fitness for a sample mc, given the death
 # If mfn or cvfn are non-empty, returns the estimate of mutation probability instead of the mean number, after decreasing the bias
 # induced if cvfn > 0
-MutationFitnessMLOptimization <- function(mc, mfn = NULL, cvfn = NULL, death = 0., plateff = 1., model = c("LD", "H", "I"), muinf = +Inf, winsor = 1024){
+MutationFitnessMLOptimization <- function(mc, mfn = NULL, cvfn = NULL, death = 0., plateff = 1., model = c("LD", "H", "I"), muinf = +Inf, winsor = 2000){
 
   if(missing(model)) model <- "LD"
   model <- match.arg(model)
@@ -1350,7 +1352,9 @@ MutationFitnessMLOptimization <- function(mc, mfn = NULL, cvfn = NULL, death = 0
 #     upper[2] <- 500*r.est
 #   }
 #
-  est <- lbfgsb3(prm = c(a.est, r.est), fn = ll, lower = lower, upper = upper, control = list(trace = 0, iprint = -1))$prm
+  # est <- lbfgsb3(par = c(a.est, r.est), fn = ll, lower = lower, upper = upper, control = list(trace = -1))$par
+  est <- optim(par = c(a.est, r.est), fn = ll, gr = dll, method="L-BFGS-B", lower = lower, upper = upper, control = list(trace = 0))$par
+
   a.est <- est[1]					# Update alpha estimate
   r.est <- est[2]					# Update rho estimate
 
@@ -1394,7 +1398,7 @@ MutationFitnessMLOptimization <- function(mc, mfn = NULL, cvfn = NULL, death = 0
 
 
 # Returns the ML estimates of mutation probability and fitness for a sample of couple (mc, fn), given the death
-MutationProbabilityFitnessMLOptimization <- function(mc, fn, death = 0., plateff = 1., model = c("LD", "H", "I"), muinf = +Inf, winsor = 1024){
+MutationProbabilityFitnessMLOptimization <- function(mc, fn, death = 0., plateff = 1., model = c("LD", "H", "I"), muinf = +Inf, winsor = 2000){
 
   if(missing(model)) model <- "LD"
   model <- match.arg(model)
@@ -1447,8 +1451,8 @@ MutationProbabilityFitnessMLOptimization <- function(mc, fn, death = 0., plateff
 #     upper[2] <- 500*r.est
 #   }
 
-  est <- lbfgsb3(prm = c(pm.est, r.est), fn = ll, gr = dll, lower = lower, upper = upper, control = list(trace = 0, iprint = -1))$prm
-
+  # est <- lbfgsb3(par = c(pm.est, r.est), fn = ll, gr = dll, lower = lower, upper = upper, control = list(trace = -1))$par
+  est <- optim(par = c(pm.est, r.est), fn = ll, gr = dll, method="L-BFGS-B", lower = lower, upper = upper, control = list(trace = 0))$par
   pm.est = est[1]/mfn					# Update alpha estimate
   r.est = est[2]					# Update rho estimate
 
@@ -1541,7 +1545,7 @@ MutationP0Estimation <- function(mc, fn = NULL, mfn = NULL, cvfn = NULL, death =
 # Returns the P0 estimate of mean number of mutations and fitness for a sample of couple mc, given the death
 # If mfn or cvfn are non-empty, returns the estimate of the mutation probability instaed of the mean number
 # after decreasing the induced bias if cvfn > 0
-MutationFitnessP0Estimation <- function(mc, fn = NULL, mfn = NULL, cvfn = NULL, death = 0., model = c("LD", "H", "I"), muinf = +Inf, winsor = 1024){
+MutationFitnessP0Estimation <- function(mc, fn = NULL, mfn = NULL, cvfn = NULL, death = 0., model = c("LD", "H", "I"), muinf = +Inf, winsor = 2000){
 
   if(missing(model)) model <- "LD"
   model <- match.arg(model)
@@ -1609,7 +1613,8 @@ MutationProbabilityP0MLOptimization <- function(mc, fn){
   lower = 0.1*pm.est
   upper = 10*pm.est
 
-  pm.est <- lbfgsb3(prm = pm.est, fn = ll, gr = dll, lower = lower, upper = upper, control = list(trace = 0, iprint = -1))$prm/mfn
+  # pm.est <- lbfgsb3(par = pm.est, fn = ll, gr = dll, lower = lower, upper = upper, control = list(trace = -1))$par/mfn
+  pm.est <- optim(par = pm.est, fn = ll, gr = dll, method="L-BFGS-B", lower = lower, upper = upper, control = list(trace = 0))$par/mfn
 
   dldd <- mapply(function(x, y){
 	   -x*y+(1-x)*y/(exp(pm.est*y)-1)
@@ -1625,7 +1630,7 @@ MutationProbabilityP0MLOptimization <- function(mc, fn){
 
 # Returns the ML estimate of fitness for a sample of couple mc, given the mean number of mutations (or mutation probability) and death
 # If fn is non-empty,
-FitnessP0Optimization <- function(mc, fn = NULL, mut, death = 0., model = c("LD", "H", "I"), muinf = +Inf, winsor = 1024){
+FitnessP0Optimization <- function(mc, fn = NULL, mut, death = 0., model = c("LD", "H", "I"), muinf = +Inf, winsor = 2000){
 
   if(missing(model)) model <- "LD"
   model <- match.arg(model)
@@ -1687,8 +1692,8 @@ FitnessP0Optimization <- function(mc, fn = NULL, mut, death = 0., model = c("LD"
   lower = 0.1*r.est
   upper = 10*r.est
 
-  r.est <- lbfgsb3(prm = r.est, fn = ll, gr = dll, lower = lower, upper = upper, control = list(trace = 0, iprint = -1))$prm
-
+  # r.est <- lbfgsb3(par = r.est, fn = ll, gr = dll, lower = lower, upper = upper, control = list(trace = -1))$par
+  r.est <- optim(par = r.est, fn = ll, gr = dll, method="L-BFGS-B", lower = lower, upper = upper, control = list(trace = 0))$par
 #   est2 <- optim(par = r.est, fn = ll, gr = dll, method = 'L-BFGS-B', lower = lower, upper = upper, hessian = TRUE)
 
   if(is.null(fn)) dldd <- dflan.grad(m = mc, mutations = mut, fitness = r.est, death = death, model = model, muinf = muinf, dalpha = FALSE, drho = TRUE)

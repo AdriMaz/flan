@@ -1,6 +1,6 @@
 Package: flan
 Version: 0.8
-Date: 2019-08-26
+Date: 2020-04-14
 Type: Package
 Title: FLuctuation ANalysis on Mutation Models
 Authors@R: c(person("Adrien","Mazoyer", role =c("aut","cre"),email="adrien.mazoyer@univ-lille.fr"),
@@ -16,7 +16,7 @@ Description: Tools for fluctuations analysis of mutant cells counts.
 License: GPL
 URL: https://www.r-project.org, https://github.com/AdriMaz/flan
 BugReports: https://github.com/AdriMaz/flan/issues
-Depends: R (>= 3.0.0), lbfgsb3
+Depends: R (>= 3.0.0)
 Imports: Rcpp (>= 0.12.5), methods
 LinkingTo: Rcpp, RcppArmadillo, RcppGSL
 RcppModules: flan_module

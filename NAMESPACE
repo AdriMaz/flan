@@ -9,7 +9,7 @@ export(
 S3method(print, flantest)
 
 import(Rcpp,methods)
-import(lbfgsb3)
 importFrom("graphics", "axis", "matlines", "matplot")
 importFrom("stats", "integrate", "pnorm", "qnorm", "quantile", "rexp",
-           "rgamma", "rlnorm", "runif","rbinom", "sd", "uniroot")
+           "rgamma", "rlnorm", "runif","rbinom", "sd", "uniroot",
+           "optim")

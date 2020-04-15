@@ -13,7 +13,7 @@
                   fitness = NULL, death = 0., plateff = 1.,
                   model = c("LD", "H", "I"), muinf = +Inf,
                   method = c("ML", "GF", "P0"),
-                  winsor = 1024)
+                  winsor = 2000)
 }
 
 \arguments{
@@ -117,7 +117,7 @@ x <- rflan(1000, mutations = 50, fitness = 0.5, dist = "exp")$mc
 summary(x)
 mutestim(x, method = "GF")
 mutestim(x)
-mutestim(x, winsor = 2000)
+mutestim(x, winsor = 5000)
 
 \dontrun{
   # None null count in the sample: P0 can not be used.
