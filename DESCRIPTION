@@ -11,7 +11,7 @@ Author: Adrien Mazoyer [aut, cre],
 	Remy Drouilhet [aut],
 	Stephane Despreaux [aut],
 	Bernard Ycart [aut]
-Maintainer: Adrien Mazoyer <adrien-mazoyer@univ-lille.fr>
+Maintainer: Adrien Mazoyer <adrien.mazoyer@univ-lille.fr>
 Description: Tools for fluctuations analysis of mutant cells counts.
 License: GPL
 URL: https://www.r-project.org, https://github.com/AdriMaz/flan
