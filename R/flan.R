@@ -1197,7 +1197,7 @@ MutationMLOptimization <- function(mc, mfn = NULL, cvfn = NULL, fitness = 1., de
     return(list(mutations = a.est, sd.mutations = est$sd.mutations))
   }
 
-  dC <- dclone(m = 0:max(mc), fitness = fitness, death = death, plateff = plateff, model = model)
+  dC <- dclone(m = 0:max(mc), fitness = fitness, death = death, plateff = plateff, model = model, muinf = muinf)
 
   ll <- function(a){
     p <- log(deduce.dflan(m = mc, mutations = a, fitness = fitness, death = death, clone = dC))
@@ -2350,7 +2350,9 @@ print.flantest <- function(x, ...){
 
 draw.clone <- function(t, mutprob = 1.e-2, fitness = 1., death = 0.,
 	     dist = list("lnorm", meanlog = -0.3795851, sdlog = 0.3016223),
-	     col = c("green4", "orange4")){
+	     col = c("green4", "orange4"),
+	     with.lab = TRUE,
+	     with.pch = FALSE){
   #   Simulates a clone up to time t, represents the clone, and
   #   returns the vector of split times.
   #   At each division, the probability of having a mutant is mutprob.
@@ -2442,6 +2444,7 @@ draw.clone <- function(t, mutprob = 1.e-2, fitness = 1., death = 0.,
       DE <- c(DE, de)                      # stack death dates
       OR <- c(OR, or)                      # stack locations
   }                                       # end while
+  nc <- length(CE)                        # number of cells
   if (nc > 1e+4){
     warning("too many cells to plot")
     }else{
@@ -2449,7 +2452,6 @@ draw.clone <- function(t, mutprob = 1.e-2, fitness = 1., death = 0.,
 
   colnor <- col[1]                      # color for normal cells
   colmut <- col[2]                   # color for mutants
-  nc <- length(CE)                        # number of cells
   if (nc>1){                              # something to plot
   OR <- sort(OR, index.return = TRUE)$ix     # order for plotting
   CE <- CE[OR]                            # reorder cells
@@ -2475,22 +2477,25 @@ draw.clone <- function(t, mutprob = 1.e-2, fitness = 1., death = 0.,
 	  gamma = "gamma lifetimes",
 	  lnorm = "log-normal lifetimes")
   {matplot(XN, YN,                         # plot vertical lines
-	  main = para,                     # add title
+	  main = if(with.lab) para else "",                     # add title
 	  xlim = c(1, nc),
 	  ylim = c(t, 0),                 # reverse y axis
 	  type = "l", col = colnor,           # color for normal
 	  lty = rep(1, nno),                # solid lines
 	  axes = FALSE,                    # remove axes
-	  xlab = name, ylab = "time")}        # axes labels
-  axis(side = 2)                            # draw time axis
+	  xlab = if(with.lab) name else "", ylab = if (with.lab) "time" else "")}        # axes labels
+  if (with.pch) points(XN[1,], YN[1,], pch = 19, col = colnor)
+  if (with.lab) axis(side = 2)                            # draw time axis
+
   if(nmu>0){                              # if any mutant
     BDM <- BD[MU]                        # births of mutant
     DEM <- DE[MU]                        # deaths of mutant
     XM <- rbind(which(MU), which(MU))     # abscissas for vertical lines mutant
     YM <- rbind(BDM, DEM)                 # ordinates for vertical lines mutant
-    {matlines(XM, YM,                     # plot horizontal lines
-	  type = "l", col = colmut,           # color for mutant
+    {matlines(XM, YM,                     # plot vertical lines
+    type = "l", col = colmut,           # color for mutant
 	  lty = rep(1, nmu))}               # solid lines
+
   }                                       # end if any mutants
   div <- which((DE<t)&(!MU))              # indices dividing cells normal
   DIN <- CE[div]                          # identities dividing cells normal
@@ -2503,9 +2508,13 @@ draw.clone <- function(t, mutprob = 1.e-2, fitness = 1., death = 0.,
   XN <- rbind(XLN, XRN)                    # abscissas for horizontal lines
   YN <- rbind(BD[XLN], BD[XRN])            # ordinates for horizontal lines
   {matlines(XN, YN,                        # plot horizontal lines
-	  type = "l", col = colnor,           # color normal
+	  type ="l", col = colnor,           # color normal
 	  lty = rep(1, nno))}               # solid lines
+
+  if (nmu > 0 & with.pch) points(XM[1,], YM[1,], pch = 17, col = colmut)
+
   div <- which((DE<t)&MU)                 # indices dividing cells mutant
+
   if (length(div>0)){                     # if any dividing mutant
     DIM <- CE[div]                       # identities dividing cells mutant
     DLM <- 2*DIM                         # identities of left daughters
@@ -2516,7 +2525,8 @@ draw.clone <- function(t, mutprob = 1.e-2, fitness = 1., death = 0.,
     YM <- rbind(BD[XLM], BD[XRM])         # ordinates for horizontal lines
     {matlines(XM, YM,                     # plot horizontal lines
 	  type = "l", col = colmut,           # color mutant
-	  lty = rep(1, nmu))}               # solid lines
+	  lty = rep(1, nmu))}               # solid lines,
+
   }                                       # end if any dividing mutant
   }                                       # end if something to plot
   }                                       # end if graphics
